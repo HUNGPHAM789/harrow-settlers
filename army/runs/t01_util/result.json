@@ -1,0 +1,17 @@
+{
+ "id": "t01_util",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash:k4",
+   "wrote": [
+    "src/util/rng.js",
+    "src/util/heap.js",
+    "src/util/noise.js",
+    "tests/util.test.mjs"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

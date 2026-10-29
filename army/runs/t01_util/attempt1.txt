@@ -1,0 +1,449 @@
+=== FILE: src/util/rng.js ===
+/**
+ * Fast, high-quality 32-bit PRNG (Mulberry32).
+ * @param {number} seed 32-bit integer seed
+ * @returns {() => number} Generator function returning pseudo-random float in [0, 1)
+ */
+export function mulberry32(seed) {
+  let s = seed >>> 0;
+  return function rng() {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Returns a random integer in the range [a, b] inclusive.
+ * @param {() => number} rng Generator function
+ * @param {number} a Range bound
+ * @param {number} b Range bound
+ * @returns {number} Integer in [min(a,b), max(a,b)]
+ */
+export function rngInt(rng, a, b) {
+  const min = Math.ceil(Math.min(a, b));
+  const max = Math.floor(Math.max(a, b));
+  return Math.floor(rng() * (max - min + 1)) + min;
+}
+
+/**
+ * Picks a random element from an array.
+ * @template T
+ * @param {() => number} rng Generator function
+ * @param {T[]} arr Array to select from
+ * @returns {T | undefined} Selected element or undefined if array is empty
+ */
+export function rngPick(rng, arr) {
+  if (!arr || arr.length === 0) return undefined;
+  const idx = Math.floor(rng() * arr.length);
+  return arr[idx];
+}
+
+/**
+ * Shuffles an array in place using Fisher-Yates algorithm.
+ * @template T
+ * @param {() => number} rng Generator function
+ * @param {T[]} arr Array to shuffle
+ * @returns {T[]} The shuffled array (same reference)
+ */
+export function shuffle(rng, arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+}
+=== END ===
+=== FILE: src/util/heap.js ===
+/**
+ * Binary MinHeap implementation using parallel primitive arrays to avoid object allocation.
+ * Suitable for high-frequency operations like pathfinding algorithms.
+ * @template T
+ */
+export class MinHeap {
+  constructor() {
+    /** @type {T[]} */
+    this.items = [];
+    /** @type {number[]} */
+    this.priorities = [];
+  }
+
+  /**
+   * Number of items currently in the heap.
+   * @type {number}
+   */
+  get size() {
+    return this.items.length;
+  }
+
+  /**
+   * Pushes an item into the heap with a numeric priority.
+   * @param {T} item
+   * @param {number} priority
+   * @throws {TypeError} If priority is not a finite number
+   */
+  push(item, priority) {
+    if (typeof priority !== 'number' || !Number.isFinite(priority)) {
+      throw new TypeError('Priority must be a finite number');
+    }
+
+    this.items.push(item);
+    this.priorities.push(priority);
+    this._up(this.items.length - 1);
+  }
+
+  /**
+   * Removes and returns the item with the minimum priority.
+   * @returns {T | undefined}
+   */
+  pop() {
+    if (this.items.length === 0) {
+      return undefined;
+    }
+
+    const topItem = this.items[0];
+    const lastItem = this.items.pop();
+    const lastPriority = this.priorities.pop();
+
+    if (this.items.length > 0) {
+      this.items[0] = lastItem;
+      this.priorities[0] = lastPriority;
+      this._down(0);
+    }
+
+    return topItem;
+  }
+
+  /**
+   * Returns the item with minimum priority without removing it.
+   * @returns {T | undefined}
+   */
+  peek() {
+    return this.items.length > 0 ? this.items[0] : undefined;
+  }
+
+  /**
+   * Clears all items from the heap.
+   */
+  clear() {
+    this.items.length = 0;
+    this.priorities.length = 0;
+  }
+
+  /** @private */
+  _up(i) {
+    const items = this.items;
+    const priorities = this.priorities;
+
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      if (priorities[i] < priorities[parent]) {
+        const tmpItem = items[i];
+        items[i] = items[parent];
+        items[parent] = tmpItem;
+
+        const tmpPri = priorities[i];
+        priorities[i] = priorities[parent];
+        priorities[parent] = tmpPri;
+
+        i = parent;
+      } else {
+        break;
+      }
+    }
+  }
+
+  /** @private */
+  _down(i) {
+    const items = this.items;
+    const priorities = this.priorities;
+    const len = items.length;
+
+    while (true) {
+      const left = (i << 1) + 1;
+      const right = left + 1;
+      let smallest = i;
+
+      if (left < len && priorities[left] < priorities[smallest]) {
+        smallest = left;
+      }
+      if (right < len && priorities[right] < priorities[smallest]) {
+        smallest = right;
+      }
+
+      if (smallest !== i) {
+        const tmpItem = items[i];
+        items[i] = items[smallest];
+        items[smallest] = tmpItem;
+
+        const tmpPri = priorities[i];
+        priorities[i] = priorities[smallest];
+        priorities[smallest] = tmpPri;
+
+        i = smallest;
+      } else {
+        break;
+      }
+    }
+  }
+}
+=== END ===
+=== FILE: src/util/noise.js ===
+/**
+ * Hash coordinate pair into a 32-bit float in [0, 1).
+ * @param {number} x
+ * @param {number} y
+ * @param {number} seed
+ * @returns {number}
+ */
+function hash2D(x, y, seed) {
+  let h = (x * 374761393 + y * 668265263 + seed * 1442968193) | 0;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * Quintic smoothstep function for smooth noise transitions.
+ * @param {number} t
+ * @returns {number}
+ */
+function fade(t) {
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Linear interpolation.
+ * @param {number} a
+ * @param {number} b
+ * @param {number} t
+ * @returns {number}
+ */
+function lerp(a, b, t) {
+  return a + t * (b - a);
+}
+
+/**
+ * Creates a smooth 2D value noise function given a seed.
+ * @param {number} seed Integer seed for generator
+ * @returns {(x: number, y: number) => number} Function returning float in [0, 1)
+ */
+export function makeValueNoise(seed) {
+  const s = seed >>> 0;
+  return function noise(x, y) {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+
+    const xf = x - xi;
+    const yf = y - yi;
+
+    const u = fade(xf);
+    const v = fade(yf);
+
+    const n00 = hash2D(xi, yi, s);
+    const n10 = hash2D(xi + 1, yi, s);
+    const n01 = hash2D(xi, yi + 1, s);
+    const n11 = hash2D(xi + 1, yi + 1, s);
+
+    const x1 = lerp(n00, n10, u);
+    const x2 = lerp(n01, n11, u);
+
+    let val = lerp(x1, x2, v);
+
+    if (val < 0) val = 0;
+    if (val >= 1) val = 1 - Number.EPSILON;
+
+    return val;
+  };
+}
+
+/**
+ * Fractal Brownian Motion (FBM) noise.
+ * @param {(x: number, y: number) => number} noise 2D noise generator
+ * @param {number} x X coordinate
+ * @param {number} y Y coordinate
+ * @param {number} [octaves=4] Number of detail octaves
+ * @param {number} [lacunarity=2] Frequency multiplier per octave
+ * @param {number} [gain=0.5] Amplitude multiplier per octave
+ * @returns {number} Normalized float in [0, 1)
+ */
+export function fbm(noise, x, y, octaves = 4, lacunarity = 2, gain = 0.5) {
+  const numOctaves = Math.floor(octaves);
+  if (numOctaves <= 0) {
+    return 0;
+  }
+
+  let total = 0;
+  let amplitude = 1;
+  let maxVal = 0;
+  let frequency = 1;
+
+  for (let i = 0; i < numOctaves; i++) {
+    total += noise(x * frequency, y * frequency) * amplitude;
+    maxVal += amplitude;
+    frequency *= lacunarity;
+    amplitude *= gain;
+  }
+
+  if (maxVal === 0) {
+    return 0;
+  }
+
+  let norm = total / maxVal;
+  if (norm < 0) norm = 0;
+  if (norm >= 1) norm = 1 - Number.EPSILON;
+
+  return norm;
+}
+=== END ===
+=== FILE: tests/util.test.mjs ===
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mulberry32, rngInt, rngPick, shuffle } from '../src/util/rng.js';
+import { MinHeap } from '../src/util/heap.js';
+import { makeValueNoise, fbm } from '../src/util/noise.js';
+
+test('mulberry32 PRNG determinism and range', () => {
+  const rng1 = mulberry32(12345);
+  const rng2 = mulberry32(12345);
+  const rng3 = mulberry32(99999);
+
+  const seq1 = Array.from({ length: 100 }, () => rng1());
+  const seq2 = Array.from({ length: 100 }, () => rng2());
+  const seq3 = Array.from({ length: 100 }, () => rng3());
+
+  assert.deepEqual(seq1, seq2, 'Same seed must produce identical output sequence');
+  assert.notDeepEqual(seq1, seq3, 'Different seed should produce different output sequence');
+
+  for (const v of seq1) {
+    assert.ok(v >= 0 && v < 1, `Value ${v} must be in [0, 1)`);
+  }
+});
+
+test('rngInt, rngPick, shuffle helpers', () => {
+  const rng = mulberry32(42);
+
+  // rngInt bounds
+  const counts = new Map();
+  for (let i = 0; i < 1000; i++) {
+    const v = rngInt(rng, 10, 15);
+    assert.ok(v >= 10 && v <= 15 && Number.isInteger(v), `rngInt result ${v} out of bounds [10, 15]`);
+    counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  assert.equal(counts.size, 6, 'All integers in inclusive range [10, 15] should be produced');
+
+  // rngPick
+  const arr = ['a', 'b', 'c'];
+  assert.equal(rngPick(rng, []), undefined, 'Pick on empty array returns undefined');
+  const picked = rngPick(rng, arr);
+  assert.ok(arr.includes(picked), 'Picked element must exist in input array');
+
+  // shuffle
+  const items = [1, 2, 3, 4, 5, 6, 7, 8];
+  const itemsCopy = [...items];
+  const shuffled = shuffle(rng, items);
+  assert.equal(shuffled, items, 'shuffle operates in place');
+  assert.deepEqual([...items].sort(), itemsCopy, 'shuffled array contains exact same elements');
+});
+
+test('MinHeap priority monotonicity with 1000 items', () => {
+  const heap = new MinHeap();
+  assert.equal(heap.size, 0);
+
+  const rng = mulberry32(1337);
+  const count = 1000;
+
+  for (let i = 0; i < count; i++) {
+    const prio = rng() * 100;
+    heap.push({ id: i, prio }, prio);
+  }
+
+  assert.equal(heap.size, count);
+
+  let prevPrio = -Infinity;
+  let poppedCount = 0;
+
+  while (heap.size > 0) {
+    const item = heap.pop();
+    assert.ok(item !== undefined);
+    assert.ok(item.prio >= prevPrio, `Heap invariant violated: ${item.prio} < ${prevPrio}`);
+    prevPrio = item.prio;
+    poppedCount++;
+  }
+
+  assert.equal(poppedCount, count);
+  assert.equal(heap.size, 0);
+  assert.equal(heap.pop(), undefined);
+});
+
+test('MinHeap priority validation and edge cases', () => {
+  const heap = new MinHeap();
+
+  assert.throws(() => heap.push('item', NaN), TypeError);
+  assert.throws(() => heap.push('item', Infinity), TypeError);
+  assert.throws(() => heap.push('item', -Infinity), TypeError);
+  assert.throws(() => heap.push('item', 'invalid'), TypeError);
+
+  assert.equal(heap.peek(), undefined);
+  heap.push('first', 10);
+  heap.push('second', 5);
+  assert.equal(heap.peek(), 'second');
+  heap.clear();
+  assert.equal(heap.size, 0);
+  assert.equal(heap.peek(), undefined);
+});
+
+test('Value Noise determinism, range, and smoothness', () => {
+  const noise1 = makeValueNoise(777);
+  const noise2 = makeValueNoise(777);
+
+  assert.equal(noise1(2.5, 3.8), noise2(2.5, 3.8), 'Value noise must be deterministic for same seed');
+
+  // Check output bounds [0, 1) over 1000 random points
+  const rng = mulberry32(101);
+  for (let i = 0; i < 1000; i++) {
+    const x = (rng() - 0.5) * 200;
+    const y = (rng() - 0.5) * 200;
+    const val = noise1(x, y);
+    assert.ok(val >= 0 && val < 1, `Noise output ${val} out of bounds [0, 1) at (${x}, ${y})`);
+  }
+
+  // Check smoothness: adjacent samples with step 0.05 must differ by < 0.2
+  let maxDiff = 0;
+  const step = 0.05;
+  for (let x = 0; x < 10; x += step) {
+    for (let y = 0; y < 10; y += step) {
+      const current = noise1(x, y);
+      const right = noise1(x + step, y);
+      const down = noise1(x, y + step);
+
+      const diffX = Math.abs(current - right);
+      const diffY = Math.abs(current - down);
+
+      if (diffX > maxDiff) maxDiff = diffX;
+      if (diffY > maxDiff) maxDiff = diffY;
+
+      assert.ok(diffX < 0.2, `X diff ${diffX} exceeded threshold 0.2 at (${x}, ${y})`);
+      assert.ok(diffY < 0.2, `Y diff ${diffY} exceeded threshold 0.2 at (${x}, ${y})`);
+    }
+  }
+});
+
+test('fbm noise functionality and edge cases', () => {
+  const noise = makeValueNoise(42);
+
+  // Range check
+  for (let x = 0; x < 5; x += 0.5) {
+    for (let y = 0; y < 5; y += 0.5) {
+      const val = fbm(noise, x, y, 4, 2, 0.5);
+      assert.ok(val >= 0 && val < 1, `fbm output ${val} out of bounds [0, 1)`);
+    }
+  }
+
+  // Handle octaves <= 0
+  assert.equal(fbm(noise, 1.0, 1.0, 0), 0, 'fbm with 0 octaves should return 0');
+  assert.equal(fbm(noise, 1.0, 1.0, -2), 0, 'fbm with negative octaves should return 0');
+});
+=== END ===

@@ -1,0 +1,13 @@
+{
+ "id": "t01_util",
+ "scores": [
+  7,
+  8
+ ],
+ "final": "pass",
+ "issues": [
+  "In src/util/noise.js, hash2D uses double-precision float multiplication (`*`) before bitwise OR truncation, which loses 32-bit integer precision for coordinates > 2^20; use Math.imul(x, 374761393) instead.",
+  "In src/util/noise.js, fade() JSDoc claims to be 'Quintic smoothstep', but implements cubic smoothstep `t * t * (3 - 2 * t)`; update implementation to quintic `t * t * t * (t * (t * 6 - 15) + 10)` to ensure continuous second derivatives (C2) across grid boundaries.",
+  "In src/util/heap.js, array push/pop causes continuous re-allocations in hot pathfinding loops; pre-allocate array capacity or implement index pooling to avoid GC spikes."
+ ]
+}
