@@ -1,0 +1,232 @@
+{
+ "frames": {
+  "anim_chibi_baker_sneeze_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_1": {
+   "frame": {
+    "x": 76,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_2": {
+   "frame": {
+    "x": 152,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_3": {
+   "frame": {
+    "x": 228,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_4": {
+   "frame": {
+    "x": 304,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_5": {
+   "frame": {
+    "x": 380,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_6": {
+   "frame": {
+    "x": 456,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_7": {
+   "frame": {
+    "x": 532,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_8": {
+   "frame": {
+    "x": 608,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  },
+  "anim_chibi_baker_sneeze_9": {
+   "frame": {
+    "x": 684,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 76,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 76,
+    "h": 80
+   },
+   "duration": 167
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "anim_chibi_baker_sneeze.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 760,
+   "h": 80
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "anim_chibi_baker_sneeze",
+    "from": 0,
+    "to": 9,
+    "direction": "forward"
+   }
+  ]
+ }
+}

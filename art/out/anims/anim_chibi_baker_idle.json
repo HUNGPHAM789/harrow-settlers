@@ -1,0 +1,106 @@
+{
+ "frames": {
+  "anim_chibi_baker_idle_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 68,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_idle_1": {
+   "frame": {
+    "x": 68,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 68,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_idle_2": {
+   "frame": {
+    "x": 136,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 68,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_idle_3": {
+   "frame": {
+    "x": 204,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 68,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 68,
+    "h": 80
+   },
+   "duration": 250
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "anim_chibi_baker_idle.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 272,
+   "h": 80
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "anim_chibi_baker_idle",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}

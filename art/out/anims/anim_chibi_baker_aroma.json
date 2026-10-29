@@ -1,0 +1,190 @@
+{
+ "frames": {
+  "anim_chibi_baker_aroma_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_1": {
+   "frame": {
+    "x": 78,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_2": {
+   "frame": {
+    "x": 156,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_3": {
+   "frame": {
+    "x": 234,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_4": {
+   "frame": {
+    "x": 312,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_5": {
+   "frame": {
+    "x": 390,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_6": {
+   "frame": {
+    "x": 468,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  },
+  "anim_chibi_baker_aroma_7": {
+   "frame": {
+    "x": 546,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 78,
+    "h": 80
+   },
+   "sourceSize": {
+    "w": 78,
+    "h": 80
+   },
+   "duration": 250
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "anim_chibi_baker_aroma.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 624,
+   "h": 80
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "anim_chibi_baker_aroma",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}
