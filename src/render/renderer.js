@@ -551,12 +551,12 @@ export class Renderer {
     const speed = b.working ? 2.8 : 0.4;
     const angle = (time * speed) % (Math.PI * 2);
     const hubX = Math.round(bottom.x);
-    const hubY = Math.round(bottom.y - sz.h * 0.62);
-    const radius = 17;
+    const hubY = Math.round(bottom.y - sz.h + 26);
+    const radius = 20;
 
     ctx.save();
     ctx.fillStyle = '#3a2312';
-    ctx.beginPath(); ctx.arc(hubX, hubY, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hubX, hubY, 3.5, 0, Math.PI * 2); ctx.fill();
 
     for (let i = 0; i < 4; i++) {
       const a = angle + (i * Math.PI) / 2;
@@ -564,13 +564,13 @@ export class Renderer {
       const tipX = hubX + cos * radius;
       const tipY = hubY + sin * radius * 0.75;
 
-      ctx.strokeStyle = '#4a2c14';
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = '#3a2010';
+      ctx.lineWidth = 1.8;
       ctx.beginPath(); ctx.moveTo(hubX, hubY); ctx.lineTo(tipX, tipY); ctx.stroke();
 
-      const perpX = -sin * 4.5;
-      const perpY = cos * 4.5 * 0.75;
-      ctx.fillStyle = b.working ? 'rgba(245, 240, 230, 0.95)' : 'rgba(215, 210, 200, 0.75)';
+      const perpX = -sin * 5.2;
+      const perpY = cos * 5.2 * 0.75;
+      ctx.fillStyle = b.working ? 'rgba(250, 248, 240, 0.95)' : 'rgba(220, 215, 205, 0.75)';
       ctx.strokeStyle = '#7c6853';
       ctx.lineWidth = 0.8;
       ctx.beginPath();
@@ -634,26 +634,30 @@ export class Renderer {
 
     if (b.type === 'hq') {
       ctx.fillStyle = `rgba(255, 215, 95, ${a})`;
-      ctx.fillRect(bottom.x - 12, bottom.y - 28, 4, 6);
-      ctx.fillRect(bottom.x, bottom.y - 33, 4, 7);
-      ctx.fillRect(bottom.x + 10, bottom.y - 28, 4, 6);
+      ctx.fillRect(bottom.x - 14, bottom.y - 65, 4, 7);
+      ctx.fillRect(bottom.x + 10, bottom.y - 65, 4, 7);
+      // Torches at gate
+      ctx.fillStyle = `rgba(255, 140, 35, ${a})`;
+      ctx.fillRect(bottom.x - 9, bottom.y - 23, 2, 3);
+      ctx.fillRect(bottom.x + 9, bottom.y - 23, 2, 3);
       ctx.fillStyle = `rgba(255, 180, 50, ${(0.25 * factor).toFixed(3)})`;
-      ctx.beginPath(); ctx.ellipse(bottom.x, bottom.y - 4, 16, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(bottom.x, bottom.y - 20, 20, 10, 0, 0, Math.PI * 2); ctx.fill();
     } else if (b.type === 'hut') {
       ctx.fillStyle = `rgba(255, 215, 95, ${a})`;
-      ctx.fillRect(bottom.x - 6, bottom.y - 18, 4, 5);
+      ctx.fillRect(bottom.x + 12, bottom.y - 25, 5, 5);
       ctx.fillStyle = `rgba(255, 180, 50, ${(0.22 * factor).toFixed(3)})`;
-      ctx.beginPath(); ctx.ellipse(bottom.x - 4, bottom.y - 2, 10, 5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(bottom.x + 14, bottom.y - 22, 10, 6, 0, 0, Math.PI * 2); ctx.fill();
     } else if (b.type === 'tower') {
-      ctx.fillStyle = `rgba(255, 160, 40, ${a})`;
-      ctx.fillRect(bottom.x - 1, bottom.y - 32, 3, 3);
+      ctx.fillStyle = `rgba(255, 180, 45, ${a})`;
+      ctx.fillRect(bottom.x - 16, bottom.y - 65, 4, 4);
+      ctx.fillRect(bottom.x + 21, bottom.y - 51, 3, 3);
       ctx.fillStyle = `rgba(255, 140, 30, ${(0.35 * factor).toFixed(3)})`;
-      ctx.beginPath(); ctx.ellipse(bottom.x, bottom.y - 31, 8, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(bottom.x - 14, bottom.y - 63, 8, 8, 0, 0, Math.PI * 2); ctx.fill();
     } else if (['smith', 'smelter', 'bakery'].includes(b.type)) {
       ctx.fillStyle = `rgba(255, 140, 35, ${a})`;
-      ctx.fillRect(bottom.x - 4, bottom.y - 10, 6, 7);
-      ctx.fillStyle = `rgba(255, 130, 30, ${(0.3 * factor).toFixed(3)})`;
-      ctx.beginPath(); ctx.ellipse(bottom.x - 1, bottom.y - 2, 12, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(bottom.x - 4, bottom.y - 14, 8, 8);
+      ctx.fillStyle = `rgba(255, 130, 30, ${(0.35 * factor).toFixed(3)})`;
+      ctx.beginPath(); ctx.ellipse(bottom.x, bottom.y - 8, 14, 7, 0, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
   }

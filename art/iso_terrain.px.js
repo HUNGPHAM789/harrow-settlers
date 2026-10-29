@@ -1,370 +1,458 @@
-// Isometric terrain tiles and props per ISOMETRIC SPEC (32x16 diamonds, top-left light)
-// Polished per audit V3: organic clustered leaf volumes, dithered micro-textures,
-// natural rock fracture planes, soft-edged contact shadows, and integrated road ruts.
+// Isometric terrain tiles and props - Authentic Settlers II Medieval Pixel Art
+// 32x16 2:1 dimetric tiles, top-left lighting, lush organic foliage, textured surfaces.
 
-use("sweetie16")
 pal({
-  // Deep ocean & water palette
-  A: "#0d1b2a", // deep ocean shadow
-  B: "#1b263b", // deep ocean base
-  C: "#415a77", // water dark
-  D: "#778da9", // water mid
-  E: "#a8dadc", // water lit
-  F: "#e0fbfc", // water foam / highlight
+  // Deep Ocean & Water Palette
+  A: "#0a1322", // deep ocean abyss
+  B: "#142540", // ocean deep base
+  C: "#23496d", // water dark shadow
+  D: "#37719c", // water mid blue
+  E: "#57a0cc", // water lit cerulean
+  F: "#8cd5f5", // water foam crest
+  G: "#e8fbff", // sparkling foam white
   
-  // Sand & damp edge
-  G: "#b08968", // sand shadow
-  H: "#dda15e", // sand base
-  I: "#fefae0", // sand lit / damp highlight
+  // Sand & Shoreline Palette
+  H: "#7a5028", // damp sand shadow
+  I: "#a8773d", // sand mid dark
+  J: "#cf9f57", // sand base warm gold
+  K: "#edd087", // sand lit highlight
+  L: "#fff4be", // sunlit dry sand glint
   
-  // Grass variants & forest floor
-  J: "#283618", // grass deep shadow
-  K: "#386641", // grass dark
-  L: "#606c38", // grass mid
-  M: "#aacc00", // grass lit
-  N: "#d4e09b", // grass bright tuft
-  O: "#1a2410", // forest floor litter dark
-  P: "#33411c", // forest floor litter mid
+  // Lush Meadow Grass & Forest Floor Palette
+  M: "#1b2d10", // deep under-blade shadow
+  N: "#2b4b18", // dark grass base
+  O: "#477823", // mid meadow green
+  P: "#6ba832", // lit grass blade
+  Q: "#95d145", // bright grass highlight / sunlit tuft
+  R: "#c2ed6d", // golden lime blade glint
+  S: "#18200d", // deep forest humus dark
+  T: "#324019", // forest litter mid
   
-  // Rock & Mountain
-  Q: "#2b2d42", // rock shadow
-  R: "#4a4e69", // rock dark
-  S: "#6c757d", // rock mid
-  T: "#adb5bd", // rock light
-  U: "#1c2541", // mountain dark
-  V: "#3a506b", // mountain mid
-  W: "#5bc0be", // mountain light
-  X: "#6fffe9", // mountain snow/ridge lit
+  // Rock & Mountain Palette
+  U: "#1c1e28", // rock deep shadow
+  V: "#34384a", // dark stone plane
+  W: "#535970", // mid stone plane
+  X: "#7a829e", // lit stone facet
+  Y: "#a5aecd", // bright rock ridge highlight
+  Z: "#d8e0f5", // snow-dusted stone
   
-  // Snow
-  Y: "#90e0ef", // snow shadow
-  Z: "#caf0f8", // snow base
-  1: "#ffffff", // snow bright
+  // Snow Palette
+  1: "#7ba5c7", // snow shadow icy blue
+  2: "#aed4ea", // snow mid
+  3: "#e0f2fe", // snow lit
+  4: "#ffffff", // pure snow crest
   
-  // Road
-  2: "#582f0e", // road shadow / deep rut
-  3: "#7f4f24", // road dark
-  4: "#936639", // road base
-  5: "#b08968", // road rut light
+  // Tree Trunks & Bark
+  5: "#1f1008", // trunk shadow
+  6: "#3d1e0d", // dark bark
+  7: "#633518", // mid bark
+  8: "#8c5025", // lit bark
+  9: "#b5723a", // birch / oak highlight
   
-  // Props & Flora accents
-  6: "#2d1b0d", // dark outline / trunk shadow
-  7: "#6f4e37", // trunk bark mid
-  8: "#bc6c25", // autumn orange
-  9: "#dda15e", // autumn yellow
-  a: "#9b2226", // autumn red
-  b: "#ffb703", // flower yellow
-  c: "#fb8500", // flower orange
-  d: "#e63946", // flower red
-  e: "#9d4edd"  // flower purple
+  // Autumn Foliage & Accents
+  a: "#7a1a15", // autumn crimson deep
+  b: "#b02a1c", // autumn red
+  c: "#dc5222", // autumn orange
+  d: "#f58827", // golden autumn
+  e: "#f7c736", // bright autumn yellow / buttercup
+  
+  // Wildflower Blooms & Berries
+  f: "#e63946", // poppy red
+  g: "#ffffff", // daisy white
+  h: "#3a86ff", // bluebell blue
+  i: "#9d4edd", // violet purple
+  j: "#2d6a4f"  // pine deep evergreen
 })
+
+ramps("AB", "CDEF", "HIJK", "MNOPQR", "UVWXY", "1234", "56789", "abcde")
 
 const ISO_W = 32
 const ISO_H = 16
 
-// Helper to draw textured iso diamond with dithered shading and top-left light strictly inside 32x16 diamond bounds
-function drawIsoDiamond(c, topColor, leftColor, rightColor, darkBottomColor, detailFn) {
+// Helper to draw textured iso diamond clipped to 32x16 diamond
+function drawIsoDiamond(c, baseCol, leftCol, rightCol, topCol, detailFn) {
   c.rect(0, 0, ISO_W, ISO_H, "_")
-  // Clip strictly to 2:1 isometric diamond: top(16,0), right(31,8), bottom(16,15), left(0,8)
   c.clip([16, 0, 32, 8, 16, 16, 0, 8], () => {
-    c.poly([16, 0, 32, 8, 16, 16, 0, 8], darkBottomColor)
-    c.poly([16, 0, 16, 16, 0, 8], leftColor)
-    c.dither(0, 0, 32, 16, leftColor, topColor, 0.3)
-    c.poly([16, 0, 32, 8, 16, 8], rightColor)
+    c.poly([16, 0, 32, 8, 16, 16, 0, 8], baseCol)
+    c.poly([16, 0, 16, 16, 0, 8], leftCol)
+    c.poly([16, 0, 32, 8, 16, 16], rightCol)
+    c.dither(0, 0, 32, 16, leftCol, topCol, 0.35)
     if (detailFn) detailFn(c)
   })
 }
 
-// Soft contact shadow with dither falloff clipped within diamond bounds
-function drawSoftContactShadow(c, cx, cy, rx, ry) {
-  c.ellipse(cx, cy, rx, ry, "6")
-  c.dither(cx - rx, cy - ry, rx * 2, ry * 2, "6", "_", 0.4)
-}
-
-// 1. iso_tile_deep
+// -------------------------------------------------------------------------
+// WATER TILES (Ocean abyss & animated coastal waves)
+// -------------------------------------------------------------------------
+// 1. iso_tile_deep (Deep ocean abyss with gentle wave swell)
 sprite("iso_tile_deep", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "B", "B", "A", "A", (c) => {
-    c.px(16, 5, "C")
-    c.px(12, 7, "C")
-    c.px(20, 7, "C")
+  drawIsoDiamond(c, "A", "B", "A", "B", (c) => {
+    c.line(10, 6, 18, 10, "C", 1)
+    c.line(14, 4, 22, 8, "C", 1)
+    c.px(14, 5, "D")
+    c.px(18, 7, "D")
   })
 })
 
-// 2. iso_tile_water
+// 2. iso_tile_water (Clear coastal blue water with wave ripples)
 sprite("iso_tile_water", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "E", "D", "C", "B", (c) => {
-    c.px(14, 5, "E")
-    c.px(18, 9, "E")
-    c.px(8, 7, "F")
-    c.px(24, 6, "F")
+  drawIsoDiamond(c, "C", "D", "C", "E", (c) => {
+    c.line(8, 7, 16, 11, "D", 1)
+    c.line(12, 5, 24, 11, "E", 1)
+    c.line(16, 3, 22, 6, "F", 1)
+    c.px(19, 5, "G") // wave glint
+    c.px(10, 8, "F")
   })
 })
 
-// 3. iso_tile_water_1
+// 3. iso_tile_water_1 (Wave cycle frame 1)
 sprite("iso_tile_water_1", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "E", "D", "C", "B", (c) => {
-    c.px(10, 4, "F")
-    c.px(12, 5, "E")
-    c.px(22, 10, "F")
-    c.px(20, 8, "E")
+  drawIsoDiamond(c, "C", "D", "C", "E", (c) => {
+    c.line(10, 4, 20, 9, "E", 1)
+    c.line(14, 3, 18, 5, "F", 1)
+    c.px(16, 4, "G")
+    c.line(6, 8, 14, 12, "E", 1)
+    c.px(10, 10, "F")
+    c.line(18, 8, 26, 12, "D", 1)
   })
 })
 
-// 4. iso_tile_water_2
+// 4. iso_tile_water_2 (Wave cycle frame 2)
 sprite("iso_tile_water_2", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "E", "D", "C", "B", (c) => {
-    c.px(18, 6, "F")
-    c.px(19, 7, "E")
-    c.px(10, 9, "F")
-    c.px(14, 11, "E")
+  drawIsoDiamond(c, "C", "D", "C", "E", (c) => {
+    c.line(12, 5, 22, 10, "F", 1)
+    c.px(17, 7, "G")
+    c.px(18, 7, "G")
+    c.line(8, 6, 16, 10, "E", 1)
+    c.line(16, 8, 24, 12, "E", 1)
+    c.px(20, 10, "F")
   })
 })
 
-// 5. iso_tile_water_3
+// 5. iso_tile_water_3 (Wave cycle frame 3)
 sprite("iso_tile_water_3", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "D", "C", "B", "A", (c) => {
-    c.px(16, 3, "F")
-    c.px(8, 6, "E")
-    c.px(24, 6, "E")
-    c.px(16, 12, "F")
+  drawIsoDiamond(c, "C", "D", "C", "E", (c) => {
+    c.line(14, 6, 24, 11, "E", 1)
+    c.px(19, 8, "F")
+    c.line(10, 5, 18, 9, "F", 1)
+    c.px(14, 7, "G")
+    c.line(6, 9, 14, 13, "D", 1)
   })
 })
 
+// -------------------------------------------------------------------------
+// SAND TILES (Warm golden beach with pebble accents)
+// -------------------------------------------------------------------------
 // 6. iso_tile_sand
 sprite("iso_tile_sand", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "I", "H", "H", "G", (c) => {
-    c.px(16, 14, "G")
-    c.px(20, 12, "G")
-    c.px(12, 12, "G")
-    c.px(24, 10, "G")
-    c.px(8, 10, "G")
+  drawIsoDiamond(c, "I", "J", "I", "K", (c) => {
+    c.line(10, 6, 22, 12, "K", 1)
+    c.px(14, 8, "L")
+    c.px(18, 10, "L")
+    c.px(8, 8, "H") // tiny beach pebble
+    c.px(24, 8, "H")
   })
 })
 
-// 7. iso_tile_grass
+// -------------------------------------------------------------------------
+// LUSH MEADOW GRASS TILES (Vibrant blades & Wildflower variants)
+// -------------------------------------------------------------------------
+// 7. iso_tile_grass (Base rich lush meadow grass with blade tufts)
 sprite("iso_tile_grass", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(10, 5, "N")
-    c.px(11, 5, "M")
-    c.px(22, 7, "K")
-    c.px(16, 10, "J")
-    c.px(15, 10, "L")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    // Grass blade clumps
+    c.line(10, 5, 12, 4, "Q", 1)
+    c.px(12, 3, "R")
+    c.line(18, 7, 20, 6, "Q", 1)
+    c.px(20, 5, "R")
+    c.line(14, 10, 16, 9, "Q", 1)
+    c.px(16, 8, "R")
+    c.px(8, 8, "M") // blade shadow
+    c.px(22, 10, "M")
   })
 })
 
-// 8. iso_tile_grass_1
+// 8. iso_tile_grass_1 (Meadow with bright yellow buttercups)
 sprite("iso_tile_grass_1", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(14, 4, "N")
-    c.px(8, 8, "K")
-    c.px(20, 11, "J")
-    c.px(21, 11, "L")
-    c.px(12, 7, "N")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    c.line(12, 5, 14, 4, "Q", 1)
+    c.px(14, 3, "R")
+    // Buttercup flowers
+    c.px(10, 6, "e")
+    c.px(11, 6, "e")
+    c.px(10, 7, "d")
+    c.px(22, 8, "e")
+    c.px(22, 9, "d")
   })
 })
 
-// 9. iso_tile_grass_2
+// 9. iso_tile_grass_2 (Meadow with white daisies)
 sprite("iso_tile_grass_2", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(18, 5, "N")
-    c.px(12, 9, "K")
-    c.px(24, 7, "L")
-    c.px(7, 6, "J")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    c.line(16, 6, 18, 5, "Q", 1)
+    c.px(18, 4, "R")
+    // Daisies with gold centers
+    c.px(12, 7, "g")
+    c.px(13, 7, "e")
+    c.px(14, 7, "g")
+    c.px(20, 10, "g")
+    c.px(21, 10, "e")
   })
 })
 
-// 10. iso_tile_grass_3
+// 10. iso_tile_grass_3 (Meadow with scarlet poppies)
 sprite("iso_tile_grass_3", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(16, 6, "N")
-    c.px(10, 6, "K")
-    c.px(22, 9, "L")
-    c.px(14, 8, "J")
-    c.px(18, 12, "N")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    c.line(10, 7, 12, 6, "Q", 1)
+    c.px(12, 5, "R")
+    // Scarlet poppies
+    c.px(16, 6, "f")
+    c.px(17, 6, "b")
+    c.px(16, 7, "a")
+    c.px(24, 9, "f")
   })
 })
 
-// 11. iso_tile_grass_4
+// 11. iso_tile_grass_4 (Meadow with bluebell blossoms)
 sprite("iso_tile_grass_4", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(13, 6, "N")
-    c.px(19, 8, "L")
-    c.px(15, 7, "b")
-    c.px(9, 9, "K")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    c.line(14, 8, 16, 7, "Q", 1)
+    c.px(16, 6, "R")
+    // Bluebells
+    c.px(11, 5, "h")
+    c.px(11, 6, "i")
+    c.px(21, 7, "h")
   })
 })
 
-// 12. iso_tile_grass_5
+// 12. iso_tile_grass_5 (Meadow with four-leaf clover patches)
 sprite("iso_tile_grass_5", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(16, 7, "H")
-    c.px(17, 7, "G")
-    c.px(12, 8, "N")
-    c.px(22, 6, "L")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    // Clover clump
+    c.px(15, 6, "R")
+    c.px(16, 6, "Q")
+    c.px(15, 7, "Q")
+    c.px(16, 7, "R")
+    c.px(9, 8, "Q")
+    c.px(23, 9, "Q")
   })
 })
 
-// 13. iso_tile_grass_6
+// 13. iso_tile_grass_6 (Meadow with flat stepping pebble)
 sprite("iso_tile_grass_6", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "N", "M", "L", "K", (c) => {
-    c.px(11, 4, "N")
-    c.px(12, 5, "N")
-    c.px(20, 8, "K")
-    c.px(21, 8, "J")
-    c.px(15, 11, "N")
+  drawIsoDiamond(c, "N", "O", "N", "P", (c) => {
+    c.line(10, 5, 12, 4, "Q", 1)
+    // Small flat stepping stone
+    c.ellipse(17, 8, 3, 2, "W")
+    c.px(17, 7, "X")
+    c.px(17, 9, "V")
   })
 })
 
-// 14. iso_tile_forest
+// -------------------------------------------------------------------------
+// FOREST, ROCK, MOUNTAIN & SNOW TILES
+// -------------------------------------------------------------------------
+// 14. iso_tile_forest (Deep mossy forest floor with pine needle litter)
 sprite("iso_tile_forest", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "L", "K", "J", "O", (c) => {
+  drawIsoDiamond(c, "S", "T", "S", "N", (c) => {
+    c.line(10, 6, 22, 12, "T", 1)
     c.px(14, 5, "O")
-    c.px(18, 7, "P")
-    c.px(10, 9, "O")
-    c.px(20, 10, "P")
-    c.px(16, 12, "O")
-    c.px(22, 5, "P")
+    c.px(18, 8, "O")
+    c.px(12, 9, "5") // pine twig
+    c.px(13, 9, "6")
+    c.px(20, 10, "S")
   })
 })
 
-// 15. iso_tile_rock
+// 15. iso_tile_rock (Chiseled granite rock slab)
 sprite("iso_tile_rock", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "T", "S", "R", "Q", (c) => {
-    c.poly([16, 3, 22, 7, 16, 11, 10, 7], "S")
-    c.px(16, 5, "T")
-    c.px(14, 7, "Q")
-    c.px(18, 8, "R")
+  drawIsoDiamond(c, "V", "W", "V", "X", (c) => {
+    c.poly([16, 3, 24, 7, 16, 11, 8, 7], "W")
+    c.line(8, 7, 16, 3, "Y", 1)
+    c.line(16, 3, 24, 7, "X", 1)
+    c.line(8, 7, 16, 11, "V", 1)
+    c.line(16, 11, 24, 7, "U", 1)
+    c.px(16, 4, "Y")
   })
 })
 
-// 16. iso_tile_mountain
+// 16. iso_tile_mountain (Faceted craggy alpine peak with snow dusting)
 sprite("iso_tile_mountain", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "X", "W", "V", "U", (c) => {
-    c.poly([16, 2, 24, 6, 16, 10, 8, 6], "V")
-    c.poly([16, 4, 20, 6, 16, 8, 12, 6], "W")
-    c.px(16, 5, "X")
+  drawIsoDiamond(c, "U", "V", "U", "W", (c) => {
+    c.poly([16, 2, 26, 7, 16, 12, 6, 7], "V")
+    c.poly([16, 3, 22, 6, 16, 9, 10, 6], "W")
+    // Crisp ridge lines
+    c.line(6, 7, 16, 2, "Z", 1)
+    c.line(16, 2, 26, 7, "Y", 1)
+    c.line(16, 2, 16, 12, "Z", 1)
+    c.px(16, 2, "4") // pure snow peak!
   })
 })
 
-// 17. iso_tile_snow
+// 17. iso_tile_snow (Soft sparkling snow drift with blue shadows)
 sprite("iso_tile_snow", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "1", "Z", "Y", "Q", (c) => {
-    c.px(15, 5, "1")
-    c.px(17, 9, "Z")
-    c.px(10, 8, "Y")
-    c.px(22, 6, "1")
+  drawIsoDiamond(c, "1", "2", "1", "3", (c) => {
+    c.line(10, 5, 22, 11, "3", 1)
+    c.line(14, 4, 18, 6, "4", 1)
+    c.px(16, 5, "4")
+    c.px(11, 8, "2")
+    c.px(21, 9, "2")
   })
 })
 
-// 18. iso_tile_road
+// 18. iso_tile_road (Worn dirt road with cart wheel ruts)
 sprite("iso_tile_road", { w: ISO_W, h: ISO_H }, (c) => {
-  drawIsoDiamond(c, "5", "4", "3", "2", (c) => {
-    c.poly([11, 4, 15, 6, 21, 9, 17, 7], "2")
-    c.poly([13, 6, 17, 8, 23, 11, 19, 9], "3")
-    c.px(15, 7, "5")
-    c.px(19, 9, "5")
+  drawIsoDiamond(c, "5", "6", "5", "7", (c) => {
+    // Dirt path ribbon
+    c.poly([16, 2, 28, 8, 16, 14, 4, 8], "7")
+    c.line(8, 8, 24, 8, "8", 1)
+    // Cart wheel ruts
+    c.line(10, 6, 22, 12, "6", 1)
+    c.line(10, 10, 22, 4, "6", 1)
   })
 })
 
-// 19. iso_edge_grass_sand (Properly clipped to bottom half diamond overlay)
+// 19. iso_edge_grass_sand
 sprite("iso_edge_grass_sand", { w: ISO_W, h: ISO_H }, (c) => {
   c.rect(0, 0, ISO_W, ISO_H, "_")
   c.clip([16, 8, 32, 8, 16, 16, 0, 8], () => {
-    c.poly([16, 8, 32, 8, 16, 16, 0, 8], "H")
-    c.px(20, 12, "I")
-    c.px(24, 10, "I")
+    c.poly([16, 8, 32, 8, 16, 16, 0, 8], "J")
+    c.line(10, 11, 22, 11, "K", 1)
   })
 })
 
-// 20. iso_edge_grass_water (Properly clipped to bottom half diamond overlay)
+// 20. iso_edge_grass_water
 sprite("iso_edge_grass_water", { w: ISO_W, h: ISO_H }, (c) => {
   c.rect(0, 0, ISO_W, ISO_H, "_")
   c.clip([16, 8, 32, 8, 16, 16, 0, 8], () => {
-    c.poly([16, 8, 32, 8, 16, 16, 0, 8], "C")
-    c.px(20, 12, "E")
-    c.px(24, 10, "F")
+    c.poly([16, 8, 32, 8, 16, 16, 0, 8], "D")
+    c.line(8, 12, 24, 12, "E", 1)
+    c.px(16, 12, "G") // shoreline foam
   })
 })
 
-// --- PROPS & TREES (Organic clustered volumes, refined soft shadows, outline) ---
 
-// 21. iso_tree_1 (24x32 round oak - organic clustered leaf volumes)
-sprite("iso_tree_1", { w: 24, h: 32, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 12, 29, 6, 2)
-  c.rect(10, 20, 4, 9, "7")
-  c.line(10, 20, 10, 28, "6", 1)
-  c.px(11, 23, "6")
-  c.poly([6, 14, 12, 6, 18, 14, 16, 20, 8, 20], "K")
-  c.poly([8, 10, 12, 4, 16, 10, 14, 16, 10, 16], "L")
-  c.poly([10, 8, 12, 5, 14, 8, 13, 12, 11, 12], "M")
-  c.px(10, 7, "N")
-  c.px(12, 6, "N")
+// -------------------------------------------------------------------------
+// PROPS & TREES (Volumetric leafy canopies, sturdy trunks, authentic pixel art)
+// -------------------------------------------------------------------------
+
+// 21. iso_tree_1 (Grand Bavarian Oak: 24x32 base, outline 26x34)
+sprite("iso_tree_1", { w: 24, h: 32, outline: "5" }, (c) => {
+  // Gnarled Oak Trunk with root flare
+  c.rect(10, 20, 5, 10, "6")
+  c.line(10, 20, 10, 30, "5", 1)
+  c.line(14, 20, 14, 30, "7", 1)
+  c.px(9, 29, "5")  // left root flare
+  c.px(15, 29, "7") // right root flare
+  
+  // Broad Volumetric Leafy Canopy
+  // Layer 1: Underside ambient occlusion / deep shadow
+  c.ellipse(12, 16, 10, 7, "M")
+  // Layer 2: Mid green foliage volumes
+  c.ellipse(12, 14, 9, 7, "N")
+  c.ellipse(9, 13, 6, 5, "O")
+  c.ellipse(15, 13, 6, 5, "O")
+  // Layer 3: Lit leaf clusters catching sunlight
+  c.ellipse(11, 10, 7, 5, "P")
+  c.ellipse(8, 9, 4, 3, "Q")
+  c.ellipse(14, 8, 5, 4, "Q")
+  // Sunlit leafy crown highlights
+  c.px(8, 8, "R")
+  c.px(13, 6, "R")
+  c.px(14, 7, "R")
 })
 
-// 22. iso_tree_2 (24x36 pine)
-sprite("iso_tree_2", { w: 24, h: 36, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 12, 33, 5, 2)
-  c.rect(11, 24, 2, 9, "7")
-  c.poly([12, 2, 22, 14, 2, 14], "K")
-  c.poly([12, 8, 20, 22, 4, 22], "L")
-  c.poly([12, 16, 18, 32, 6, 32], "J")
-  c.line(12, 3, 12, 30, "M", 1)
-  c.px(11, 6, "N")
+// 22. iso_tree_2 (Noble Black Forest Pine: 24x36 base, outline 26x38)
+sprite("iso_tree_2", { w: 24, h: 36, outline: "5" }, (c) => {
+  // Tall Straight Pine Trunk
+  c.rect(11, 24, 3, 10, "6")
+  c.line(13, 24, 13, 34, "7", 1)
+  
+  // Tiered Drooping Needle Boughs
+  // Bottom Tier
+  c.poly([12, 16, 22, 28, 2, 28], "j")
+  c.poly([12, 16, 18, 26, 6, 26], "N")
+  c.line(12, 16, 12, 28, "O", 1)
+  // Middle Tier
+  c.poly([12, 8, 20, 19, 4, 19], "j")
+  c.poly([12, 8, 17, 18, 7, 18], "N")
+  c.line(12, 8, 12, 19, "P", 1)
+  // Top Spire Tier
+  c.poly([12, 2, 17, 11, 7, 11], "N")
+  c.poly([12, 2, 15, 10, 9, 10], "P")
+  c.px(12, 2, "Q") // top needle spire!
 })
 
-// 23. iso_tree_3 (24x32 autumn tree - organic shaded canopy)
-sprite("iso_tree_3", { w: 24, h: 32, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 12, 29, 6, 2)
-  c.rect(10, 20, 4, 9, "7")
-  c.poly([6, 14, 12, 6, 18, 14, 16, 20, 8, 20], "8")
-  c.poly([8, 10, 12, 4, 16, 10, 14, 16, 10, 16], "9")
-  c.poly([10, 8, 12, 5, 14, 8, 13, 12, 11, 12], "a")
-  c.px(10, 7, "9")
-  c.px(12, 6, "9")
+// 23. iso_tree_3 (Golden Autumn Birch/Maple: 24x32 base, outline 5)
+sprite("iso_tree_3", { w: 24, h: 32, outline: "5" }, (c) => {
+  // White Birch Bark Trunk with dark horizontal lenticels
+  c.rect(11, 20, 3, 10, "G")
+  c.line(11, 20, 11, 30, "9", 1)
+  c.px(12, 22, "5")
+  c.px(13, 25, "5")
+  c.px(12, 28, "5")
+  
+  // Vibrant Glowing Autumn Canopy (Crimson, Orange, Gold)
+  c.ellipse(12, 16, 10, 7, "a") // deep crimson shadow
+  c.ellipse(12, 14, 9, 7, "b")
+  c.ellipse(9, 13, 6, 5, "c")
+  c.ellipse(15, 13, 6, 5, "c")
+  c.ellipse(11, 10, 7, 5, "d") // golden orange
+  c.ellipse(8, 9, 4, 3, "e")  // bright buttercup yellow
+  c.ellipse(14, 8, 5, 4, "e")
+  c.px(8, 8, "e")
+  c.px(13, 6, "e")
 })
 
-// 24. iso_sapling (12x14)
-sprite("iso_sapling", { w: 12, h: 14, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 6, 13, 3, 1)
-  c.rect(5, 9, 2, 4, "7")
-  c.poly([4, 6, 6, 2, 8, 6, 7, 9, 5, 9], "L")
-  c.px(6, 4, "N")
+// 24. iso_sapling (12x14 base, outline 14x16)
+sprite("iso_sapling", { w: 12, h: 14, outline: "5" }, (c) => {
+  c.line(6, 6, 6, 12, "7", 1) // wooden stake
+  c.px(5, 5, "P") // little green sprout leaves
+  c.px(7, 5, "P")
+  c.px(6, 4, "Q")
+  c.px(6, 3, "R")
 })
 
-// 25. iso_rock_1 (20x16)
-sprite("iso_rock_1", { w: 20, h: 16, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 10, 14, 6, 2)
-  c.poly([5, 12, 10, 5, 16, 7, 18, 13, 3, 13], "S")
-  c.poly([8, 8, 12, 6, 14, 10, 6, 10], "T")
-  c.px(10, 7, "X")
+// 25. iso_rock_1 (Granite Boulder: 20x16 base, outline 22x18)
+sprite("iso_rock_1", { w: 20, h: 16, outline: "U" }, (c) => {
+  c.poly([4, 14, 10, 4, 16, 6, 18, 14], "V")
+  c.poly([8, 8, 12, 5, 16, 6, 14, 12, 6, 12], "W")
+  c.line(10, 4, 16, 6, "Y", 1)
+  c.line(8, 8, 12, 5, "Y", 1)
+  c.px(11, 5, "Z") // sunlit facet highlight
+  // Moss patch on rock base
+  c.px(6, 13, "N")
+  c.px(7, 13, "O")
 })
 
-// 26. iso_rock_2 (16x12)
-sprite("iso_rock_2", { w: 16, h: 12, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 8, 11, 5, 2)
-  c.poly([4, 10, 8, 4, 13, 7, 14, 10, 2, 10], "R")
-  c.poly([6, 7, 10, 5, 11, 8, 5, 8], "S")
+// 26. iso_rock_2 (Smaller Stone: 16x12 base, outline 18x14)
+sprite("iso_rock_2", { w: 16, h: 12, outline: "U" }, (c) => {
+  c.poly([3, 10, 8, 3, 13, 5, 14, 10], "V")
+  c.poly([6, 6, 10, 4, 12, 6, 6, 9], "W")
+  c.line(8, 3, 13, 5, "X", 1)
+  c.px(9, 4, "Y")
 })
 
-// 27. iso_bush (14x10)
-sprite("iso_bush", { w: 14, h: 10, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 7, 9, 4, 2)
-  c.poly([3, 8, 7, 2, 11, 8, 10, 9, 4, 9], "K")
-  c.poly([5, 6, 7, 4, 9, 6, 8, 8, 6, 8], "M")
-  c.px(6, 5, "N")
+// 27. iso_bush (Berry Bush: 14x10 base, outline 16x12)
+sprite("iso_bush", { w: 14, h: 10, outline: "M" }, (c) => {
+  c.ellipse(7, 6, 5, 4, "N")
+  c.ellipse(6, 5, 4, 3, "P")
+  c.px(6, 4, "Q")
+  // Sweet red berries
+  c.px(4, 5, "f")
+  c.px(8, 6, "f")
+  c.px(6, 7, "f")
 })
 
-// 28. iso_flowers (14x8)
-sprite("iso_flowers", { w: 14, h: 8, outline: "6" }, (c) => {
-  drawSoftContactShadow(c, 7, 7, 4, 1)
-  c.poly([3, 7, 7, 3, 11, 7, 3, 7], "L")
-  c.px(4, 5, "b")
-  c.px(7, 4, "c")
-  c.px(10, 5, "d")
-  c.px(6, 6, "e")
+// 28. iso_flowers (Wildflower Bouquet: 14x8 base, outline 16x10)
+sprite("iso_flowers", { w: 14, h: 8, outline: "M" }, (c) => {
+  c.ellipse(7, 5, 5, 3, "O")
+  c.px(4, 4, "f") // scarlet poppy
+  c.px(7, 3, "e") // golden buttercup
+  c.px(10, 4, "g") // white daisy
+  c.px(6, 5, "h") // bluebell
 })
 
-// Sheet export including all required iso terrain tiles, variants, transition edges, and props
 sheet("iso_terrain", [
   "iso_tile_deep",
   "iso_tile_water",
