@@ -22,6 +22,7 @@ function boot(saved) {
   });
   renderer.onTileClick = (t, button) => { ui.handleCanvasClick(t.x, t.y, button); if (button === 0) renderer.setSelected(ui.selectedBuildingId ?? null); if (button === 2) { ui.tool = null; } };
   renderer.centerOnTile(game.world.start.x + 1, game.world.start.y + 1);
+  window.__settlers = { game, renderer, ui };
 }
 function title() {
   const el = document.createElement('div');
