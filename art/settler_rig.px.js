@@ -1,12 +1,13 @@
 // Harrow Settlers — Parametric 3D Shaded Body Rig (Ported from Last Fortress real55 Engine)
-// Eliminates manual box drawing (c.rect / c.line). 
+// Driven strictly by numbers: Chibi, Semi-Chibi, and Standard stylized settler variants.
+// Regular body weight (NOT muscular). 
 // Built on: 2-bone Inverse Kinematics (IK), 3D Lambert normal-per-pixel shading,
 // 5-tone hue-shifted auto-ramping (#fff4d6 warm sunlight -> cool shadow), and selective depth contours.
 
 pal({
   k: "#1b1420", // ink contour
-  w: "#ffffff",
-  y: "#f5b838"
+  w: "#ffffff", // white linen & eyes
+  y: "#f5b838"  // brass buckle & gold
 })
 
 // ------------------------------------------------------------------ Color & 5-Tone Math
@@ -135,179 +136,234 @@ function R55ik(hx, hy, ax, ay, l1, l2, prefX, prefY) {
   return [px + nx * h, py + ny * h, hx + dx, hy + dy]
 }
 
-// ------------------------------------------------------------------ Master Settler Body Rig
+// ------------------------------------------------------------------ Master Settler Body Rig (Parameterized)
 function drawSettlerBody(c, R, P, ox, gy, s = 1.0, extra = {}) {
+  const style = R.style || "semi_chibi"
+  const isChibi = style === "chibi"
+  const isSemi = style === "semi_chibi"
+  
+  // Numerical Style Multipliers:
+  // Chibi: 1:2.8 ratio, large cute head (1.55x), compact cute limbs (0.58x), regular soft body weight (build: 0.90)
+  // Semi-Chibi: 1:4.0 ratio, expressive stylized head (1.20x), proportional limbs (0.82x), regular body weight (build: 0.98)
+  const headScale = isChibi ? 1.55 : isSemi ? 1.20 : 1.00
+  const limbLen   = isChibi ? 0.58 : isSemi ? 0.82 : 1.00
+  const limbThick = isChibi ? 0.80 : isSemi ? 0.86 : 1.00 // soft regular limbs (NOT muscular!)
+  const build     = R.build || (isChibi ? 0.90 : isSemi ? 0.98 : 1.00) // regular body weight!
+  
   const tilt = P.tilt || 0, [hdx, hdy] = P.hip || [0, 0], ct = Math.cos(tilt), st = Math.sin(tilt)
+  const hipY = isChibi ? -20 : isSemi ? -24 : -27
+  const neckY = isChibi ? -33 : isSemi ? -38 : -44
+  const headY = isChibi ? -41 : isSemi ? -46 : -51
+  
   const pt = (x, y, upper) => {
-    const up = upper || y < -26
-    let px = x + (y < -27 || upper ? (P.lean * (-27 - y)) / 22 : 0), py = y + (y < -20 || upper ? P.bob : 0)
-    if (up && tilt) { const dx = px, dy = py + 27; px = dx * ct - dy * st; py = -27 + dx * st + dy * ct }
-    if (up || y < -22) { px += hdx; py += hdy }
+    const up = upper || y < hipY
+    let px = x + (y < hipY || upper ? (P.lean * (hipY - y)) / 22 : 0), py = y + (y < hipY + 5 || upper ? P.bob : 0)
+    if (up && tilt) { const dx = px, dy = py - hipY; px = dx * ct - dy * st; py = hipY + dx * st + dy * ct }
+    if (up || y < hipY + 5) { px += hdx; py += hdy }
     return [ox + px * s, gy + py * s]
   }
   const far = (hex) => R55dim(hex, 0.84)
   const parts = {}
-  const legL = 13.0 * s
   
-  // 1. Legs (IK 2-bone capsules with realistic muscle taper)
+  const legL = (isChibi ? 7.2 : isSemi ? 10.6 : 13.0) * s
+  
+  // 1. Legs (IK 2-bone capsules with regular, soft villager taper - NOT muscular)
   const leg = (side, foot, matP, matS) => {
-    const hx = side === "n" ? 2.8 : -2.8
-    const [Hx, Hy] = pt(hx, -27)
-    const Ax = ox + foot[0] * s + (side === "n" ? 1.2 : -1.2) * s, Ay = gy - (2 + foot[1] + (side === "n" ? 0 : 1.5)) * s
+    const hx = side === "n" ? (isChibi ? 2.2 : 2.6) : (isChibi ? -2.2 : -2.6)
+    const [Hx, Hy] = pt(hx, hipY)
+    const Ax = ox + foot[0] * s + (side === "n" ? 1.0 : -1.0) * s, Ay = gy - (2 + foot[1] + (side === "n" ? 0 : 1.2)) * s
     const [Kx, Ky] = R55ik(Hx, Hy, Ax, Ay, legL, legL, 1, 0)
     const g = R55group(c)
-    // Thigh capsule (broad, muscular)
-    R55cap(c, Hx, Hy, 4.2 * s, Kx, Ky, 3.4 * s, matP, g)
+    // Thigh capsule (smooth regular weight)
+    R55cap(c, Hx, Hy, 3.2 * s * limbThick, Kx, Ky, 2.6 * s * limbThick, matP, g)
     // Calf capsule
-    R55cap(c, Kx, Ky, 3.4 * s, Ax, Ay, 2.8 * s, matP, g)
-    // Heavy Leather Work Boot
+    R55cap(c, Kx, Ky, 2.6 * s * limbThick, Ax, Ay, 2.2 * s * limbThick, matP, g)
+    // Soft Leather Work Shoes (Cute rounded for chibi)
     const gs = R55group(c)
-    R55ell(c, Ax + 1.2 * s, Ay + 0.4 * s, 4.2 * s, 2.4 * s, matS, gs)
-    R55cap(c, Ax - 1.2 * s, Ay - 0.2 * s, 2.6 * s, Ax + 3.8 * s, Ay + 0.8 * s, 2.0 * s, matS, gs)
+    const shoeW = (isChibi ? 3.4 : 3.8) * s
+    const shoeH = (isChibi ? 2.0 : 2.2) * s
+    R55ell(c, Ax + 1.0 * s, Ay + 0.3 * s, shoeW, shoeH, matS, gs)
     parts[side + "leg"] = { g, Hx, Hy, Kx, Ky, Ax, Ay, gs }
   }
   
-  // Far leg first
   leg("f", P.footF, far(R.pants), far(R.shoe))
   leg("n", P.footN, R.pants, R.shoe)
   
-  // 2. Arms & Muscular Forearms
+  // 2. Arms (Soft, regular sleeves - NOT muscular biceps)
+  const armL1 = (isChibi ? 5.5 : isSemi ? 7.6 : 9.4) * s
+  const armL2 = (isChibi ? 5.0 : isSemi ? 7.0 : 8.8) * s
+  
   const arm = (side, hand, elbowPref, matSleeve, matSkin, sleeve) => {
-    const sx = side === "n" ? 6.2 : -5.8
-    const [Sx, Sy] = pt(sx, -42.0)
+    const sx = side === "n" ? (isChibi ? 4.8 : 5.4) : (isChibi ? -4.5 : -5.0)
+    const [Sx, Sy] = pt(sx, neckY + 2.5)
     const [Wx, Wy] = pt(hand[0], hand[1], true)
-    const [Ex, Ey, Wx2, Wy2] = R55ik(Sx, Sy, Wx, Wy, 9.4 * s, 8.8 * s, elbowPref[0], elbowPref[1])
+    const [Ex, Ey, Wx2, Wy2] = R55ik(Sx, Sy, Wx, Wy, armL1, armL2, elbowPref[0], elbowPref[1])
     const g = R55group(c)
-    // Shoulder & bicep
-    R55cap(c, Sx, Sy, 3.6 * s, Ex, Ey, 2.8 * s, sleeve === "none" ? matSkin : matSleeve, g)
-    // Forearm (muscular, rolled-up sleeve exposes strong bare skin)
+    // Regular upper arm (even smooth capsule, no bulging bicep)
+    R55cap(c, Sx, Sy, 2.7 * s * limbThick, Ex, Ey, 2.2 * s * limbThick, sleeve === "none" ? matSkin : matSleeve, g)
+    // Regular forearm
     if (sleeve === "short") {
-      R55cap(c, Sx, Sy, 3.8 * s, Sx + (Ex - Sx) * 0.5, Sy + (Ey - Sy) * 0.5, 3.2 * s, matSleeve, g) // rolled fabric cuff
-      R55cap(c, Ex, Ey, 2.6 * s, Wx2, Wy2, 2.0 * s, matSkin, g)
+      R55cap(c, Sx, Sy, 2.9 * s * limbThick, Sx + (Ex - Sx) * 0.5, Sy + (Ey - Sy) * 0.5, 2.5 * s * limbThick, matSleeve, g) // sleeve cuff
+      R55cap(c, Ex, Ey, 2.1 * s * limbThick, Wx2, Wy2, 1.7 * s * limbThick, matSkin, g)
     } else {
-      R55cap(c, Ex, Ey, 2.8 * s, Wx2, Wy2, 2.2 * s, matSleeve, g)
+      R55cap(c, Ex, Ey, 2.3 * s * limbThick, Wx2, Wy2, 1.8 * s * limbThick, matSleeve, g)
     }
-    // Hand
+    // Cute Hand
     const gh = R55group(c)
-    R55ell(c, Wx2 + (Wx2 - Ex) * 0.15, Wy2 + (Wy2 - Ey) * 0.15 + 0.5, 2.4 * s, 2.4 * s, matSkin, gh)
+    R55ell(c, Wx2 + (Wx2 - Ex) * 0.15, Wy2 + (Wy2 - Ey) * 0.15 + 0.4, 2.0 * s * limbThick, 2.0 * s * limbThick, matSkin, gh)
     parts[side + "arm"] = { g, gh, Sx, Sy, Ex, Ey, Wx: Wx2, Wy: Wy2 }
   }
   
   const sleeve = R.sleeves || "short"
   if (!extra.noFarArm) arm("f", P.handF, P.elbowF, far(R.shirt), far(R.skin), sleeve)
   
-  // 3. Pelvis & Heavy Torso (Broad Settlers Bavarian Barrel Chest)
+  // 3. Pelvis & Regular Torso (Soft, natural regular body weight - NOT muscular)
   const gp = R55group(c)
-  { const [x, y] = pt(0.2, -28.2); R55ell(c, x, y, 7.8 * s, 4.4 * s, R.pants, gp) }
+  { const [x, y] = pt(0.2, hipY); R55ell(c, x, y, (isChibi ? 5.8 : 6.6) * s * build, (isChibi ? 3.4 : 3.8) * s, R.pants, gp) }
   
   const gt = R55group(c)
-  const build = R.build || 1.25 // Robust medieval build
   const tp = []
+  const torsoH = isChibi ? 14 : isSemi ? 17 : 20
   for (const [x, y] of [
-    [-5.6, -45], [5.8, -45], [8.4, -43], [8.6, -39], [7.8, -34], [7.0, -30], [7.4, -27],
-    [-6.8, -27], [-6.6, -30], [-7.2, -34], [-8.0, -39], [-7.8, -43]
+    [-4.6, neckY], [4.8, neckY], [6.2, neckY + torsoH * 0.25], [6.0, neckY + torsoH * 0.6], [5.6, hipY],
+    [-5.4, hipY], [-5.8, neckY + torsoH * 0.6], [-6.0, neckY + torsoH * 0.25]
   ]) {
     tp.push(...pt(x * build, y))
   }
-  R55poly(c, tp, R.shirt, gt, { round: 0.88 })
+  R55poly(c, tp, R.shirt, gt, { round: isChibi ? 0.95 : 0.88 })
   
-  // Rounded Shoulders
-  { const [x, y] = pt(-6.0 * build, -42.0); R55ell(c, x, y, 3.4 * s, 3.2 * s, R.shirt, gt) }
-  { const [x, y] = pt(6.2 * build, -42.0); R55ell(c, x, y, 3.6 * s, 3.4 * s, R.shirt, gt) }
+  // Soft rounded shoulders (compact, not broad)
+  { const [x, y] = pt(-4.8 * build, neckY + 2.5); R55ell(c, x, y, 2.5 * s, 2.4 * s, R.shirt, gt) }
+  { const [x, y] = pt(5.0 * build, neckY + 2.5); R55ell(c, x, y, 2.6 * s, 2.5 * s, R.shirt, gt) }
   parts.torso = gt; parts.pelvis = gp
   
-  // 4. Heavy Canvas Baker's Apron (Overlay over torso)
+  // 4. Baker's Apron (Cute regular coverage)
   if (R.apron) {
     const ga = R55group(c)
     const ap = []
+    const aprTop = neckY + (isChibi ? 2 : 3)
+    const aprBot = hipY + (isChibi ? 5 : 7)
     for (const [x, y] of [
-      [-4.0, -42], [4.4, -42], [5.6, -35], [6.2, -26], [6.8, -18],
-      [-6.0, -18], [-5.4, -26], [-4.8, -35]
+      [-3.4, aprTop], [3.6, aprTop], [4.6, aprTop + 7], [5.0, aprBot],
+      [-4.8, aprBot], [-4.4, aprTop + 7]
     ]) {
       ap.push(...pt(x * build, y))
     }
-    R55poly(c, ap, R.apron, ga, { round: 0.85 })
+    R55poly(c, ap, R.apron, ga, { round: 0.90 })
     parts.apron = ga
   }
   
-  // 5. Neck & Realistic Head
+  // 5. Neck & Head (Cute Proportions!)
   const gn = R55group(c)
-  { const [x, y] = pt(0.6 + P.head[0] * 0.4, -45 + P.head[1] * 0.5); R55cap(c, x, y + 2.0 * s, 3.0 * s, x + 0.3, y - 1.2 * s, 2.6 * s, R.skin, gn) }
+  { const [x, y] = pt(0.5, neckY); R55cap(c, x, y + 1.5 * s, 2.2 * s, x + 0.2, y - 1.0 * s, 1.8 * s, R.skin, gn) }
   
   const gh = R55group(c)
-  const [hx, hy] = pt(1.0 + P.head[0], -51.0 + P.head[1])
-  R55ell(c, hx, hy, 5.6 * s, 6.0 * s, R.skin, gh)
-  R55ell(c, hx + 1.2 * s, hy + 2.8 * s, 4.4 * s, 3.6 * s, R.skin, gh) // jaw
+  const [hx, hy] = pt(0.8 + P.head[0], headY + P.head[1])
+  const headRx = (isChibi ? 6.8 : isSemi ? 5.2 : 4.4) * s * headScale
+  const headRy = (isChibi ? 6.2 : isSemi ? 4.8 : 4.2) * s * headScale
+  
+  // Big Cute Cheeks for Chibi!
+  R55ell(c, hx, hy, headRx, headRy, R.skin, gh)
+  if (isChibi) {
+    R55ell(c, hx + 1.4 * s, hy + 2.4 * s, headRx * 0.75, headRy * 0.65, R.skin, gh) // chubby cheek
+  } else {
+    R55ell(c, hx + 1.0 * s, hy + 2.2 * s, headRx * 0.70, headRy * 0.60, R.skin, gh) // friendly chin
+  }
   parts.head = { g: gh, x: hx, y: hy }
   
-  // Near Arm (in front of apron/chest)
+  // Near Arm (in front)
   if (!extra.noNearArm) arm("n", P.handN, P.elbowN, R.shirt, R.skin, sleeve)
   
   // 6. Selective Depth-Aware Contour Outline
   R55finish(c)
   
-  // 7. Micro-Details After Contours
-  // Expressive Facial Features (Eyes, Mustache, Beard)
+  // 7. Micro-Details: Big Expressive Eyes & Cute Mustache
   const Tskin = R55tones(R.skin)
-  const ex = hx + 2.0 * s, ey = hy + 0.2 * s
-  // Sclera + Iris + Catchlight
-  c.rect(Math.round(ex - 0.5 * s), Math.round(ey - 0.5 * s), Math.round(2.8 * s), Math.round(1.8 * s), "#ffffff")
-  c.px(Math.round(ex + 0.8 * s), Math.round(ey), "#3d1f0d")
-  c.px(Math.round(ex - 0.2 * s), Math.round(ey - 0.4 * s), "#ffffff") // catchlight
-  c.rect(Math.round(ex + 2.6 * s), Math.round(ey - 0.5 * s), Math.round(2.6 * s), Math.round(1.8 * s), "#ffffff")
-  c.px(Math.round(ex + 3.6 * s), Math.round(ey), "#3d1f0d")
-  // Bushy Eyebrows & Nose Shadow
-  c.line(Math.round(ex - 1.0 * s), Math.round(ey - 1.6 * s), Math.round(ex + 1.8 * s), Math.round(ey - 1.6 * s), R.hair, 1)
-  c.line(Math.round(ex + 2.4 * s), Math.round(ey - 1.6 * s), Math.round(ex + 5.0 * s), Math.round(ey - 1.6 * s), R.hair, 1)
-  c.px(Math.round(ex + 2.2 * s), Math.round(ey + 2.2 * s), Tskin[3]) // nose bridge shadow
+  const ex = hx + (isChibi ? 1.6 : 1.4) * s
+  const ey = hy + (isChibi ? -0.2 : 0.0) * s
   
-  // Curled Bavarian Handlebar Mustache
-  const Thair = R55tones(R.hair)
-  c.line(Math.round(ex - 1.2 * s), Math.round(ey + 3.8 * s), Math.round(ex + 5.2 * s), Math.round(ey + 3.8 * s), Thair[2], Math.round(1.8 * s))
-  c.px(Math.round(ex - 2.0 * s), Math.round(ey + 3.0 * s), Thair[1]) // curled tips
-  c.px(Math.round(ex + 6.0 * s), Math.round(ey + 3.0 * s), Thair[1])
+  if (isChibi) {
+    // Big Sparkling Anime/Chibi Eyes!
+    const eyeW = Math.round(3.4 * s), eyeH = Math.round(3.2 * s)
+    // Left eye
+    c.rect(Math.round(ex - 1.2 * s), Math.round(ey - 1.0 * s), eyeW, eyeH, "#ffffff")
+    c.rect(Math.round(ex - 0.6 * s), Math.round(ey - 0.6 * s), Math.round(2.2 * s), Math.round(2.6 * s), "#472312") // large warm iris
+    c.px(Math.round(ex - 1.0 * s), Math.round(ey - 0.8 * s), "#ffffff") // bright catchlight!
+    c.px(Math.round(ex + 0.4 * s), Math.round(ey + 0.8 * s), "#ffffff") // secondary sparkle
+    
+    // Right eye
+    c.rect(Math.round(ex + 3.2 * s), Math.round(ey - 1.0 * s), eyeW, eyeH, "#ffffff")
+    c.rect(Math.round(ex + 3.8 * s), Math.round(ey - 0.6 * s), Math.round(2.2 * s), Math.round(2.6 * s), "#472312")
+    c.px(Math.round(ex + 3.4 * s), Math.round(ey - 0.8 * s), "#ffffff")
+    
+    // Cute Tiny Handlebar Mustache & Rosy Cheek Blush
+    const Thair = R55tones(R.hair)
+    c.line(Math.round(ex - 0.8 * s), Math.round(ey + 3.2 * s), Math.round(ex + 5.6 * s), Math.round(ey + 3.2 * s), Thair[2], Math.round(1.6 * s))
+    c.px(Math.round(ex - 1.4 * s), Math.round(ey + 2.6 * s), Thair[1])
+    c.px(Math.round(ex + 6.2 * s), Math.round(ey + 2.6 * s), Thair[1])
+    // Rosy pink blush
+    c.ellipse(Math.round(ex - 2.8 * s), Math.round(ey + 2.2 * s), Math.round(1.8 * s), Math.round(1.2 * s), "#fca5a5")
+    c.ellipse(Math.round(ex + 6.8 * s), Math.round(ey + 2.2 * s), Math.round(1.8 * s), Math.round(1.2 * s), "#fca5a5")
+  } else {
+    // Semi-Chibi Expressive Eyes (Refined Settlers II style)
+    c.rect(Math.round(ex - 0.6 * s), Math.round(ey - 0.6 * s), Math.round(2.8 * s), Math.round(2.0 * s), "#ffffff")
+    c.px(Math.round(ex + 0.6 * s), Math.round(ey - 0.1 * s), "#3d1f0d")
+    c.px(Math.round(ex - 0.3 * s), Math.round(ey - 0.5 * s), "#ffffff") // catchlight
+    c.rect(Math.round(ex + 2.8 * s), Math.round(ey - 0.6 * s), Math.round(2.6 * s), Math.round(2.0 * s), "#ffffff")
+    c.px(Math.round(ex + 3.8 * s), Math.round(ey - 0.1 * s), "#3d1f0d")
+    
+    // Curled Mustache
+    const Thair = R55tones(R.hair)
+    c.line(Math.round(ex - 1.0 * s), Math.round(ey + 3.0 * s), Math.round(ex + 5.2 * s), Math.round(ey + 3.0 * s), Thair[2], Math.round(1.6 * s))
+    c.px(Math.round(ex - 1.6 * s), Math.round(ey + 2.4 * s), Thair[1])
+    c.px(Math.round(ex + 5.8 * s), Math.round(ey + 2.4 * s), Thair[1])
+  }
   
-  // Traditional Baker's Toque / Cap (Puffed White Linen)
+  // Traditional Baker's Toque / Cap (Proportionate to Head!)
   if (R.hat === "toque") {
     const gtq = R55group(c)
-    R55ell(c, hx, hy - 6.0 * s, 6.8 * s, 3.8 * s, R.shirt, gtq)
-    R55ell(c, hx - 0.5 * s, hy - 8.4 * s, 7.8 * s, 4.4 * s, R.shirt, gtq)
-    // Gather seams
-    c.line(Math.round(hx - 4 * s), Math.round(hy - 5 * s), Math.round(hx - 2 * s), Math.round(hy - 9 * s), R55tones(R.shirt)[1], 1)
-    c.line(Math.round(hx + 2 * s), Math.round(hy - 5 * s), Math.round(hx + 4 * s), Math.round(hy - 9 * s), R55tones(R.shirt)[1], 1)
+    const tqRx = headRx * 1.15
+    const tqRy = headRy * 0.75
+    R55ell(c, hx, hy - headRy * 0.9, tqRx, tqRy, R.shirt, gtq)
+    R55ell(c, hx - 0.4 * s, hy - headRy * 1.3, tqRx * 1.08, tqRy * 1.05, R.shirt, gtq)
   }
   
-  // Authentic White Flour Smudges on Apron!
-  if (R.apron) {
-    const [fx, fy] = pt(0, -28)
-    c.ellipse(Math.round(fx), Math.round(fy), Math.round(3.6 * s), Math.round(2.6 * s), "#ffffff")
-    c.ellipse(Math.round(fx + 2.8 * s), Math.round(fy + 4.2 * s), Math.round(2.4 * s), Math.round(1.8 * s), "#ffffff")
-    c.px(Math.round(ex - 2.4 * s), Math.round(ey + 2.0 * s), "#ffffff") // flour on cheek!
-  }
-  
-  // Wooden Baker's Peel (Paddle) & Fresh Sourdough Loaf
+  // Wooden Baker's Peel & Sourdough Bread Loaf
   if (R.prop === "peel") {
-    const [wx, wy] = parts.narm ? [parts.narm.Wx, parts.narm.Wy] : pt(7, -25, true)
-    // Long ash handle
-    c.line(Math.round(wx - 2 * s), Math.round(wy - 26 * s), Math.round(wx - 2 * s), Math.round(wy + 24 * s), "#85542a", Math.round(1.8 * s))
+    const [wx, wy] = parts.narm ? [parts.narm.Wx, parts.narm.Wy] : pt(5, -20, true)
+    // Wood handle
+    c.line(Math.round(wx - 2 * s), Math.round(wy - (isChibi ? 16 : 22) * s), Math.round(wx - 2 * s), Math.round(wy + (isChibi ? 14 : 18) * s), "#85542a", Math.round(1.5 * s))
     // Paddle Blade
-    c.rect(Math.round(wx - 10 * s), Math.round(wy - 38 * s), Math.round(16 * s), Math.round(14 * s), "#a36e3c")
-    c.hline(Math.round(wx - 10 * s), Math.round(wy - 38 * s), Math.round(16 * s), "#d49959")
+    const bladeW = Math.round((isChibi ? 11 : 14) * s)
+    const bladeH = Math.round((isChibi ? 9 : 12) * s)
+    const bladeY = Math.round(wy - (isChibi ? 25 : 32) * s)
+    c.rect(Math.round(wx - bladeW / 2 - 2 * s), bladeY, bladeW, bladeH, "#a36e3c")
+    c.hline(Math.round(wx - bladeW / 2 - 2 * s), bladeY, bladeW, "#d49959")
     // Crusty Sourdough Loaf
-    c.ellipse(Math.round(wx - 2 * s), Math.round(wy - 31 * s), Math.round(6.8 * s), Math.round(4.6 * s), "#c77524")
-    c.ellipse(Math.round(wx - 2 * s), Math.round(wy - 32 * s), Math.round(5.8 * s), Math.round(3.6 * s), "#eda239")
-    // White flour scoring
-    c.line(Math.round(wx - 5 * s), Math.round(wy - 32 * s), Math.round(wx + 1 * s), Math.round(wy - 30 * s), "#fae2a0", 1)
+    const loafRx = Math.round((isChibi ? 4.5 : 5.8) * s)
+    const loafRy = Math.round((isChibi ? 3.2 : 4.0) * s)
+    c.ellipse(Math.round(wx - 2 * s), bladeY + Math.round(bladeH / 2), loafRx, loafRy, "#c77524")
+    c.ellipse(Math.round(wx - 2 * s), bladeY + Math.round(bladeH / 2) - 1, loafRx - 1, loafRy - 1, "#eda239")
+    c.px(Math.round(wx - 2 * s), bladeY + Math.round(bladeH / 2) - 2, "#fae2a0") // flour scoring
+  }
+  
+  // Subtle flour smudge on apron
+  if (R.apron) {
+    const [fx, fy] = pt(0, hipY)
+    c.ellipse(Math.round(fx), Math.round(fy + 2 * s), Math.round(2.6 * s), Math.round(1.8 * s), "#ffffff")
   }
   
   return parts
 }
 
-// ------------------------------------------------------------------ Sprite Definitions
-// Standard 65px Settler (s = 1.25)
-sprite("settler_baker_rig_65", { w: 48, h: 72, outline: "k" }, (c) => {
-  const P = { bob: 0, lean: 0, footN: [2.5, 0], footF: [-2.5, 0], handN: [6, -26], handF: [-5, -26], head: [0, 0], elbowN: [-1, 0.4], elbowF: [-1, 0.4] }
+// =========================================================================
+// 1. CHIBI SETTLER BAKER (Adorable 1:2.8 proportions, regular body weight)
+// Canvas: 60x70, height: ~50px
+// =========================================================================
+sprite("settler_baker_chibi", { w: 60, h: 72, outline: "k" }, (c) => {
+  const P = { bob: 0, lean: 0, footN: [2.0, 0], footF: [-2.0, 0], handN: [5.0, -18], handF: [-4.0, -18], head: [0, 0], elbowN: [-1, 0.4], elbowF: [-1, 0.4] }
   const R = {
+    style: "chibi",
     skin: "#e09367",
     shirt: "#f5f0fc",
     pants: "#63402e",
@@ -316,15 +372,19 @@ sprite("settler_baker_rig_65", { w: 48, h: 72, outline: "k" }, (c) => {
     apron: "#dfd9eb",
     hat: "toque",
     prop: "peel",
-    build: 1.25
+    build: 0.90 // regular soft weight, NOT muscular
   }
-  drawSettlerBody(c, R, P, 24, 68, 1.25)
+  drawSettlerBody(c, R, P, 30, 68, 1.15)
 })
 
-// Modern Ultra-HD 128px Settler (s = 2.30)
-sprite("settler_baker_rig_128", { w: 84, h: 142, outline: "k" }, (c) => {
-  const P = { bob: 0, lean: 0, footN: [3.2, 0], footF: [-3.2, 0], handN: [7.5, -27], handF: [-6, -27], head: [0, 0], elbowN: [-1, 0.4], elbowF: [-1, 0.4] }
+// =========================================================================
+// 2. SEMI-CHIBI SETTLER BAKER (Classic The Settlers II 1:4.0 golden ratio)
+// Canvas: 60x82, height: ~68px
+// =========================================================================
+sprite("settler_baker_semi_chibi", { w: 64, h: 84, outline: "k" }, (c) => {
+  const P = { bob: 0, lean: 0, footN: [2.5, 0], footF: [-2.5, 0], handN: [5.8, -23], handF: [-4.8, -23], head: [0, 0], elbowN: [-1, 0.4], elbowF: [-1, 0.4] }
   const R = {
+    style: "semi_chibi",
     skin: "#e09367",
     shirt: "#f5f0fc",
     pants: "#63402e",
@@ -333,7 +393,7 @@ sprite("settler_baker_rig_128", { w: 84, h: 142, outline: "k" }, (c) => {
     apron: "#dfd9eb",
     hat: "toque",
     prop: "peel",
-    build: 1.25
+    build: 0.96 // regular normal villager weight, NOT muscular
   }
-  drawSettlerBody(c, R, P, 42, 136, 2.30)
+  drawSettlerBody(c, R, P, 32, 80, 1.25)
 })
