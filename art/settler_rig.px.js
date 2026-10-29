@@ -303,19 +303,27 @@ function drawSettlerBody(c, R, P, ox, gy, s = 1.0, extra = {}) {
   const Tskin = R55tones(R.skin)
   
   if (isChibi) {
-    // Left eye (Front)
-    c.rect(ex - 2, ey - 2, 4, 3, "#ffffff")
-    c.rect(ex - 1, ey - 1, 2, 2, "#2b160a")
-    c.px(ex - 2, ey - 2, "#ffffff")
-    c.hline(ex - 2, ey - 3, 4, "#1b1420")
-    c.hline(ex - 2, ey - 4, 3, Thair[2])
-    
-    // Right eye
-    c.rect(ex + 3, ey - 2, 4, 3, "#ffffff")
-    c.rect(ex + 4, ey - 1, 2, 2, "#2b160a")
-    c.px(ex + 3, ey - 2, "#ffffff")
-    c.hline(ex + 3, ey - 3, 4, "#1b1420")
-    c.hline(ex + 3, ey - 4, 3, Thair[2])
+    if (P.blink) {
+      // Cute blinking happy arcs ^ ^
+      c.hline(ex - 2, ey - 1, 4, "#2b160a")
+      c.px(ex - 2, ey - 2, "#2b160a"); c.px(ex + 1, ey - 2, "#2b160a")
+      c.hline(ex + 3, ey - 1, 4, "#2b160a")
+      c.px(ex + 3, ey - 2, "#2b160a"); c.px(ex + 6, ey - 2, "#2b160a")
+    } else {
+      // Left eye (Front)
+      c.rect(ex - 2, ey - 2, 4, 3, "#ffffff")
+      c.rect(ex - 1, ey - 1, 2, 2, "#2b160a")
+      c.px(ex - 2, ey - 2, "#ffffff")
+      c.hline(ex - 2, ey - 3, 4, "#1b1420")
+      c.hline(ex - 2, ey - 4, 3, Thair[2])
+      
+      // Right eye
+      c.rect(ex + 3, ey - 2, 4, 3, "#ffffff")
+      c.rect(ex + 4, ey - 1, 2, 2, "#2b160a")
+      c.px(ex + 3, ey - 2, "#ffffff")
+      c.hline(ex + 3, ey - 3, 4, "#1b1420")
+      c.hline(ex + 3, ey - 4, 3, Thair[2])
+    }
     
     // Cute Tiny Handlebar Mustache & Happy Smile
     c.line(ex - 1, ey + 3, ex + 5, ey + 3, Thair[1], 2)
@@ -359,36 +367,61 @@ function drawSettlerBody(c, R, P, ox, gy, s = 1.0, extra = {}) {
 // ------------------------------------------------------------------ Animation Poses Function
 function chibiPose(kind, f, n) {
   const ph = (f / n) * Math.PI * 2
-  const P = { bob: 0, lean: 0, footN: [2.0, 0], footF: [-2.0, 0], handN: [5.0, -18], handF: [-4.0, -18], head: [0, 0], elbowN: [1, 0.4], elbowF: [-1, 0.4] }
+  const P = { bob: 0, lean: 0, footN: [2.0, 0], footF: [-2.0, 0], handN: [5.0, -18], handF: [-4.0, -18], head: [0, 0], elbowN: [1, 0.4], elbowF: [-1, 0.4], blink: false }
   
   if (kind === "idle") {
-    // Breathing cycle
-    P.bob = Math.sin(ph) > 0.3 ? -1 : 0
-    P.head = [0, Math.sin(ph) * 0.4]
+    // 8-frame calm breathing cycle: Pelvis, legs, and feet are 100% grounded (ZERO whole-body shaking!)
+    P.bob = 0
+    P.lean = 0
+    P.footN = [2.0, 0]
+    P.footF = [-2.0, 0]
+    P.handN = [4.5, -16]
+    P.handF = [-4.0, -16]
+    // Very gentle thoracic breathing float (less than half a pixel)
+    P.head = [0, -0.35 * Math.max(0, Math.sin(ph))]
+    // Natural soft blink on frames 3 & 4
+    P.blink = (f === 3 || f === 4)
   }
   
   if (kind === "walk") {
-    // Bouncy Chibi walk cycle
-    const A = 3.6
-    P.footN = [A * Math.cos(ph), Math.max(0, -Math.sin(ph)) * 2.8]
-    P.footF = [A * Math.cos(ph + Math.PI), Math.max(0, -Math.sin(ph + Math.PI)) * 2.8]
-    P.bob = Math.abs(Math.cos(ph)) < 0.4 ? -1.5 : 0
-    P.handN = [2.0 - 3.2 * Math.cos(ph), -18]
-    P.handF = [-2.0 + 3.2 * Math.cos(ph), -18]
-    P.lean = Math.sin(ph) * 0.8
-    P.head = [0, Math.sin(ph * 2) * 0.5]
+    // 8-frame natural forward walk cycle
+    // Each leg stays on its respective side (NO crossover sideways!)
+    // Elliptical trajectory: foot lifts off back, arcs forward, plants in front with heel, rolls back on ground
+    const stepLen = 2.0
+    const liftH = 3.0
+    
+    // Near leg (Right side: baseX = +2.0)
+    // f=0..3: Swing forward in air (lift > 0, moves from -stepLen to +stepLen)
+    // f=4..7: Stance on ground (lift = 0, moves from +stepLen to -stepLen)
+    const footN_x = stepLen * Math.cos(ph + Math.PI)
+    const footN_lift = Math.max(0, Math.sin(ph)) * liftH
+    P.footN = [2.0 + footN_x, footN_lift]
+    
+    // Far leg (Left side: baseX = -2.0, opposite phase ph + PI)
+    const footF_x = stepLen * Math.cos(ph)
+    const footF_lift = Math.max(0, Math.sin(ph + Math.PI)) * liftH
+    P.footF = [-2.0 + footF_x, footF_lift]
+    
+    // Constant purposeful forward lean (never leaning backward!)
+    P.lean = 0.30
+    
+    // Gentle step bounce: two subtle dips per cycle (less than 0.6px)
+    P.bob = -0.5 * Math.sin(ph * 2)
+    
+    // Natural arm swing in opposition to legs
+    // When near leg is forward (f=4), near arm is back
+    // When near leg is back (f=0), near arm swings forward
+    P.handN = [3.5 - 2.8 * Math.cos(ph + Math.PI), -17]
+    P.handF = [-3.5 + 2.8 * Math.cos(ph + Math.PI), -17]
+    P.head = [0, -0.3 * Math.sin(ph * 2)]
   }
   
   if (kind === "knead") {
-    // Rhythmic dough kneading at table
+    // 12-frame rich dough kneading rhythm with weight transfer
     const k = Math.sin(ph)
-    P.tilt = 0.10 * Math.max(0, k)
-    P.bob = k > 0.2 ? 1 : 0
-    P.handN = [3.5 + 1.8 * k, -14 + 2.5 * Math.max(0, k)]
-    P.handF = [-3.0 - 1.8 * k, -14 + 2.5 * Math.max(0, k)]
-    P.elbowN = [0.2, 0.8]
-    P.elbowF = [0.2, 0.8]
-    P.head = [0.8 * k, 1.0 * Math.max(0, k)]
+    P.tilt = 0.12 + 0.08 * Math.max(0, k) // leaning into table
+    P.bob = k > 0.4 ? 1 : 0 // subtle weight push
+    P.head = [0.8, 1.2] // head looks down at table
   }
 
   if (kind === "oven_slide") {
@@ -441,15 +474,22 @@ function chibiPose(kind, f, n) {
   }
 
   if (kind === "carry") {
-    // Bouncy walk carrying bread basket
-    const A = 3.2
-    P.footN = [A * Math.cos(ph), Math.max(0, -Math.sin(ph)) * 2.5]
-    P.footF = [A * Math.cos(ph + Math.PI), Math.max(0, -Math.sin(ph + Math.PI)) * 2.5]
-    P.bob = Math.abs(Math.cos(ph)) < 0.4 ? -1.5 : 0
-    P.handN = [4.5, -16 + Math.sin(ph) * 0.8]
-    P.handF = [-4.0, -16 - Math.sin(ph) * 0.8]
-    P.lean = Math.sin(ph) * 0.6
-    P.head = [0, Math.sin(ph * 2) * 0.4]
+    // 8-frame natural forward walk carrying bread basket
+    const stepLen = 2.0
+    const liftH = 3.0
+    const footN_x = stepLen * Math.cos(ph + Math.PI)
+    const footN_lift = Math.max(0, Math.sin(ph)) * liftH
+    P.footN = [2.0 + footN_x, footN_lift]
+    
+    const footF_x = stepLen * Math.cos(ph)
+    const footF_lift = Math.max(0, Math.sin(ph + Math.PI)) * liftH
+    P.footF = [-2.0 + footF_x, footF_lift]
+    
+    P.lean = 0.28
+    P.bob = -0.5 * Math.sin(ph * 2)
+    P.handN = [4.5, -16 + Math.sin(ph * 2) * 0.6]
+    P.handF = [-4.0, -16 - Math.sin(ph * 2) * 0.6]
+    P.head = [0, -0.3 * Math.sin(ph * 2)]
   }
   
   return P
@@ -497,26 +537,81 @@ sprite("settler_baker_semi_chibi", { w: 70, h: 90, outline: "k" }, (c) => {
 // =========================================================================
 // ANIMATIONS
 // =========================================================================
-// 1. Chibi Baker Idle (Breathing loop)
-anim("anim_chibi_baker_idle", { w: 66, h: 78, frames: 4, fps: 4, outline: "k" }, (c) => {
-  drawSettlerBody(c, R_CHIBI, chibiPose("idle", c.frame, 4), 33, 72, 1.15)
+// 1. Chibi Baker Idle (Breathing loop: 8 frames, zero shaking, grounded feet, soft blink)
+anim("anim_chibi_baker_idle", { w: 66, h: 78, frames: 8, fps: 4, outline: "k" }, (c) => {
+  drawSettlerBody(c, R_CHIBI, chibiPose("idle", c.frame, 8), 33, 72, 1.15)
 })
 
-// 2. Chibi Baker Walk Cycle (8-frame bouncy walk)
+// 2. Chibi Baker Walk Cycle (8-frame natural forward walk, no props on floor)
 anim("anim_chibi_baker_walk", { w: 66, h: 78, frames: 8, fps: 8, outline: "k" }, (c) => {
-  drawSettlerBody(c, R_CHIBI, chibiPose("walk", c.frame, 8), 33, 72, 1.15)
+  const rWalk = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  drawSettlerBody(c, rWalk, chibiPose("walk", c.frame, 8), 33, 72, 1.15)
 })
 
-// 3. Chibi Baker Kneading Dough (6-frame dough squash)
-anim("anim_chibi_baker_knead", { w: 66, h: 78, frames: 6, fps: 6, outline: "k" }, (c) => {
+// 3. Chibi Baker Kneading Dough (12-frame rich squash & stretch with TWO VISIBLE HANDS)
+anim("anim_chibi_baker_knead", { w: 68, h: 78, frames: 12, fps: 8, outline: "k" }, (c) => {
+  const f = c.frame
   const rKnead = { ...R_CHIBI, prop: null, breadAtWaist: false }
-  drawSettlerBody(c, rKnead, chibiPose("knead", c.frame, 6), 33, 72, 1.15)
-  // Dough Trough Table in front
-  c.rect(22, 54, 26, 12, "#704825")
-  c.hline(22, 54, 26, "#a36e3c")
-  // Squashing Dough Ball
-  const k = Math.sin((c.frame / 6) * Math.PI * 2)
-  c.ellipse(35, 52 + (k > 0 ? 1 : 0), 7 + (k > 0 ? 1 : 0), 4 - (k > 0 ? 1 : 0), "#f5f0fc")
+  
+  // 1. Draw settler body (without default arms so we can draw custom hands on dough)
+  drawSettlerBody(c, rKnead, chibiPose("knead", f, 12), 34, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // 2. Oak Dough Kneading Table
+  c.rect(18, 54, 32, 14, "#704825")
+  c.hline(16, 54, 36, "#a36e3c") // thick table rim
+  c.rect(20, 60, 4, 12, "#543317") // table legs
+  c.rect(44, 60, 4, 12, "#543317")
+  // Flour dusting on table
+  c.hline(23, 53, 6, "#ffffff"); c.hline(40, 53, 5, "#ffffff")
+  
+  // 3. Dynamic Squashing Dough Ball
+  // f=0..2: Plump dough ball
+  // f=3..6: Heavy press down! Squashes flat wide
+  // f=7..9: Release & lift hands! Rebounds
+  // f=10..11: Fold over vertically
+  let dRx = 7.0, dRy = 4.0, dY = 52
+  if (f >= 3 && f <= 6) {
+    // Squashed flat
+    dRx = 10.0; dRy = 2.4; dY = 53
+    // Flour puffs out sideways!
+    c.px(21, 53, "#ffffff"); c.px(47, 53, "#ffffff")
+    c.px(19, 52, "#ffffff"); c.px(49, 52, "#ffffff")
+  } else if (f >= 7 && f <= 9) {
+    // Rebounding
+    dRx = 6.5; dRy = 4.4; dY = 51
+  } else if (f >= 10) {
+    // Folding over
+    dRx = 5.2; dRy = 5.2; dY = 50
+  }
+  c.ellipse(34, dY, dRx, dRy, "#fef3c7")
+  c.ellipse(34, dY - 0.5, dRx - 1.5, dRy - 1.0, "#fffbeb")
+  
+  // 4. TWO ACTIVE HANDS ON TOP OF DOUGH!
+  const isPress = (f >= 3 && f <= 6)
+  const isLift = (f >= 7 && f <= 9)
+  const isFold = (f >= 10)
+  
+  // Left Hand (Far Arm):
+  let hLx = 29, hLy = isPress ? 52 : (isLift ? 46 : (isFold ? 49 : 50))
+  // Sleeve
+  c.line(27, 36, hLx, hLy - 4, "#dfd9eb", 3)
+  // White rolled cuff
+  c.rect(hLx - 2, hLy - 5, 5, 3, "#ffffff")
+  // Peach skin hand pressing on dough
+  c.ellipse(hLx, hLy, 2.8, 2.2, "#e09367")
+  // Flour dust on knuckles
+  c.px(hLx, hLy - 1, "#ffffff")
+  
+  // Right Hand (Near Arm):
+  let hRx = 39, hRy = isPress ? 52 : (isLift ? 46 : (isFold ? 48 : 50))
+  // Sleeve
+  c.line(41, 36, hRx, hRy - 4, "#f5f0fc", 3)
+  // White rolled cuff
+  c.rect(hRx - 2, hRy - 5, 5, 3, "#ffffff")
+  // Peach skin hand pressing on dough
+  c.ellipse(hRx, hRy, 2.8, 2.2, "#e09367")
+  // Flour dust on knuckles
+  c.px(hRx, hRy - 1, "#ffffff")
 })
 
 // 4. Chibi Baker Stone Oven Baking (8-frame slide & bake)
