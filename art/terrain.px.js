@@ -1,0 +1,584 @@
+// Harrow Settlers - Terrain & Nature Sprite Sheet DSL (pxl)
+
+pal({
+  // Deep Ocean
+  "0": "#101626",
+  "1": "#1a243b",
+  "2": "#253754",
+  "3": "#324d73",
+
+  // Shallow / Base Water
+  "4": "#2a5987",
+  "5": "#3a73a8",
+  "6": "#5291c9",
+  "7": "#7ec4f0",
+
+  // Sand / Shore
+  s: "#bd8e46",
+  S: "#dca858",
+  a: "#ebd07b",
+  A: "#f7e8a9",
+
+  // Grass
+  g: "#244218",
+  G: "#3a6122",
+  k: "#538431",
+  K: "#73a842",
+  e: "#93c754",
+
+  // Forest Floor / Moss
+  f: "#1d3016",
+  F: "#2d4721",
+  m: "#44632f",
+  M: "#5e823f",
+
+  // Road / Dirt Path
+  d: "#473322",
+  D: "#664b33",
+  r: "#876547",
+  R: "#a88460",
+
+  // Stone / Rock / Mountain
+  q: "#292c33",
+  Q: "#404452",
+  v: "#5c6273",
+  V: "#7e8699",
+  C: "#a6afc2",
+
+  // Snow
+  x: "#8294b0",
+  X: "#abbccc",
+  z: "#d8e3ed",
+  Z: "#ffffff",
+
+  // Wood / Bark
+  b: "#26170d",
+  B: "#422817",
+  t: "#633f25",
+  T: "#875a36",
+
+  // Flowers / Accents / Wheat
+  y: "#f0c430",
+  Y: "#ffd84d",
+  u: "#e64545",
+  i: "#e86bb0",
+  o: "#8048be",
+
+  // Ore / Fish
+  J: "#e06c28",
+  j: "#f29b38",
+  h: "#1b5e58",
+  H: "#489990"
+});
+
+ramps("0123", "4567", "sSaA", "gGkKe", "fFmM", "dDrR", "qQvVC", "xXzZ", "bBtT");
+
+sprite("tile_deep", `
+1111221111112211
+1112332111123321
+1123332111233321
+1112321111123211
+1111111111111111
+1111001111110011
+0011001100110011
+0000000000000000
+1111111111111111
+1112211111122111
+1123321111233211
+1123321111233211
+1112211111122111
+1111111111111111
+1111111111111111
+1111111111111111`);
+
+sprite("tile_water", `
+5555665555556655
+5556776555567765
+5567776555677765
+5556765555567655
+5555555555555555
+5554455555544555
+4454455445544554
+4444444444444444
+5555555555555555
+5556655555566555
+5567765555677655
+5567765555677655
+5556655555566555
+5555555555555555
+5555555555555555
+5555555555555555`);
+
+sprite("tile_water_1", `
+5555555555665555
+5554455556776555
+4454455567776555
+4444455556765555
+5555555555555555
+5566555555555555
+5677655555445555
+5677655544445555
+5566555544445555
+5555555555555555
+5555555555665555
+5555555556776555
+5555555556776555
+5555555555665555
+5555555555555555
+5555555555555555`);
+
+sprite("tile_water_2", `
+5555555555555555
+5555665555555555
+5556765555556655
+5555665555567655
+5555555555556655
+5555555555555555
+5555555555555555
+5544555555555555
+5444455555555555
+5544555555555555
+5555555555555555
+5555555555555555
+5555665555555555
+5556765555555555
+5555665555555555
+5555555555555555`);
+
+sprite("tile_sand", `
+SSSSSSSSSSSSSSSS
+SSSSsSSSSSSSSsSS
+SSSsssSSSSSSsssS
+SSsSaaSsSSSsAaaS
+SSSSaSsSSSSSaSaS
+SSSSSSSSSSSSSSSS
+SsSSSSSSSSSSSSSS
+sssSSSSSSSSSSsss
+AaaSsSSSSSSSsAaa
+aSaSSSSSSSSSSaSa
+SSSSSSSSSSSSSSSS
+SSSSSSSSsSSSSSSS
+SSSSSSSsssSSSSSS
+SSSSSSsAaaSSSSSS
+SSSSSSSaSaSSSSSS
+SSSSSSSSSSSSSSSS`);
+
+sprite("tile_grass", `
+kkkkGkkkkkkkKkkk
+kkGGGGkkkkKKKKkk
+kGggggGkkKeeeeKk
+kGggGgGkKeeeeeKk
+kkGGGGkkkKeeeKkk
+kkkkGkkkkkKKKkkk
+kkkkkkkkkkkkkkkk
+kkKKKkkkkkkkGGkk
+kKKeeKKkkkkGggGk
+KeeeeeKkkkGggggG
+KeeeeeKkkkGggggG
+kKKeeKKkkkkGggGk
+kkKKKkkkkkkkGGkk
+kkkkkkkkkkkkkkkk
+kkkkGkkkkkkkkkkk
+kkkGGGGkkkkkkkkk`);
+
+sprite("tile_grass_1", `
+kkkkkkkkkkkkKkkk
+kkGGkkkkkkKKKKkk
+kGggGkkkkKeeeeKk
+kGggGkkkkKeeeeeK
+kkGGkkkkkkKeeeKk
+kkkkkkkkkkkKKKkk
+kkkkKKKKkkkkkkkk
+kkkKeeeeKkkkkkkk
+kkKeeeeeeKkkkkkk
+kkKeeeeeeKkkGGkk
+kkkKeeeeKkkGggGk
+kkkkKKKKkkkGggGk
+kkkkkkkkkkkkGGkk
+kkkkkkkkkkkkkkkk
+kkkkGkkkkkkkkkkk
+kkkGGGGkkkkkkkkk`);
+
+sprite("tile_grass_2", `
+kkkkkkkkkkkkkkkk
+kkKKKKkkkkkkGGkk
+kKeeeeKkkkkGggGk
+KeeeeeKkkkGggggG
+KeeeeeKkkkGggggG
+kKeeeeKkkkkGggGk
+kkKKKKkkkkkkGGkk
+kkkkkkkkkkkkkkkk
+kkkkGGkkkkkkKKkk
+kkkGggGkkkkKeeKk
+kkGggggGkkKeeeeK
+kkGggggGkkKeeeeK
+kkkGggGkkkkKeeKk
+kkkkGGkkkkkkKKkk
+kkkkkkkkkkkkkkkk
+kkkkkkkkkkkkkkkk`);
+
+sprite("tile_grass_3", `
+kkkkKkkkkkkkGkkk
+kkKKKKkkkkkGGGGk
+kKeeeeKkkkGggggG
+kKeeeeKkkkGggggG
+kkKKKKkkkkkGGGGk
+kkkkKkkkkkkkGkkk
+kkkkkkkkkkkkkkkk
+kkGGGGkkkkkkKKKK
+kGggggGkkkkKeeee
+GggggggGkkKeeeee
+GggggggGkkKeeeee
+kGggggGkkkkKeeee
+kkGGGGkkkkkkKKKK
+kkkkkkkkkkkkkkkk
+kkkkkkkkkkkkkkkk
+kkkkkkkkkkkkkkkk`);
+
+sprite("tile_forest", `
+ffffFFFFffffFFFF
+fffFFFFFFfffFFFF
+ffFFmmmmFFffFFFF
+fFFmmmmmmFFfFFFF
+fFFmmmmmmFFfFFFF
+ffFFmmmmFFffFFFF
+fffFFFFFFfffFFFF
+ffffFFFFffffFFFF
+FFFFffffFFFFffff
+FFFFfffFFFFFFfff
+FFFFffFFmmmmFFff
+FFFFfFFmmmmmmFFf
+FFFFfFFmmmmmmFFf
+FFFFffFFmmmmFFff
+FFFFfffFFFFFFfff
+ffffFFFFffffFFFF`);
+
+sprite("tile_rock", `
+vvvvQQvvvvvvQQvv
+vvvQQQQvvvvQQQQv
+vvQQVVVQvvQQVVVQ
+vQVVVVVVQQVVVVVV
+vQVVCCVVQQVVCCVV
+vQVCCCCVQQVCCCCV
+vvQVVVVQvvQVVVVQ
+vvvQQQQvvvvQQQQv
+vvvvQQvvvvvvQQvv
+vvvvvvvvvvvvvvvv
+vvvQQQQvvvvQQQQv
+vvQQVVVQvvQQVVVQ
+vQVVCCCCQQVVCCCC
+vQVVCCCCQQVVCCCC
+vvQVVVVQvvQVVVVQ
+vvvQQQQvvvvQQQQv`);
+
+sprite("tile_mountain", `
+qqqqQQqqqqqqQQqq
+qqQVVVVQqqQVVVVQ
+qQVVCCCCQQVVCCCC
+qQVCCCCCQQVCCCCC
+qQVVCCCCQQVVCCCC
+qqQVVVVQqqQVVVVQ
+qqqqQQqqqqqqQQqq
+qqqqqqqqqqqqqqqq
+qqqqQQqqqqqqQQqq
+qqQVVVVQqqQVVVVQ
+qQVVCCCCQQVVCCCC
+qQVCCCCCQQVCCCCC
+qQVVCCCCQQVVCCCC
+qqQVVVVQqqQVVVVQ
+qqqqQQqqqqqqQQqq
+qqqqqqqqqqqqqqqq`);
+
+sprite("tile_snow", `
+zzzzXZzzzzzzXZzz
+zzzXZZZzzzzXZZZz
+zzXZZZZZzzXZZZZZ
+zXZZZZZZZXZZZZZZ
+zXZZZZZZZXZZZZZZ
+zzXZZZZZzzXZZZZZ
+zzzXZZZzzzzXZZZz
+zzzzXZzzzzzzXZzz
+zzzzzzzzzzzzzzzz
+zzzXZZZzzzzXZZZz
+zzXZZZZZzzXZZZZZ
+zXZZZZZZZXZZZZZZ
+zXZZZZZZZXZZZZZZ
+zzXZZZZZzzXZZZZZ
+zzzXZZZzzzzXZZZz
+zzzzXZzzzzzzXZzz`);
+
+sprite("tile_road", `
+rrrrDDrrrrrrDDrr
+rrrDDDDrrrrDDDDr
+rrDDRRRDrrDDRRRD
+rDRRRRRRDDDRRRRR
+rDRRddRRDDDRRddR
+rDRddddRDDDRdddd
+rrDDRRRDrrDDRRRD
+rrrDDDDrrrrDDDDr
+rrrrDDrrrrrrDDrr
+rrrrrrrrrrrrrrrr
+rrrDDDDrrrrDDDDr
+rrDDRRRDrrDDRRRD
+rDRRRRRRDDDRRRRR
+rDRRRRRRDDDRRRRR
+rrDDRRRDrrDDRRRD
+rrrDDDDrrrrDDDDr`);
+
+sprite("deco_1", `
+................
+................
+................
+......e.........
+.....eKe........
+....eKKKe.......
+....KkkkK...e...
+...eKkkkKe.eKe..
+..eKKkGkKKeKkK..
+..KkkGGGkkKKkK..
+.eKkGGGGGkkkK...
+.KkkGGgGGkkkK...
+.kGgGgGgGgGgk...
+.GGGGGGGGGGGG...
+.gggggggggggg...
+................`);
+
+sprite("deco_2", `
+................
+...uu...........
+..uuuu..........
+..uyuu..........
+...uu...e.......
+...G...eKe......
+...G..eKKKe.....
+..yy.eKkkkK.....
+.yyyy.KkkkK.....
+.yyyyyKkkkK.....
+..yyG.eKkGe.....
+...GG.eKgKe.....
+...Gg.GGGGg.....
+...Gg.GgGgG.....
+..ggggggggg.....
+................`);
+
+sprite("deco_3", `
+................
+.......ii.......
+......iiii......
+......iyii......
+...e...ii.......
+..eKe...G.......
+.eKKKe..G..oo...
+.KkkkK....oooo..
+.KkkkK....oyoo..
+.KkkkK....oooo..
+.eKkGe.....G....
+.eKgKe....GG....
+.GGGGg....Gg....
+.GgGgG...GgG....
+.ggggg...gggg...
+................`);
+
+sprite("tree_1", `
+.....eeeee......
+...eeKKKKKee....
+..eKKkkkkkkKe...
+.eKkkGGGGGGkkK..
+eKkGGffffffGGkK.
+eKkGfffffffffGk.
+KKGffffffffffGK.
+KKGfffffffffGGK.
+eKkGffffffffGkK.
+.eKkkGGGGGGkkKe.
+..eKKkkkkkkKKe..
+...eeKKKKKKee...
+.....eKkkKe.....
+......kGGk......
+......BttB......
+......BttB......
+......BttB......
+......BttB......
+.....BBttBB.....
+.....BtTTtB.....
+....BBtTTtBB....
+....BttTTttB....
+...GGttTTttGG...
+...GggBBBBggG...`);
+
+sprite("tree_2", `
+.......e........
+......eKe.......
+.....eKKKe......
+....eKkkkKe.....
+...eKkGGGkKe....
+....eKkkkKe.....
+...eKKkkkkKe....
+..eKkkGGGGkKe...
+.eKkGffffffGke..
+...eKKkkkkKe....
+..eKkkGGGGkKe...
+.eKkGffffffGke..
+eKkGfffffffffGk.
+eGGfffffffffGGk.
+.GgGffffffffGg..
+...GGffffffGG...
+......BttB......
+......BttB......
+......BttB......
+.....BBttBB.....
+.....BtTTtB.....
+....BBtTTtBB....
+...GGttTTttGG...
+...GggBBBBggG...`);
+
+sprite("tree_3", `
+......eeee......
+....eeKKKKee....
+...eKKkkkkKKe...
+..eKkkGGGGkkKe..
+.eKkGGffffGGkKe.
+.eKGffffffffGke.
+.KKffffffffffGK.
+.KKffffffffffGK.
+.eKGffffffffGkK.
+..eKkkGGGGkkKe..
+...eeKKKKKKee...
+.....eKkkKe.....
+......kGGk......
+......ZQBZ......
+......ZQBZ......
+......ZQBZ......
+......ZQBZ......
+.....ZZQBZZ.....
+.....ZQQBBZ.....
+....ZZQQBBZZ....
+....ZQQQBBBZ....
+...GGQQQBBBZGG..
+...GggZZZZZZggG.
+...GggBBBBBBggG.`);
+
+sprite("sapling", `
+................
+.......e........
+......eKe.......
+.....eKKKe......
+.....KkkkK......
+.....kGgGk......
+......kGk.......
+......BtB.......
+......BtB.......
+......BtB.......
+.....BBtBB......
+.....BtTTB......
+....GGtTTbGG....
+....GgBBBBgG....
+.....gggggg.....
+................`);
+
+sprite("rock_1", `
+................
+......CCCC......
+....CCVVVVCC....
+...CVVVvvvvVC...
+..CVVvvvvvvvVC..
+..CVvvQQQQvvVC..
+.CVvQQqqqqQQvVC.
+.CVvQqqqqqqQvVC.
+.CVvQqqqqqqQvVC.
+.CVvQQqqqqQQvVC.
+..CVvvQQQQvvVC..
+..CVVvvvvvvvVC..
+...CVVVvvvvVC...
+....CCVVVVCC....
+......QQQQ......
+................`);
+
+sprite("rock_2", `
+................
+...CCC..........
+..CVVVC...CCC...
+.CVvQQVC.CVVVC..
+.CVqgqVC.CVvvVC.
+.CVgggVC.CVqgVC.
+..CgGgVC..CggVC.
+...QQQQ....QQQ..
+................
+.....CCCC.......
+...CCVVVVCC.....
+..CVVvGgvvVC....
+..CVvGGggvVC....
+...CVvGGvvVC....
+....CCVVVVCC....
+......QQQQ......`);
+
+sprite("ore_vein", `
+................
+......CCCC......
+....CCVVVVCC....
+...CVVvJJvvVC...
+..CVvvJJjjvvVC..
+..CVvJjjyyjvvC..
+.CVvQQjyyjQQvC..
+.CVvQqyyyjQvVC..
+.CVvQqqjjqQvVC..
+.CVvQQqqqqQQvC..
+..CVvvQQQQvvVC..
+..CVVvvvvvvvVC..
+...CVVVvvvvVC...
+....CCVVVVCC....
+......QQQQ......
+................`);
+
+sprite("fish_shoal", `
+................
+...7766556677...
+..76..........7.
+.....hh..........
+....hHHh..6677..
+...hHHHHh.76....
+....hHHh........
+.....hh.........
+.........hh.....
+..6677..hHHh....
+..76...hHHHHh...
+........hHHh....
+.........hh.....
+...7766556677...
+................
+................`);
+
+sprite("field_wheat_1", `
+dddddddddddddddd
+dyyydyyydyyydyyy
+dGgGdGgGdGgGdGgG
+dGgGdGgGdGgGdGgG
+dddddddddddddddd
+yyydyyydyyydyyyd
+GgGdGgGdGgGdGgGd
+GgGdGgGdGgGdGgGd
+dddddddddddddddd
+dyyydyyydyyydyyy
+dGgGdGgGdGgGdGgG
+dGgGdGgGdGgGdGgG
+dddddddddddddddd
+yyydyyydyyydyyyd
+GgGdGgGdGgGdGgGd
+GgGdGgGdGgGdGgGd`);
+
+sprite("field_wheat_2", `
+SSSSSSSSSSSSSSSS
+SyyaSyyaSyyaSyya
+sYYAsYYAsYYAsYYA
+sYYAsYYAsYYAsYYA
+SSSSSSSSSSSSSSSS
+yyaSyyaSyyaSyyaS
+YYAsYYAsYYAsYYAs
+YYAsYYAsYYAsYYAs
+SSSSSSSSSSSSSSSS
+SyyaSyyaSyyaSyya
+sYYAsYYAsYYAsYYA
+sYYAsYYAsYYAsYYA
+SSSSSSSSSSSSSSSS
+yyaSyyaSyyaSyyaS
+YYAsYYAsYYAsYYAs
+YYAsYYAsYYAsYYAs`);

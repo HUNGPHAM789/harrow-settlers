@@ -1,0 +1,26 @@
+{
+ "id": "t02_world",
+ "worker": "gemini",
+ "model": "gemini-3.5-flash",
+ "objective": "Implement src/sim/world.js exactly per ARCH.md (generateWorld, idx, inBounds). Also write tests/world.test.mjs (node:test): determinism for same seed, different for other seeds, start area valid (3x3 buildable, >=10 mature trees within 8 tiles, rock within 14, water within 14, mountain within 22) for seeds 1..30, border is deep water, typed array sizes.",
+ "outputs": [
+  "src/sim/world.js",
+  "tests/world.test.mjs"
+ ],
+ "acceptance": [
+  "start conditions hold for 30 seeds",
+  "generation < 150ms for 96x96",
+  "island looks natural: beach ring of SAND, rock patches, forest clusters via noise"
+ ],
+ "validate": [
+  "node --test tests/world.test.mjs"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js",
+  "src/util/rng.js",
+  "src/util/heap.js",
+  "src/util/noise.js"
+ ],
+ "max_attempts": 3
+}

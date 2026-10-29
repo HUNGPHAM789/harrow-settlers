@@ -1,0 +1,28 @@
+{
+ "id": "a02_buildings",
+ "worker": "gemini",
+ "model": "gemini-3.5-flash",
+ "objective": "Write art/buildings.px.js. Each building sprite is footprint width x (footprint height + 16) px: the bottom rows sit on the footprint, the extra 16px top is roof/chimney/tower overhang (transparent where unused). Each building must be instantly recognisable by silhouette+props (woodcutter: log pile+axe stump; sawmill: saw blade + planks; windmill: sails; farm: barn+hay; mine: timber-framed tunnel mouth; smelter: furnace glow; smith: anvil+chimney smoke; tower: stone watchtower; market: striped awnings; hq: grand castle with flag; monument: majestic great hall). Also for every building a scaffold version b_<type>_scaffold (same size) showing wooden scaffolding+partial walls. Required sprites with sizes: b_hq 48x64, b_hut 32x48, b_woodcutter 32x48, b_forester 32x48, b_quarry 32x48, b_sawmill 48x48, b_fisher 32x48, b_farm 48x64, b_mill 32x64, b_bakery 32x48, b_mine 32x48, b_smelter 32x48, b_smith 48x48, b_tower 32x48, b_market 48x48, b_monument 64x64 plus scaffolds.",
+ "outputs": [
+  "art/buildings.px.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 3,
+ "acceptance": [
+  "builds with pxl without errors",
+  "every required sprite name exists with exact size",
+  "coherent warm pixel-art style, 1px dark outline, light top-left, 4-6 tones per material",
+  "reads clearly at 1x"
+ ],
+ "validate": [
+  "node tools/check_sprites.mjs art/buildings.px.js b_hq b_hut b_woodcutter b_forester b_quarry b_sawmill b_fisher b_farm b_mill b_bakery b_mine b_smelter b_smith b_tower b_market b_monument b_hq_scaffold b_hut_scaffold b_woodcutter_scaffold b_forester_scaffold b_quarry_scaffold b_sawmill_scaffold b_fisher_scaffold b_farm_scaffold b_mill_scaffold b_bakery_scaffold b_mine_scaffold b_smelter_scaffold b_smith_scaffold b_tower_scaffold b_market_scaffold b_monument_scaffold"
+ ],
+ "previews": [
+  "art/out/buildings/_preview/*.png"
+ ]
+}

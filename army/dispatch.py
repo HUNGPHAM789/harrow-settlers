@@ -23,8 +23,10 @@ def pick_key():
                 if cool.get(i, 0) <= time.time(): return i
             soon = min([cool.get(i, 0) for i in range(n) if i not in dead] or [time.time() + 30])
         time.sleep(max(1, min(20, soon - time.time())))
-def gemini(model, prompt, system=None, temp=0.4, max_out=32000):
-    body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+def gemini(model, prompt, system=None, temp=0.4, max_out=32000, images=()):
+    import base64
+    parts = [{"text": prompt}] + [{"inline_data": {"mime_type": "image/png", "data": base64.b64encode(open(f, "rb").read()).decode()}} for f in images]
+    body = {"contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"temperature": temp, "maxOutputTokens": max_out}}
     if system: body["systemInstruction"] = {"parts": [{"text": system}]}
     last = ""
@@ -109,20 +111,30 @@ def audit(t, rid):
     for p in t["outputs"]:
         fp = os.path.join(ROOT, p)
         if os.path.exists(fp): ctx += f"\n--- {p} ---\n{open(fp).read()[:30000]}\n"
-    txt, who = gemini("gemini-3.5-flash", f"{RUBRIC}\n\nOBJECTIVE:\n{t['objective']}\nACCEPTANCE:{t.get('acceptance')}\n{ctx}")
+    imgs = [os.path.join(ROOT, g) for pat in t.get("previews", []) for g in __import__("glob").glob(os.path.join(ROOT, pat))][:12]
+    if imgs: ctx += "\nThe attached images are the rendered previews of this art (judge the VISUALS: readability, consistency, charm, pixel-art craft)."
+    txt, who = gemini("gemini-3.5-flash", f"{RUBRIC}\n\nOBJECTIVE:\n{t['objective']}\nACCEPTANCE:{t.get('acceptance')}\n{ctx}", images=imgs)
     m = re.search(r"\{.*\}", txt, re.S)
     try: return json.loads(m.group(0))
     except Exception: return {"score": 0, "issues": ["audit unparsable"]}
+def snap(t):
+    return {p: open(os.path.join(ROOT, p)).read() for p in t["outputs"] if os.path.exists(os.path.join(ROOT, p))}
+def restore(files):
+    for p, c in files.items(): open(os.path.join(ROOT, p), "w").write(c)
 def run_audited(t, rounds=2, bar=8):
+    """Generate, audit, and improve for at least `rounds` extra turns while score < bar. Keeps the BEST version (never regresses)."""
     r = run_task(t); hist = []
     if r["status"] != "validated": return {"id": t["id"], "final": "failed", "run": r}
+    best = (-1, None, [])
     for k in range(rounds + 1):
         a = audit(t, t["id"]); hist.append(a["score"])
-        if a["score"] >= bar and k >= (0 if t.get("min_rounds", 0) == 0 else t["min_rounds"]): break
-        if k == rounds: break
-        r = run_task(t, "AUDIT score %s/10. Fix:\n- %s\nRewrite the files fully, improved." % (a["score"], "\n- ".join(a["issues"])))
-        if r["status"] != "validated": break
-    out = {"id": t["id"], "scores": hist, "final": "pass" if hist and hist[-1] >= bar else "needs-lead-review", "issues": a.get("issues", [])}
+        if a["score"] > best[0]: best = (a["score"], snap(t), a.get("issues", []))
+        if a["score"] >= bar or k == rounds: break
+        prev = snap(t)
+        r = run_task(t, "AUDIT score %s/10 (best so far %s). Keep what works; fix ALL of:\n- %s\nRewrite the files fully, improved." % (a["score"], best[0], "\n- ".join(a["issues"])))
+        if r["status"] != "validated": restore(prev); break
+    restore(best[1])
+    out = {"id": t["id"], "scores": hist, "best": best[0], "final": "pass" if best[0] >= bar else "needs-lead-review", "issues": best[2]}
     json.dump(out, open(os.path.join(ROOT, "army/runs", t["id"], "audit.json"), "w"), indent=1)
     return out
 if __name__ == "__main__":

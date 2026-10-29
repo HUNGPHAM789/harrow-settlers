@@ -1,0 +1,17 @@
+{
+ "id": "a01_terrain",
+ "scores": [
+  5,
+  6,
+  4
+ ],
+ "final": "needs-lead-review",
+ "issues": [
+  "Fix palette key typo in `tree_3` trunk which uses snow/stone colors (`Z`, `Q`) instead of brown wood tones (`b`, `B`, `t`, `T`), causing bright white/grey vertical stripes on the trunk.",
+  "Replace concentric ring ('pillow shading') on trees, rocks, and mountains with unified top-left directional lighting and proper highlight/shadow zones.",
+  "Redesign `tile_forest`, `tile_rock`, `tile_mountain`, and `tile_road` to avoid sub-tile 2x2 grid repeating patterns that create ugly checkerboard tiling artifacts when rendered on a map.",
+  "Redesign `tile_road` to visually represent a dirt path/trail rather than isolated polka-dot circles.",
+  "Fix `deco_1`, `deco_2`, and `deco_3` so flower stems and petals form contiguous plants rooted at the base rather than floating disjointed pixels.",
+  "Apply dark 1px outlines (`f` or `g`) around tree canopies and foliage so sprites match the required outline style."
+ ]
+}

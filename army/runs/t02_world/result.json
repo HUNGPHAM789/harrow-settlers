@@ -1,0 +1,25 @@
+{
+ "id": "t02_world",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash:k4",
+   "wrote": [
+    "src/sim/world.js",
+    "tests/world.test.mjs"
+   ],
+   "validate_rc": 1,
+   "validate_out": "TAP version 13\n# Subtest: world generation returns correct structure and typed array sizes\nok 1 - world generation returns correct structure and typed array sizes\n  ---\n  duration_ms: 30.911333\n  type: 'test'\n  ...\n# Subtest: helper functions idx and inBounds\nok 2 - helper functions idx and inBounds\n  ---\n  duration_ms: 0.055958\n  type: 'test'\n  ...\n# Subtest: determinism for same seed and difference for different seeds\nok 3 - determinism for same seed and difference for different seeds\n  ---\n  duration_ms: 57.941208\n  type: 'test'\n  ...\n# Subtest: border is deep water\nok 4 - border is deep water\n  ---\n  duration_ms: 31.163667\n  type: 'test'\n  ...\n# Subtest: generation performance is < 150ms for 96x96\nok 5 - generation performance is < 150ms for 96x96\n  ---\n  duration_ms: 19.261666\n  type: 'test'\n  ...\n# Subtest: start area validity for seeds 1..30\nnot ok 6 - start area validity for seeds 1..30\n  ---\n  duration_ms: 298.862291\n  type: 'test'\n  location: '/Users/hungpham/projects/harrow-settlers/tests/world.test.mjs:83:1'\n  failureType: 'testCodeFailure'\n  error: 'Expected water tile within 14 tiles for seed 19'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: true\n  actual: false\n  operator: '=='\n  stack: |-\n    TestContext.<anonymous> (file:///Users/hungpham/projects/harrow-settlers/tests/world.test.mjs:150:5)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 5\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 474.468458\n"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3.5-flash:k7",
+   "wrote": [
+    "src/sim/world.js",
+    "tests/world.test.mjs"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

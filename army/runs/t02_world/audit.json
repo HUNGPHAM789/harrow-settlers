@@ -1,0 +1,12 @@
+{
+ "id": "t02_world",
+ "scores": [
+  8
+ ],
+ "final": "pass",
+ "issues": [
+  "Remove unused import `mulberry32` from `src/sim/world.js`.",
+  "Refactor `inBounds` parameter handling to eliminate fragile parameter swapping when called with four numeric arguments `(w, h, x, y)`.",
+  "Add bounds and type assertion checks for `w` and `h` in `generateWorld` to prevent invalid typed array allocations for small or non-numeric map dimensions."
+ ]
+}

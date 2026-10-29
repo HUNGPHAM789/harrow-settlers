@@ -1,0 +1,15 @@
+{
+ "id": "t03_path",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash:k11",
+   "wrote": [
+    "src/sim/pathfind.js",
+    "tests/pathfind.test.mjs"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

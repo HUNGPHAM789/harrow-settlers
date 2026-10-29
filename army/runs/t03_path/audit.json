@@ -1,0 +1,15 @@
+{
+ "id": "t03_path",
+ "scores": [
+  7,
+  7,
+  7
+ ],
+ "final": "needs-lead-review",
+ "issues": [
+  "Fix corner-cutting logic: `blockedFn` check on orthogonal adjacent tiles (`o1`, `o2`) must not be bypassed when `o1Idx` or `o2Idx` equals `targetIdx`; target block exception only applies to the destination tile `nIdx`.",
+  "Avoid allocating `Float32Array`, `Int32Array`, and `Uint8Array` buffers on every `findPath` and `nearestTile` call; use pre-allocated static/reusable workspace buffers to prevent severe GC pauses during pathfinding bursts.",
+  "Remove `try/catch` double-invocation pattern in `nearestTile`'s tile predicate testing; enforce standard `predicate(x, y, world)` signature to avoid V8 optimization bailouts in hot BFS loops.",
+  "Replace imprecise diagonal cost and heuristic constant `1.414` with `Math.SQRT2` (or `Math.SQRT2` rounded constant) to prevent A* path cost calculation drift."
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "id": "t03_path",
+ "worker": "gemini",
+ "model": "gemini-3.5-flash",
+ "objective": "Implement src/sim/pathfind.js per ARCH.md (findPath, nearestTile). Also tests/pathfind.test.mjs: straight path, around obstacle, null when enclosed/water, no corner cutting, blocked callback, nearestTile, 200 random paths on a generated world finish fast. World for tests: build a tiny fake world object {w,h,terrain:Uint8Array} using T from defs.js (do NOT import world.js).",
+ "outputs": [
+  "src/sim/pathfind.js",
+  "tests/pathfind.test.mjs"
+ ],
+ "acceptance": [
+  "A* optimal on open grid (diagonal cost 1.414)",
+  "max expansions respected"
+ ],
+ "validate": [
+  "node --test tests/pathfind.test.mjs"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js",
+  "src/util/rng.js",
+  "src/util/heap.js",
+  "src/util/noise.js"
+ ],
+ "max_attempts": 3
+}

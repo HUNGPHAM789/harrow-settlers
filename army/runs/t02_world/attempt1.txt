@@ -1,0 +1,559 @@
+=== FILE: src/sim/world.js ===
+/**
+ * World generation and spatial query helpers for Harrow Settlers.
+ * Generates an island-shaped map using FBM noise with deterministic guarantees
+ * for starting territory resources.
+ */
+
+import { T } from './defs.js';
+import { mulberry32 } from '../util/rng.js';
+import { makeValueNoise, fbm } from '../util/noise.js';
+
+/**
+ * Calculates 1D array index for 2D coordinates.
+ * @param {number} w Width of world
+ * @param {number} x X coordinate
+ * @param {number} y Y coordinate
+ * @returns {number} Array index
+ */
+export function idx(w, x, y) {
+  return y * w + x;
+}
+
+/**
+ * Checks whether coordinate (x, y) is inside world boundaries.
+ * @param {{ w: number, h: number }} world World or dimensions object
+ * @param {number} x X coordinate
+ * @param {number} y Y coordinate
+ * @returns {boolean} True if inside bounds
+ */
+export function inBounds(world, x, y) {
+  return x >= 0 && x < world.w && y >= 0 && y < world.h;
+}
+
+/**
+ * Generates a deterministic world given a seed and map dimensions.
+ * @param {number} seed 32-bit integer seed
+ * @param {number} [w=96] World width
+ * @param {number} [h=96] World height
+ * @returns {object} Generated World object
+ */
+export function generateWorld(seed, w = 96, h = 96) {
+  const rng = mulberry32(seed);
+  const heightNoise = makeValueNoise(seed);
+  const forestNoise = makeValueNoise((seed + 101) >>> 0);
+  const rockNoise = makeValueNoise((seed + 202) >>> 0);
+  const decoNoise = makeValueNoise((seed + 303) >>> 0);
+
+  const total = w * h;
+  const terrain = new Uint8Array(total);
+  const tree = new Uint8Array(total);
+  const rock = new Uint8Array(total);
+  const ore = new Uint8Array(total);
+  const fish = new Uint8Array(total);
+  const deco = new Uint8Array(total);
+
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  const maxR = Math.min(w, h) * 0.44;
+
+  // Pass 1: Island terrain elevation & types
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+
+      // Outer border is deep ocean
+      if (x <= 1 || x >= w - 2 || y <= 1 || y >= h - 2) {
+        terrain[i] = T.DEEP;
+        continue;
+      }
+
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normDist = dist / maxR;
+
+      if (normDist >= 1.0) {
+        terrain[i] = T.DEEP;
+        continue;
+      }
+
+      const mask = Math.pow(Math.max(0, 1.0 - normDist), 0.7);
+      const nHeight = fbm(heightNoise, x * 0.045, y * 0.045, 4, 2, 0.5);
+      const elevation = nHeight * 0.6 + mask * 0.5 - 0.1;
+
+      if (elevation < 0.22) {
+        terrain[i] = T.DEEP;
+      } else if (elevation < 0.28) {
+        terrain[i] = T.WATER;
+      } else if (elevation < 0.35) {
+        terrain[i] = T.SAND;
+      } else if (elevation < 0.68) {
+        // Land area: grass / forest / rock outcrops
+        const rVal = fbm(rockNoise, x * 0.08, y * 0.08, 3, 2, 0.5);
+        if (rVal > 0.68) {
+          terrain[i] = T.ROCK;
+        } else {
+          const fVal = fbm(forestNoise, x * 0.07, y * 0.07, 3, 2, 0.5);
+          if (fVal > 0.50) {
+            terrain[i] = T.FOREST_FLOOR;
+          } else {
+            terrain[i] = T.GRASS;
+          }
+        }
+      } else if (elevation < 0.78) {
+        terrain[i] = T.ROCK;
+      } else if (elevation < 0.88) {
+        terrain[i] = T.MOUNTAIN;
+      } else {
+        terrain[i] = T.SNOW;
+      }
+    }
+  }
+
+  // Hard border guarantee
+  for (let x = 0; x < w; x++) {
+    terrain[0 * w + x] = T.DEEP;
+    terrain[(h - 1) * w + x] = T.DEEP;
+  }
+  for (let y = 0; y < h; y++) {
+    terrain[y * w + 0] = T.DEEP;
+    terrain[y * w + (w - 1)] = T.DEEP;
+  }
+
+  // Pass 2: Vegetation, stone, ore, decoration
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      const t = terrain[i];
+
+      if (t === T.FOREST_FLOOR) {
+        const r = rng();
+        if (r < 0.65) {
+          tree[i] = 2; // mature
+        } else if (r < 0.80) {
+          tree[i] = 1; // sapling
+        }
+      } else if (t === T.GRASS) {
+        const r = rng();
+        if (r < 0.12) {
+          tree[i] = 2; // mature
+        } else if (r < 0.16) {
+          tree[i] = 1; // sapling
+        }
+        const dVal = Math.floor(decoNoise(x * 0.2, y * 0.2) * 4);
+        deco[i] = Math.min(3, Math.max(0, dVal));
+      } else if (t === T.ROCK) {
+        rock[i] = 20;
+      } else if (t === T.MOUNTAIN) {
+        ore[i] = 20;
+      }
+    }
+  }
+
+  // Pass 3: Fish on coastal water tiles
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const i = y * w + x;
+      if (terrain[i] === T.WATER) {
+        let touchesLand = false;
+        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+          const nt = terrain[(y + dy) * w + (x + dx)];
+          if (nt !== T.DEEP && nt !== T.WATER) {
+            touchesLand = true;
+            break;
+          }
+        }
+        if (touchesLand) {
+          fish[i] = 20;
+        }
+      }
+    }
+  }
+
+  const worldObj = {
+    w,
+    h,
+    seed,
+    terrain,
+    tree,
+    rock,
+    ore,
+    fish,
+    start: { x: 0, y: 0 },
+    deco,
+  };
+
+  // Find candidate start location near map center
+  let bestStart = null;
+  let bestScore = -Infinity;
+  const searchR = 25;
+  const startCx = Math.floor(cx - 1);
+  const startCy = Math.floor(cy - 1);
+
+  for (let dy = -searchR; dy <= searchR; dy++) {
+    for (let dx = -searchR; dx <= searchR; dx++) {
+      const sx = startCx + dx;
+      const sy = startCy + dy;
+
+      if (sx < 4 || sx > w - 7 || sy < 4 || sy > h - 7) continue;
+
+      // Check if candidate 3x3 is land
+      let flat = true;
+      for (let py = 0; py < 3; py++) {
+        for (let px = 0; px < 3; px++) {
+          const t = terrain[(sy + py) * w + (sx + px)];
+          if (t !== T.GRASS && t !== T.FOREST_FLOOR) {
+            flat = false;
+            break;
+          }
+        }
+        if (!flat) break;
+      }
+      if (!flat) continue;
+
+      let matureTrees = 0;
+      let hasRock = false;
+      let hasWater = false;
+      let hasMountain = false;
+
+      for (let ty = sy - 22; ty <= sy + 2 + 22; ty++) {
+        for (let tx = sx - 22; tx <= sx + 2 + 22; tx++) {
+          if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+          const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+          const ti = ty * w + tx;
+
+          if (dist <= 8 && tree[ti] === 2) matureTrees++;
+          if (dist <= 14 && terrain[ti] === T.ROCK && rock[ti] > 0) hasRock = true;
+          if (dist <= 14 && (terrain[ti] === T.WATER || terrain[ti] === T.DEEP)) hasWater = true;
+          if (dist <= 22 && terrain[ti] === T.MOUNTAIN) hasMountain = true;
+        }
+      }
+
+      const distFromCenter = Math.abs(dx) + Math.abs(dy);
+      let score = -distFromCenter;
+
+      if (matureTrees >= 10) score += 100;
+      if (hasRock) score += 100;
+      if (hasWater) score += 100;
+      if (hasMountain) score += 100;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestStart = { x: sx, y: sy };
+      }
+    }
+  }
+
+  if (!bestStart) {
+    bestStart = { x: startCx, y: startCy };
+  }
+
+  worldObj.start = bestStart;
+  const sx = bestStart.x;
+  const sy = bestStart.y;
+
+  // Enforce start area requirements
+  // 1. Clear 3x3 buildable flat area
+  for (let py = 0; py < 3; py++) {
+    for (let px = 0; px < 3; px++) {
+      const idxTile = (sy + py) * w + (sx + px);
+      terrain[idxTile] = T.GRASS;
+      tree[idxTile] = 0;
+      rock[idxTile] = 0;
+      ore[idxTile] = 0;
+    }
+  }
+
+  // 2. >= 10 mature trees within 8 tiles
+  let matureTrees = 0;
+  for (let ty = sy - 8; ty <= sy + 2 + 8; ty++) {
+    for (let tx = sx - 8; tx <= sx + 2 + 8; tx++) {
+      if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+      const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+      if (dist <= 8 && tree[ty * w + tx] === 2) matureTrees++;
+    }
+  }
+
+  if (matureTrees < 10) {
+    const needed = 10 - matureTrees;
+    let added = 0;
+    for (let r = 1; r <= 8 && added < needed; r++) {
+      for (let ty = sy - r; ty <= sy + 2 + r && added < needed; ty++) {
+        for (let tx = sx - r; tx <= sx + 2 + r && added < needed; tx++) {
+          if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+          const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+          if (dist > 8) continue;
+          if (tx >= sx && tx <= sx + 2 && ty >= sy && ty <= sy + 2) continue;
+          const idxTile = ty * w + tx;
+          if (tree[idxTile] !== 2) {
+            if (terrain[idxTile] === T.GRASS || terrain[idxTile] === T.FOREST_FLOOR) {
+              tree[idxTile] = 2;
+              added++;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Water within 14 tiles
+  let hasWater = false;
+  for (let ty = sy - 14; ty <= sy + 2 + 14; ty++) {
+    for (let tx = sx - 14; tx <= sx + 2 + 14; tx++) {
+      if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+      const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+      if (dist <= 14 && (terrain[ty * w + tx] === T.WATER || terrain[ty * w + tx] === T.DEEP)) {
+        hasWater = true;
+        break;
+      }
+    }
+    if (hasWater) break;
+  }
+
+  if (!hasWater) {
+    const wy = Math.min(h - 2, sy + 8);
+    const wx = Math.min(w - 2, sx + 8);
+    for (let dy = 0; dy < 2; dy++) {
+      for (let dx = 0; dx < 2; dx++) {
+        const idxTile = (wy + dy) * w + (wx + dx);
+        terrain[idxTile] = T.WATER;
+        fish[idxTile] = 20;
+        tree[idxTile] = 0;
+        rock[idxTile] = 0;
+        ore[idxTile] = 0;
+      }
+    }
+  }
+
+  // 4. Rock within 14 tiles
+  let hasRock = false;
+  for (let ty = sy - 14; ty <= sy + 2 + 14; ty++) {
+    for (let tx = sx - 14; tx <= sx + 2 + 14; tx++) {
+      if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+      const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+      if (dist <= 14 && terrain[ty * w + tx] === T.ROCK && rock[ty * w + tx] > 0) {
+        hasRock = true;
+        break;
+      }
+    }
+    if (hasRock) break;
+  }
+
+  if (!hasRock) {
+    const ry = Math.max(2, sy - 8);
+    const rx = Math.max(2, sx - 8);
+    for (let dy = 0; dy < 2; dy++) {
+      for (let dx = 0; dx < 2; dx++) {
+        const idxTile = (ry + dy) * w + (rx + dx);
+        terrain[idxTile] = T.ROCK;
+        rock[idxTile] = 20;
+        tree[idxTile] = 0;
+        ore[idxTile] = 0;
+      }
+    }
+  }
+
+  // 5. Mountain within 22 tiles
+  let hasMountain = false;
+  for (let ty = sy - 22; ty <= sy + 2 + 22; ty++) {
+    for (let tx = sx - 22; tx <= sx + 2 + 22; tx++) {
+      if (tx < 0 || tx >= w || ty < 0 || ty >= h) continue;
+      const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+      if (dist <= 22 && terrain[ty * w + tx] === T.MOUNTAIN) {
+        hasMountain = true;
+        break;
+      }
+    }
+    if (hasMountain) break;
+  }
+
+  if (!hasMountain) {
+    const my = Math.min(h - 3, sy + 15);
+    const mx = Math.max(2, sx - 15);
+    for (let dy = 0; dy < 3; dy++) {
+      for (let dx = 0; dx < 3; dx++) {
+        const idxTile = (my + dy) * w + (mx + dx);
+        terrain[idxTile] = T.MOUNTAIN;
+        ore[idxTile] = 20;
+        tree[idxTile] = 0;
+        rock[idxTile] = 0;
+      }
+    }
+  }
+
+  return worldObj;
+}
+=== END ===
+=== FILE: tests/world.test.mjs ===
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { generateWorld, idx, inBounds } from '../src/sim/world.js';
+import { T } from '../src/sim/defs.js';
+
+test('world generation returns correct structure and typed array sizes', () => {
+  const w = 96;
+  const h = 96;
+  const world = generateWorld(12345, w, h);
+
+  assert.equal(world.w, w);
+  assert.equal(world.h, h);
+  assert.equal(world.seed, 12345);
+  assert.equal(world.terrain.length, w * h);
+  assert.equal(world.tree.length, w * h);
+  assert.equal(world.rock.length, w * h);
+  assert.equal(world.ore.length, w * h);
+  assert.equal(world.fish.length, w * h);
+  assert.equal(world.deco.length, w * h);
+  assert(world.terrain instanceof Uint8Array);
+  assert(world.tree instanceof Uint8Array);
+  assert(world.rock instanceof Uint8Array);
+  assert(world.ore instanceof Uint8Array);
+  assert(world.fish instanceof Uint8Array);
+  assert(world.deco instanceof Uint8Array);
+  assert(world.start && typeof world.start.x === 'number' && typeof world.start.y === 'number');
+});
+
+test('helper functions idx and inBounds', () => {
+  const world = { w: 96, h: 96 };
+  assert.equal(idx(96, 5, 10), 10 * 96 + 5);
+  assert.equal(inBounds(world, 0, 0), true);
+  assert.equal(inBounds(world, 95, 95), true);
+  assert.equal(inBounds(world, -1, 0), false);
+  assert.equal(inBounds(world, 0, 96), false);
+});
+
+test('determinism for same seed and difference for different seeds', () => {
+  const w1 = generateWorld(42, 96, 96);
+  const w2 = generateWorld(42, 96, 96);
+  const w3 = generateWorld(999, 96, 96);
+
+  assert.deepEqual(w1.terrain, w2.terrain);
+  assert.deepEqual(w1.tree, w2.tree);
+  assert.deepEqual(w1.rock, w2.rock);
+  assert.deepEqual(w1.ore, w2.ore);
+  assert.deepEqual(w1.fish, w2.fish);
+  assert.deepEqual(w1.deco, w2.deco);
+  assert.deepEqual(w1.start, w2.start);
+
+  let different = false;
+  for (let i = 0; i < w1.terrain.length; i++) {
+    if (w1.terrain[i] !== w3.terrain[i]) {
+      different = true;
+      break;
+    }
+  }
+  assert.equal(different, true, 'Different seeds should produce different terrain');
+});
+
+test('border is deep water', () => {
+  const w = 96;
+  const h = 96;
+  const world = generateWorld(100, w, h);
+
+  for (let x = 0; x < w; x++) {
+    assert.equal(world.terrain[idx(w, x, 0)], T.DEEP);
+    assert.equal(world.terrain[idx(w, x, h - 1)], T.DEEP);
+  }
+  for (let y = 0; y < h; y++) {
+    assert.equal(world.terrain[idx(w, 0, y)], T.DEEP);
+    assert.equal(world.terrain[idx(w, w - 1, y)], T.DEEP);
+  }
+});
+
+test('generation performance is < 150ms for 96x96', () => {
+  const t0 = performance.now();
+  generateWorld(777, 96, 96);
+  const elapsed = performance.now() - t0;
+  assert(elapsed < 150, `World generation took ${elapsed.toFixed(2)}ms, expected < 150ms`);
+});
+
+test('start area validity for seeds 1..30', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const world = generateWorld(seed, 96, 96);
+    const { x: sx, y: sy } = world.start;
+    const w = world.w;
+
+    // 1. 3x3 buildable flat area (GRASS or FOREST_FLOOR), no trees blocking
+    for (let dy = 0; dy < 3; dy++) {
+      for (let dx = 0; dx < 3; dx++) {
+        const tx = sx + dx;
+        const ty = sy + dy;
+        assert(inBounds(world, tx, ty), `Start tile (${tx},${ty}) out of bounds for seed ${seed}`);
+        const i = idx(w, tx, ty);
+        const t = world.terrain[i];
+        assert(t === T.GRASS || t === T.FOREST_FLOOR, `Start tile (${tx},${ty}) must be GRASS or FOREST_FLOOR, got ${t} for seed ${seed}`);
+        assert.equal(world.tree[i], 0, `Start tile (${tx},${ty}) must have no tree for seed ${seed}`);
+      }
+    }
+
+    // 2. >= 10 mature trees within 8 tiles
+    let matureTrees = 0;
+    for (let ty = sy - 8; ty <= sy + 2 + 8; ty++) {
+      for (let tx = sx - 8; tx <= sx + 2 + 8; tx++) {
+        if (!inBounds(world, tx, ty)) continue;
+        const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+        if (dist <= 8) {
+          const i = idx(w, tx, ty);
+          if (world.tree[i] === 2) matureTrees++;
+        }
+      }
+    }
+    assert(matureTrees >= 10, `Expected >= 10 mature trees within 8 tiles for seed ${seed}, found ${matureTrees}`);
+
+    // 3. >= 1 rock cluster within 14 tiles
+    let hasRock = false;
+    for (let ty = sy - 14; ty <= sy + 2 + 14; ty++) {
+      for (let tx = sx - 14; tx <= sx + 2 + 14; tx++) {
+        if (!inBounds(world, tx, ty)) continue;
+        const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+        if (dist <= 14) {
+          const i = idx(w, tx, ty);
+          if (world.terrain[i] === T.ROCK && world.rock[i] > 0) {
+            hasRock = true;
+            break;
+          }
+        }
+      }
+      if (hasRock) break;
+    }
+    assert(hasRock, `Expected rock tile within 14 tiles for seed ${seed}`);
+
+    // 4. Water within 14 tiles
+    let hasWater = false;
+    for (let ty = sy - 14; ty <= sy + 2 + 14; ty++) {
+      for (let tx = sx - 14; tx <= sx + 2 + 14; tx++) {
+        if (!inBounds(world, tx, ty)) continue;
+        const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+        if (dist <= 14) {
+          const i = idx(w, tx, ty);
+          if (world.terrain[i] === T.WATER || world.terrain[i] === T.DEEP) {
+            hasWater = true;
+            break;
+          }
+        }
+      }
+      if (hasWater) break;
+    }
+    assert(hasWater, `Expected water tile within 14 tiles for seed ${seed}`);
+
+    // 5. Mountain within 22 tiles
+    let hasMountain = false;
+    for (let ty = sy - 22; ty <= sy + 2 + 22; ty++) {
+      for (let tx = sx - 22; tx <= sx + 2 + 22; tx++) {
+        if (!inBounds(world, tx, ty)) continue;
+        const dist = Math.max(0, sx - tx, tx - (sx + 2), sy - ty, ty - (sy + 2));
+        if (dist <= 22) {
+          const i = idx(w, tx, ty);
+          if (world.terrain[i] === T.MOUNTAIN) {
+            hasMountain = true;
+            break;
+          }
+        }
+      }
+      if (hasMountain) break;
+    }
+    assert(hasMountain, `Expected mountain tile within 22 tiles for seed ${seed}`);
+  }
+});
+=== END ===

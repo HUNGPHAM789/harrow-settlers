@@ -1,0 +1,28 @@
+{
+ "id": "a01_terrain",
+ "worker": "gemini",
+ "model": "gemini-3.5-flash",
+ "objective": "Write art/terrain.px.js (pxl DSL, read the skill/reference carefully; use mnemonic palette keys). Sprites, all 16x16 unless noted, tiles must tile seamlessly: tile_deep, tile_water, tile_sand, tile_grass, tile_forest, tile_rock, tile_mountain, tile_snow, tile_grass_1, tile_grass_2, tile_grass_3, tile_water_1, tile_water_2, tile_road, deco_1, deco_2, deco_3, tree_1, tree_2, tree_3, sapling, rock_1, rock_2, ore_vein, fish_shoal, field_wheat_1, field_wheat_2. tree_* are 16x24 (trunk base at bottom, transparent bg), sapling 16x16 transparent, rock_* 16x16 transparent boulders, ore_vein 16x16 transparent, fish_shoal 16x16 transparent ripples+fish silhouettes, tile_road is a dirt-path tile, deco_* transparent flower/grass tufts.",
+ "outputs": [
+  "art/terrain.px.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 3,
+ "acceptance": [
+  "builds with pxl without errors",
+  "every required sprite name exists with exact size",
+  "coherent warm pixel-art style, 1px dark outline, light top-left, 4-6 tones per material",
+  "reads clearly at 1x"
+ ],
+ "validate": [
+  "node tools/check_sprites.mjs art/terrain.px.js tile_deep tile_water tile_sand tile_grass tile_forest tile_rock tile_mountain tile_snow tile_grass_1 tile_grass_2 tile_grass_3 tile_water_1 tile_water_2 tile_road deco_1 deco_2 deco_3 tree_1 tree_2 tree_3 sapling rock_1 rock_2 ore_vein fish_shoal field_wheat_1 field_wheat_2"
+ ],
+ "previews": [
+  "art/out/terrain/_preview/*.png"
+ ]
+}
