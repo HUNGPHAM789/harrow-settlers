@@ -384,35 +384,33 @@ function chibiPose(kind, f, n) {
   }
   
   if (kind === "walk") {
-    // 8-frame natural forward walk cycle
-    // Each leg stays on its respective side (NO crossover sideways!)
-    // Elliptical trajectory: foot lifts off back, arcs forward, plants in front with heel, rolls back on ground
-    const stepLen = 2.0
-    const liftH = 3.0
+    // 8-frame unambiguous FORWARD walk cycle (Walking South towards camera / South-East)
+    // On the ground (stance): foot rolls backward from South (+Y) to North (-Y)
+    // In the air (swing): foot lifts and reaches FORWARD towards South (+Y, landing lower on screen in front!)
     
-    // Near leg (Right side: baseX = +2.0)
-    // f=0..3: Swing forward in air (lift > 0, moves from -stepLen to +stepLen)
-    // f=4..7: Stance on ground (lift = 0, moves from +stepLen to -stepLen)
-    const footN_x = stepLen * Math.cos(ph + Math.PI)
-    const footN_lift = Math.max(0, Math.sin(ph)) * liftH
-    P.footN = [2.0 + footN_x, footN_lift]
+    // Near leg (Right side)
+    const isStanceN = f <= 4
+    const progN = Math.cos(ph) // +1 (South/front) -> -1 (North/back)
+    const yN = progN * 1.8 // +1.8 in front (South) to -1.8 behind (North)
+    const xN = progN * 1.4 // +1.4 East to -1.4 West
+    const liftN = (!isStanceN) ? Math.sin(ph - Math.PI) * 2.2 : 0
+    P.footN = [2.0 + xN, -yN + liftN]
     
-    // Far leg (Left side: baseX = -2.0, opposite phase ph + PI)
-    const footF_x = stepLen * Math.cos(ph)
-    const footF_lift = Math.max(0, Math.sin(ph + Math.PI)) * liftH
-    P.footF = [-2.0 + footF_x, footF_lift]
+    // Far leg (Left side: exact opposite phase ph + PI)
+    const progF = Math.cos(ph + Math.PI)
+    const yF = progF * 1.8
+    const xF = progF * 1.4
+    const isStanceF = (f >= 4 || f === 0)
+    const liftF = (f > 0 && f < 4) ? Math.sin(ph) * 2.2 : 0
+    P.footF = [-2.0 + xF, -yF + liftF]
     
-    // Constant purposeful forward lean (never leaning backward!)
-    P.lean = 0.30
-    
-    // Gentle step bounce: two subtle dips per cycle (less than 0.6px)
+    // Forward torso lean towards viewer
+    P.lean = 0.25
     P.bob = -0.5 * Math.sin(ph * 2)
     
-    // Natural arm swing in opposition to legs
-    // When near leg is forward (f=4), near arm is back
-    // When near leg is back (f=0), near arm swings forward
-    P.handN = [3.5 - 2.8 * Math.cos(ph + Math.PI), -17]
-    P.handF = [-3.5 + 2.8 * Math.cos(ph + Math.PI), -17]
+    // Arm swing: in opposition to feet
+    P.handN = [3.5 - 2.5 * progN, -17]
+    P.handF = [-3.5 + 2.5 * progN, -17]
     P.head = [0, -0.3 * Math.sin(ph * 2)]
   }
   
@@ -474,18 +472,22 @@ function chibiPose(kind, f, n) {
   }
 
   if (kind === "carry") {
-    // 8-frame natural forward walk carrying bread basket
-    const stepLen = 2.0
-    const liftH = 3.0
-    const footN_x = stepLen * Math.cos(ph + Math.PI)
-    const footN_lift = Math.max(0, Math.sin(ph)) * liftH
-    P.footN = [2.0 + footN_x, footN_lift]
+    // 8-frame forward walk carrying bread basket
+    const isStanceN = f <= 4
+    const progN = Math.cos(ph)
+    const yN = progN * 1.8
+    const xN = progN * 1.4
+    const liftN = (!isStanceN) ? Math.sin(ph - Math.PI) * 2.2 : 0
+    P.footN = [2.0 + xN, -yN + liftN]
     
-    const footF_x = stepLen * Math.cos(ph)
-    const footF_lift = Math.max(0, Math.sin(ph + Math.PI)) * liftH
-    P.footF = [-2.0 + footF_x, footF_lift]
+    const progF = Math.cos(ph + Math.PI)
+    const yF = progF * 1.8
+    const xF = progF * 1.4
+    const isStanceF = (f >= 4 || f === 0)
+    const liftF = (f > 0 && f < 4) ? Math.sin(ph) * 2.2 : 0
+    P.footF = [-2.0 + xF, -yF + liftF]
     
-    P.lean = 0.28
+    P.lean = 0.25
     P.bob = -0.5 * Math.sin(ph * 2)
     P.handN = [4.5, -16 + Math.sin(ph * 2) * 0.6]
     P.handF = [-4.0, -16 - Math.sin(ph * 2) * 0.6]
@@ -637,19 +639,53 @@ anim("anim_chibi_baker_oven", { w: 88, h: 78, frames: 8, fps: 6, outline: "k" },
   c.ellipse(68, 60, 6, 4, fireCol)
   c.px(66 + (f % 3), 56 - (f % 2), "#fef08a") // spark
   
-  // Baker Body
-  drawSettlerBody(c, rOven, chibiPose("oven_slide", f, 8), 28, 72, 1.15)
+  // 1. Baker Body (without default arms, so we can draw custom hands firmly gripping the stick)
+  drawSettlerBody(c, rOven, chibiPose("oven_slide", f, 8), 28, 72, 1.15, { noNearArm: true, noFarArm: true })
   
-  // Wooden Peel sliding in and out
-  const peelX = 26 + thrust * 22
-  const peelY = 56
-  c.line(peelX - 18, peelY + 4, peelX + 16, peelY - 1, "#a36e3c", 2)
-  c.rect(peelX + 14, peelY - 4, 10, 6, "#d49959")
+  // 2. Far Arm & Back Hand (Left Hand - firmly grips the rear handle of the stick)
+  // Left shoulder at (22, 36)
+  const gx1 = 15 + thrust * 18
+  const gy1 = 54
+  // Far sleeve
+  c.line(22, 36, gx1, gy1 - 3, "#dfd9eb", 3)
+  // White rolled cuff
+  c.rect(gx1 - 2, gy1 - 4, 4, 3, "#ffffff")
+  // Peach skin palm behind stick
+  c.ellipse(gx1, gy1, 2.6, 2.2, "#e09367")
   
-  // Raw Dough going into oven (disappears inside after f=4)
+  // 3. Wooden Peel / Stoke Stick (passes directly through both hands!)
+  const paddleX = 46 + thrust * 18
+  // Long wooden shaft from behind back hand into oven
+  c.line(gx1 - 6, 54, paddleX + 2, 54, "#85542a", 2)
+  c.hline(gx1 - 6, 53, (paddleX - gx1 + 8), "#a36e3c")
+  // Wooden peel paddle
+  c.rect(paddleX, 51, 12, 6, "#d49959")
+  c.hline(paddleX, 53, 12, "#a36e3c")
+  
+  // Raw Dough Loaf on paddle (slides into oven, gets baked)
   if (f <= 4) {
-    c.ellipse(peelX + 18, peelY - 4, 4, 2.5, "#fef3c7")
+    c.ellipse(paddleX + 6, 50, 4.5, 2.5, "#fef3c7")
+    c.ellipse(paddleX + 6, 49.5, 3.2, 1.6, "#fffbeb")
   }
+  
+  // 4. Near Arm & Front Hand (Right Hand - firmly grips front shaft to push/guide peel)
+  // Right shoulder at (33, 36)
+  const gx2 = 28 + thrust * 18
+  const gy2 = 54
+  // Near sleeve
+  c.line(33, 36, gx2, gy2 - 3, "#f5f0fc", 3)
+  // White rolled cuff
+  c.rect(gx2 - 2, gy2 - 4, 4, 3, "#ffffff")
+  // Peach skin palm
+  c.ellipse(gx2, gy2, 2.8, 2.4, "#e09367")
+  
+  // 5. Curled fingers of BOTH hands wrapped tightly OVER the stick
+  // Back hand fingers
+  c.rect(gx1 - 1, gy1 - 2, 4, 2, "#e09367")
+  c.px(gx1, gy1 + 1, "#c77749")
+  // Front hand fingers
+  c.rect(gx2 - 1, gy2 - 2, 4, 2, "#e09367")
+  c.px(gx2 + 1, gy2 + 1, "#c77749")
 })
 
 // 5. Chibi Baker Aroma Bliss & Settlement Sparrow (8-frame sniffing & pecking)

@@ -23,8 +23,8 @@ def load_frames(anim_name):
     return frames
 
 anims = {
-    "idle": load_frames("anim_chibi_baker_idle"),
     "walk": load_frames("anim_chibi_baker_walk"),
+    "oven": load_frames("anim_chibi_baker_oven"),
     "knead": load_frames("anim_chibi_baker_knead"),
 }
 
@@ -51,8 +51,8 @@ def render_frame(t_idx, total_t=24):
         
     # Header Banner
     draw.rounded_rectangle([20, 14, W - 20, 72], radius=8, fill=(18, 25, 40, 255), outline=(51, 65, 85), width=1)
-    draw.text((36, 22), "HARROW SETTLERS • ANIMATION POLISH V2", fill=(245, 158, 11), font=font_badge)
-    draw.text((36, 38), "FIXED: FORWARD WALK • 2-HAND KNEAD (12F) • CALM GROUNDED IDLE", fill=(255, 255, 255), font=font_title)
+    draw.text((36, 22), "HARROW SETTLERS • ANIMATION POLISH V3", fill=(245, 158, 11), font=font_badge)
+    draw.text((36, 38), "FIXED: FORWARD WALK (SOUTH STEP) • STOKE IN BOTH HANDS • 2-HAND KNEAD", fill=(255, 255, 255), font=font_title)
     
     # 3 Big Focus Cards
     card_w = (W - 40 - 24) // 3  # ~370px each
@@ -62,61 +62,49 @@ def render_frame(t_idx, total_t=24):
     # ---------------- PANEL 1: FORWARD WALK ----------------
     x1 = 20
     draw.rounded_rectangle([x1, card_y, x1 + card_w, card_y + card_h], radius=8, fill=(20, 27, 44, 255), outline=(245, 158, 11), width=2)
-    draw.text((x1 + 16, card_y + 12), "01 / NATURAL FORWARD WALK", fill=(245, 185, 66), font=font_sec)
-    draw.text((x1 + 16, card_y + 32), "Fixed backward slide • No floor props", fill=(148, 163, 184), font=font_sub)
+    draw.text((x1 + 16, card_y + 12), "01 / FORWARD WALK (SOUTH STEP)", fill=(245, 185, 66), font=font_sec)
+    draw.text((x1 + 16, card_y + 32), "Fixed North slide • Steps land in South foreground", fill=(148, 163, 184), font=font_sub)
     
     f_w = anims["walk"][t_idx % len(anims["walk"])]
     f_w_scaled = f_w.resize((f_w.width * 3, f_w.height * 3), Image.NEAREST)
     img.paste(f_w_scaled, (x1 + (card_w - f_w_scaled.width) // 2, card_y + 60), f_w_scaled)
     
-    draw.text((x1 + 20, card_y + card_h - 70), "✅ Foot lifts at back, arcs & lands in front", fill=(52, 211, 153), font=font_bold)
-    draw.text((x1 + 20, card_y + card_h - 50), "✅ Arms swing in natural opposite opposition", fill=(203, 213, 225), font=font_sub)
-    draw.text((x1 + 20, card_y + card_h - 32), "✅ Zero peel/bread obstruction during walk", fill=(203, 213, 225), font=font_sub)
+    draw.text((x1 + 20, card_y + card_h - 70), "✅ Foot lands in South foreground (larger Y)", fill=(52, 211, 153), font=font_bold)
+    draw.text((x1 + 20, card_y + card_h - 50), "✅ Zero backward moonwalk towards North", fill=(203, 213, 225), font=font_sub)
+    draw.text((x1 + 20, card_y + card_h - 32), "✅ Natural opposite arm swing and forward lean", fill=(203, 213, 225), font=font_sub)
     
-    # ---------------- PANEL 2: 2-HAND KNEAD (12 FRAMES) ----------------
+    # ---------------- PANEL 2: STOKE IN BOTH HANDS ----------------
     x2 = x1 + card_w + 12
-    draw.rounded_rectangle([x2, card_y, x2 + card_w, card_y + card_h], radius=8, fill=(20, 27, 44, 255), outline=(59, 130, 246), width=2)
-    draw.text((x2 + 16, card_y + 12), "02 / 12-FRAME KNEAD (2 HANDS)", fill=(96, 165, 250), font=font_sec)
-    draw.text((x2 + 16, card_y + 32), "Both hands actively on dough • Squash & stretch", fill=(148, 163, 184), font=font_sub)
+    draw.rounded_rectangle([x2, card_y, x2 + card_w, card_y + card_h], radius=8, fill=(20, 27, 44, 255), outline=(245, 158, 11), width=2)
+    draw.text((x2 + 16, card_y + 12), "02 / STOKE: STICK IN BOTH HANDS", fill=(245, 185, 66), font=font_sec)
+    draw.text((x2 + 16, card_y + 32), "Stick passes through 2 hands • Solid physical grip", fill=(148, 163, 184), font=font_sub)
+    
+    f_o = anims["oven"][t_idx % len(anims["oven"])]
+    # crop slightly if wider
+    f_o_scaled = f_o.resize((int(f_o.width * 2.8), int(f_o.height * 2.8)), Image.NEAREST)
+    img.paste(f_o_scaled, (x2 + (card_w - f_o_scaled.width) // 2, card_y + 60), f_o_scaled)
+    
+    draw.text((x2 + 20, card_y + card_h - 70), "✅ BOTH HANDS firmly wrapped around stick", fill=(52, 211, 153), font=font_bold)
+    draw.text((x2 + 20, card_y + card_h - 50), "✅ Back hand grips handle, front hand guides shaft", fill=(203, 213, 225), font=font_sub)
+    draw.text((x2 + 20, card_y + card_h - 32), "✅ Thrusts synchronously into glowing stone hearth", fill=(203, 213, 225), font=font_sub)
+
+    # ---------------- PANEL 3: 2-HAND KNEAD (12 FRAMES) ----------------
+    x3 = x2 + card_w + 12
+    draw.rounded_rectangle([x3, card_y, x3 + card_w, card_y + card_h], radius=8, fill=(20, 27, 44, 255), outline=(59, 130, 246), width=2)
+    draw.text((x3 + 16, card_y + 12), "03 / 12-FRAME KNEAD (2 HANDS)", fill=(96, 165, 250), font=font_sec)
+    draw.text((x3 + 16, card_y + 32), "Both hands actively on dough • Squash & stretch", fill=(148, 163, 184), font=font_sub)
     
     f_k = anims["knead"][t_idx % len(anims["knead"])]
     f_k_scaled = f_k.resize((f_k.width * 3, f_k.height * 3), Image.NEAREST)
-    img.paste(f_k_scaled, (x2 + (card_w - f_k_scaled.width) // 2, card_y + 60), f_k_scaled)
+    img.paste(f_k_scaled, (x3 + (card_w - f_k_scaled.width) // 2, card_y + 60), f_k_scaled)
     
-    k_f = t_idx % len(anims["knead"])
-    if k_f >= 3 and k_f <= 6:
-        state_txt = "Phase: Heavy Press Down! (Dough squashes flat)"
-        state_col = (245, 158, 11)
-    elif k_f >= 7 and k_f <= 9:
-        state_txt = "Phase: Lift Hands & Flour Dust (Dough rebounds)"
-        state_col = (96, 165, 250)
-    else:
-        state_txt = "Phase: Fold & Slap (Hands shaping dough)"
-        state_col = (52, 211, 153)
-        
-    draw.text((x2 + 20, card_y + card_h - 70), f"✅ {state_txt}", fill=state_col, font=font_bold)
-    draw.text((x2 + 20, card_y + card_h - 50), "✅ Left & Right hands clearly visible on dough", fill=(203, 213, 225), font=font_sub)
-    draw.text((x2 + 20, card_y + card_h - 32), "✅ Doubled frames (6f -> 12f) for buttery rhythm", fill=(203, 213, 225), font=font_sub)
-
-    # ---------------- PANEL 3: CALM GROUNDED IDLE ----------------
-    x3 = x2 + card_w + 12
-    draw.rounded_rectangle([x3, card_y, x3 + card_w, card_y + card_h], radius=8, fill=(20, 27, 44, 255), outline=(16, 185, 129), width=2)
-    draw.text((x3 + 16, card_y + 12), "03 / GROUNDED IDLE BREATH", fill=(52, 211, 153), font=font_sec)
-    draw.text((x3 + 16, card_y + 32), "Locked pelvis • Zero shaking • Cute soft blink", fill=(148, 163, 184), font=font_sub)
-    
-    f_i = anims["idle"][t_idx % len(anims["idle"])]
-    f_i_scaled = f_i.resize((f_i.width * 3, f_i.height * 3), Image.NEAREST)
-    img.paste(f_i_scaled, (x3 + (card_w - f_i_scaled.width) // 2, card_y + 60), f_i_scaled)
-    
-    i_f = t_idx % len(anims["idle"])
-    b_txt = "Blinking soft happy eyes (^ ^)" if (i_f == 3 or i_f == 4) else "Eyes open & catchlight"
-    draw.text((x3 + 20, card_y + card_h - 70), f"✅ {b_txt}", fill=(52, 211, 153), font=font_bold)
-    draw.text((x3 + 20, card_y + card_h - 50), "✅ Feet & Pelvis 100% grounded (zero hopping)", fill=(203, 213, 225), font=font_sub)
-    draw.text((x3 + 20, card_y + card_h - 32), "✅ Sub-pixel thoracic breathing & gentle toque", fill=(203, 213, 225), font=font_sub)
+    draw.text((x3 + 20, card_y + card_h - 70), "✅ Left & Right hands clearly visible on dough", fill=(52, 211, 153), font=font_bold)
+    draw.text((x3 + 20, card_y + card_h - 50), "✅ Hands press deep into squashed dough + flour dust", fill=(203, 213, 225), font=font_sub)
+    draw.text((x3 + 20, card_y + card_h - 32), "✅ 12 frames buttery smooth rhythmic loop", fill=(203, 213, 225), font=font_sub)
 
     # Footer
     draw.rounded_rectangle([20, H - 36, W - 20, H - 12], radius=4, fill=(18, 25, 40, 255), outline=(51, 65, 85), width=1)
-    draw.text((36, H - 28), "HARROW SETTLERS • CHIBI SPEC 65px/128px • FULLY RIGGED IK • ZERO DISCRETE JITTER", fill=(148, 163, 184), font=font_sub)
+    draw.text((36, H - 28), "HARROW SETTLERS • CHIBI SPEC • ZERO FLOATING PROPS • 100% PXL RIG", fill=(148, 163, 184), font=font_sub)
     draw.text((W - 250, H - 28), "24-FRAME MASTER LOOP (12 FPS)", fill=(245, 158, 11), font=font_sub)
 
     return img
