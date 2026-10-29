@@ -56,6 +56,8 @@ export function findPath(world, sx, sy, tx, ty, opts = {}) {
 
   const maxExpansions = opts.maxExpansions ?? 4000;
   const blockedFn = typeof opts.blocked === 'function' ? opts.blocked : null;
+  const hasRoads = !!opts.roads;
+  const hScale = hasRoads ? 0.6 : 1.0;
 
   const size = w * h;
   const gScore = new Float32Array(size);
@@ -67,7 +69,7 @@ export function findPath(world, sx, sy, tx, ty, opts = {}) {
   gScore[startIdx] = 0;
 
   const heap = new MinHeap();
-  heap.push(startIdx, heuristic(startX, startY, targetX, targetY));
+  heap.push(startIdx, heuristic(startX, startY, targetX, targetY) * hScale);
 
   let expansions = 0;
   let reached = false;
@@ -120,13 +122,14 @@ export function findPath(world, sx, sy, tx, ty, opts = {}) {
         if (o2Idx !== targetIdx && blockedFn && blockedFn(o2x, o2y)) continue;
       }
 
-      const stepCost = (dx !== 0 && dy !== 0) ? 1.414 : 1.0;
+      const isRoad = opts.roads && opts.roads[nIdx] === 1;
+      const stepCost = ((dx !== 0 && dy !== 0) ? 1.414 : 1.0) * (isRoad ? 0.62 : 1.0);
       const newG = currG + stepCost;
 
       if (newG < gScore[nIdx]) {
         gScore[nIdx] = newG;
         parent[nIdx] = currIdx;
-        const fScore = newG + heuristic(nx, ny, targetX, targetY);
+        const fScore = newG + heuristic(nx, ny, targetX, targetY) * hScale;
         heap.push(nIdx, fScore);
       }
     }

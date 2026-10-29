@@ -81,6 +81,7 @@ export class UI {
         <div class="build-grid" id="buildGrid"></div>
         <div class="tool-actions">
           <button class="pixel-btn" id="toolRoad" title="Road Tool (R)">🛤 Road</button>
+          <button class="pixel-btn" id="toolProspect" title="Prospect Tool (P)">⛏ Prospect</button>
           <button class="pixel-btn" id="toolDemolish" title="Demolish Tool (D)">🔨 Demolish</button>
           <button class="pixel-btn" id="toolCancel" title="Cancel Tool (Esc)">✖ Clear</button>
         </div>
@@ -163,6 +164,7 @@ export class UI {
     this.buildCategories = this.root.querySelector('#buildCategories');
     this.buildGrid = this.root.querySelector('#buildGrid');
     this.toolRoad = this.root.querySelector('#toolRoad');
+    this.toolProspect = this.root.querySelector('#toolProspect');
     this.toolDemolish = this.root.querySelector('#toolDemolish');
     this.toolCancel = this.root.querySelector('#toolCancel');
 
@@ -220,6 +222,12 @@ export class UI {
       this.tool = 'road';
       this.updateToolHighlight();
     });
+    if (this.toolProspect) {
+      this.toolProspect.addEventListener('click', () => {
+        this.tool = 'prospect';
+        this.updateToolHighlight();
+      });
+    }
     this.toolDemolish.addEventListener('click', () => {
       this.tool = 'demolish';
       this.updateToolHighlight();
@@ -281,6 +289,9 @@ export class UI {
         }
       } else if (e.key.toLowerCase() === 'r') {
         this.tool = 'road';
+        this.updateToolHighlight();
+      } else if (e.key.toLowerCase() === 'p' || e.key.toLowerCase() === 'g') {
+        this.tool = 'prospect';
         this.updateToolHighlight();
       } else if (e.key.toLowerCase() === 'd') {
         this.tool = 'demolish';
@@ -396,6 +407,7 @@ export class UI {
 
   updateToolHighlight() {
     this.toolRoad.classList.toggle('active', this.tool === 'road');
+    if (this.toolProspect) this.toolProspect.classList.toggle('active', this.tool === 'prospect');
     this.toolDemolish.classList.toggle('active', this.tool === 'demolish');
 
     this.buildGrid.querySelectorAll('.build-btn').forEach(btn => {
@@ -436,6 +448,17 @@ export class UI {
 
     if (this.tool === 'road') {
       this.game.paintRoad(tx, ty, true);
+    } else if (this.tool === 'prospect') {
+      const res = this.game.prospect(tx, ty);
+      if (res.ok) {
+        this.showToast('⛏ Geologist dispatched to prospect mountain!');
+      } else if (res.reason === 'already_prospected') {
+        this.showToast('Already prospected!');
+      } else if (res.reason === 'no_idle_settlers') {
+        this.showToast('No idle settlers available!');
+      } else if (res.reason === 'not_mountain') {
+        this.showToast('Can only prospect mountain tiles!');
+      }
     } else if (this.tool === 'demolish') {
       // Find building at tx, ty
       const b = this.game.buildings.find(b => {

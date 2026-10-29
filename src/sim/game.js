@@ -11,6 +11,8 @@ function rectsOverlap(x1, y1, w1, h1, x2, y2, w2, h2) {
          Math.max(y1, y2) < Math.min(y1 + h1, y2 + h2);
 }
 
+const hash2 = (x, y) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0;
+
 export class Game {
   /**
    * Creates a new Game instance.
@@ -37,6 +39,7 @@ export class Game {
     this.settlers = [];
     this.roads = new Uint8Array(this.world.w * this.world.h);
     this.territory = new Uint8Array(this.world.w * this.world.h);
+    this.prospects = new Uint8Array(this.world.w * this.world.h);
     this.events = [];
     this.saplings = [];
 
@@ -349,6 +352,60 @@ export class Game {
     if (!WALKABLE[this.world.terrain[i]] || this.territory[i] !== 1) return false;
     this.roads[i] = on ? 1 : 0;
     return true;
+  }
+
+  /**
+   * Dispatches a geologist to prospect a mountain tile.
+   * @param {number} x
+   * @param {number} y
+   * @returns {{ok: boolean, reason?: string, settlerId?: number}}
+   */
+  prospect(x, y) {
+    if (!inBounds(this.world, x, y)) return { ok: false, reason: 'out_of_bounds' };
+    const i = idx(this.world.w, x, y);
+    const isMountain = this.world.terrain[i] === T.MOUNTAIN || this.world.ore[i] > 0;
+    if (!isMountain) return { ok: false, reason: 'not_mountain' };
+    if (this.prospects[i] > 0) return { ok: false, reason: 'already_prospected' };
+
+    let bestSettler = null;
+    let minD = Infinity;
+    for (const s of this.settlers) {
+      if (s.role === 'idle') {
+        const d = Math.hypot(s.x - x, s.y - y);
+        if (d < minD) {
+          minD = d;
+          bestSettler = s;
+        }
+      }
+    }
+    if (!bestSettler) return { ok: false, reason: 'no_idle_settlers' };
+
+    let adjTarget = null;
+    let adjD = Infinity;
+    for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const ax = x + dx, ay = y + dy;
+      if (inBounds(this.world, ax, ay) && WALKABLE[this.world.terrain[idx(this.world.w, ax, ay)]]) {
+        const path = findPath(this.world, Math.floor(bestSettler.x), Math.floor(bestSettler.y), ax, ay, {
+          blocked: (bx, by) => this._isTileBlocked(bx, by, ax, ay),
+          roads: this.roads
+        });
+        if (path && path.length < adjD) {
+          adjD = path.length;
+          adjTarget = { x: ax, y: ay, path };
+        }
+      }
+    }
+
+    if (!adjTarget) return { ok: false, reason: 'unreachable' };
+
+    bestSettler.role = 'geologist';
+    bestSettler.job = null;
+    bestSettler.targetTile = { x, y };
+    bestSettler.state = 'walking_to_prospect';
+    bestSettler.path = adjTarget.path;
+    bestSettler.emote = null;
+    bestSettler.lookAt = { x, y };
+    return { ok: true, settlerId: bestSettler.id };
   }
 
   /**
@@ -852,6 +909,47 @@ export class Game {
         continue;
       }
 
+      // Geologist settler behavior
+      if (settler.role === 'geologist') {
+        if (!settler.targetTile) {
+          settler.role = 'idle';
+          settler.state = 'idle';
+          settler.path = [];
+          continue;
+        }
+
+        if (settler.state === 'walking_to_prospect') {
+          const reached = this._moveSettlerAlongPath(settler, dt);
+          if (reached || Math.hypot(settler.x - (settler.targetTile.x + 0.5), settler.y - (settler.targetTile.y + 0.5)) <= 1.5) {
+            settler.state = 'prospecting';
+            settler.prospectTimer = 2.0;
+            settler.path = [];
+            settler.emote = { kind: 'hammer', t: 2.5, age: this.time };
+          }
+        }
+
+        if (settler.state === 'prospecting') {
+          settler.prospectTimer = (settler.prospectTimer || 2.0) - dt;
+          if (settler.prospectTimer <= 0) {
+            const tIdx = idx(this.world.w, settler.targetTile.x, settler.targetTile.y);
+            const vein = (hash2(settler.targetTile.x, settler.targetTile.y) % 2 === 0) ? 1 : 2;
+            this.prospects[tIdx] = vein;
+            settler.emote = { kind: 'cheer', t: 4.0, age: this.time };
+            this.events.push({
+              t: this.time,
+              kind: 'prospect',
+              text: `Geologist struck a rich ${vein === 1 ? 'Iron Ore' : 'Coal'} deposit at (${settler.targetTile.x}, ${settler.targetTile.y})!`,
+              x: settler.targetTile.x,
+              y: settler.targetTile.y
+            });
+            settler.role = 'idle';
+            settler.state = 'idle';
+            settler.targetTile = null;
+          }
+        }
+        continue;
+      }
+
       // Worker settler behavior
       if (settler.role === 'worker') {
         const b = this.buildings.find(b => b.id === settler.job);
@@ -1144,6 +1242,11 @@ export class Game {
       if (this.world.fish[i] > 0) this.world.fish[i]--;
     } else if (needs === 'mountain') {
       if (this.world.ore[i] > 0) this.world.ore[i]--;
+      if (this.prospects && this.prospects[i] > 0) {
+        const bonusGood = this.prospects[i] === 1 ? 'ore' : 'coal';
+        building.out[bonusGood] = (building.out[bonusGood] || 0) + 1;
+        this.stats.produced[bonusGood] = (this.stats.produced[bonusGood] || 0) + 1;
+      }
     }
 
     return true;
@@ -1248,6 +1351,7 @@ export class Game {
       })))),
       roads: Array.from(this.roads),
       territory: Array.from(this.territory),
+      prospects: Array.from(this.prospects),
       events: JSON.parse(JSON.stringify(this.events)),
       saplings: JSON.parse(JSON.stringify(this.saplings)),
       stats: JSON.parse(JSON.stringify(this.stats)),
@@ -1298,6 +1402,7 @@ export class Game {
 
     if (obj.roads) game.roads.set(obj.roads);
     if (obj.territory) game.territory.set(obj.territory);
+    if (obj.prospects) game.prospects.set(obj.prospects);
 
     game.events = JSON.parse(JSON.stringify(obj.events));
     game.saplings = JSON.parse(JSON.stringify(obj.saplings || []));

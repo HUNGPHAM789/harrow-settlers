@@ -160,3 +160,19 @@ test('200 random paths on generated world finish fast', () => {
   const duration = performance.now() - startTime;
   assert.ok(duration < 200, `200 paths executed in ${duration.toFixed(2)}ms (expected < 200ms)`);
 });
+
+test('roads discount causes pathfinding to prefer road tiles', () => {
+  const w = 10, h = 10;
+  const world = createWorld(w, h, T.GRASS);
+  const roads = new Uint8Array(w * h);
+
+  // Put a road along y = 2 from x = 1 to x = 8
+  for (let x = 1; x <= 8; x++) {
+    roads[2 * w + x] = 1;
+  }
+
+  const pathWithRoad = findPath(world, 1, 1, 8, 1, { roads });
+  assert.ok(pathWithRoad, 'Path should be found');
+  const usesRoad = pathWithRoad.some(step => roads[step.y * w + step.x] === 1);
+  assert.strictEqual(usesRoad, true, 'Pathfinder should utilize the discounted road tiles');
+});
