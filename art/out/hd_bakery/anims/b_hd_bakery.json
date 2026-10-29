@@ -1,0 +1,106 @@
+{
+ "frames": {
+  "b_hd_bakery_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "sourceSize": {
+    "w": 130,
+    "h": 130
+   },
+   "duration": 250
+  },
+  "b_hd_bakery_1": {
+   "frame": {
+    "x": 130,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "sourceSize": {
+    "w": 130,
+    "h": 130
+   },
+   "duration": 250
+  },
+  "b_hd_bakery_2": {
+   "frame": {
+    "x": 260,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "sourceSize": {
+    "w": 130,
+    "h": 130
+   },
+   "duration": 250
+  },
+  "b_hd_bakery_3": {
+   "frame": {
+    "x": 390,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 130,
+    "h": 130
+   },
+   "sourceSize": {
+    "w": 130,
+    "h": 130
+   },
+   "duration": 250
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "b_hd_bakery.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 520,
+   "h": 130
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "b_hd_bakery",
+    "from": 0,
+    "to": 3,
+    "direction": "forward"
+   }
+  ]
+ }
+}
