@@ -1,0 +1,2 @@
+Gemini preflight: generation succeeded for gemini-3.5-flash-lite key 1
+{"id": "i01_iso_tiles", "scores": [4, 8], "best": 8, "final": "pass", "issues": ["Verify that `c.clip()` supports array arguments for paths in the runtime environment; alternatively use standard clipping rects or explicit pixel plotting.", "Ensure the `outline: \"A\"` parameter passed to `sprite()` works correctly with `pxl` primitives, as custom sprite outlines are sometimes handled via post-processing filters rather than inline sprite options."]}

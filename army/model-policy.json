@@ -11,20 +11,23 @@
  "worker_models": [
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
-  "gemma-4-31b-it",
-  "gemma-4-26b-a4b-it"
+  "gemini-3-flash-preview",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash",
+  "gemma-4-31b-it"
  ],
  "audit_models": [
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
-  "gemini-3.8-flash",
-  "gemini-3.6-flash",
-  "gemini-3.5-flash"
+  "gemini-3-flash-preview",
+  "gemini-2.5-flash"
  ],
  "premium_models": [
-  "gemini-3.8-flash",
+  "gemini-3.7-flash",
   "gemini-3.6-flash",
-  "gemini-3.5-flash"
+  "gemini-3.5-flash",
+  "gemini-3.8-flash"
  ],
- "notes": "Flash (non-lite) ~20 RPD per PROJECT: reserve for hard tasks (task.tier=premium). Lite ~500 RPD: default workers+audit. Gemma-4 ignores systemInstruction: system text merged into user message; only used because validate+audit filter output. Source: memory reference_gemini_rate_limits (verify live; limits change)."
+ "notes": "Flash (non-lite) ~20 RPD per PROJECT: reserve for hard tasks (task.tier=premium). Lite ~500 RPD: default workers+audit. Gemma-4 ignores systemInstruction: system text merged into user message; only used because validate+audit filter output. Source: memory reference_gemini_rate_limits (verify live; limits change).",
+ "verified": "2026-10-29 11:40 ICT live probe, 11 keys x 11 models; see tasks/harrow-settlers-20261029.md"
 }

@@ -1,0 +1,14 @@
+{
+ "id": "i01b_iso_tiles_v2",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash-lite:k6",
+   "wrote": [
+    "art/iso_terrain.px.js"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

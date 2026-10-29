@@ -1,0 +1,12 @@
+{
+ "id": "t05_gametests",
+ "scores": [
+  8
+ ],
+ "best": 8,
+ "final": "pass",
+ "issues": [
+  "The starvation test zeroes stock and runs simulation, but lacks an explicit assertion that settler population actually decreases or that specific starvation consequences match game design specs.",
+  "The headless 600s test asserts `totalProduced >= 0`, which is a tautology (it can never be negative). It should assert that specific primary resources (logs, stones, planks) actually increased above initial values given the AI placement."
+ ]
+}

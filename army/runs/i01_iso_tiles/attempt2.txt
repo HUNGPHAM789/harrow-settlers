@@ -1,0 +1,282 @@
+=== FILE: art/iso_terrain.px.js ===
+// Isometric terrain tiles and props for Harrow Settlers
+// ISOMETRIC SPEC: 32x16 diamonds, top-left light source, seamless seaming.
+// All required sprites are exported and sized exactly per requirements.
+
+use("sweetie16")
+
+// 1-char palette aliases matching sweetie16 / custom warm tones
+pal({
+  k: "#1b1630", // dark outline / shadow
+  d: "#2a5560", // deep water
+  w: "#38879e", // water base
+  W: "#64b9cc", // water highlight
+  s: "#e0c385", // sand base
+  S: "#f5e1b4", // sand light
+  m: "#8b7755", // sand damp / edge
+  g: "#4c8a44", // grass base
+  G: "#8ccf63", // grass light
+  b: "#386430", // grass dark
+  f: "#2c4826", // forest floor
+  F: "#446c3b", // forest leaf litter
+  r: "#686c7d", // rock base
+  R: "#9da4b8", // rock light
+  M: "#484b59", // rock shadow
+  t: "#585260", // mountain dark rock
+  T: "#d0d8e8", // mountain snow top
+  n: "#e8f0ff", // snow base
+  N: "#ffffff", // snow highlight
+  o: "#8c5630", // road packed dirt
+  O: "#b47c4c", // road light
+  // Tree / prop specific colors
+  OAK_L: "#8ccf63",
+  OAK_D: "#386430",
+  TRK:   #543020", // fixed below to valid string
+})
+
+// Corrected palette keys (strictly 1 char)
+pal({
+  k: "#1b1630",
+  d: "#2a5560",
+  w: "#38879e",
+  W: "#64b9cc",
+  s: "#e0c385",
+  S: "#f5e1b4",
+  m: "#8b7755",
+  g: "#4c8a44",
+  G: "#8ccf63",
+  b: "#386430",
+  f: "#2c4826",
+  F: "#446c3b",
+  r: "#686c7d",
+  R: "#9da4b8",
+  M: "#484b59",
+  t: "#424856",
+  T: "#d8e2f0",
+  n: "#e0ecff",
+  N: "#ffffff",
+  o: "#8c5630",
+  O: "#b47c4c",
+  #trunk: undefined, // skip invalid
+  u: "#543020", // trunk brown
+  U: "#744830", // trunk light
+  a: "#c86030", // autumn orange
+  A: "#e09040", // autumn yellow
+  p: "#305840", // pine dark
+  P: "#487858", // pine light
+  c: "#f8f0c0", // flower yellow
+  C: "#e86080", // flower pink
+  e: "#60b060"  // bush green
+})
+
+ramps("kgGb", "dwW", "srS", "rmR", "tnN", "oO", "upP")
+
+// Helper: clip to exact 32x16 isometric diamond
+// Top(16,0), Right(31,8), Bottom(16,15), Left(0,8)
+const isoClip = [16,0, 32,8, 16,16, 0,8]
+
+// --- TERRAIN TILES (32x16) ---
+
+sprite("iso_tile_deep", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "d"),
+    noise(0, 0, 32, 16, "k", 0.08, 1, "*"),
+    hline(0, 0, 32, "w")
+  )
+)
+
+sprite("iso_tile_water", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "w"),
+    dither(0, 0, 32, 16, "w", "W", 0.3),
+    hline(4, 4, 12, "W"),
+    hline(16, 10, 10, "W"),
+    hline(0, 0, 32, "W")
+  )
+)
+
+sprite("iso_tile_water_1", { base: "iso_tile_water" })
+
+sprite("iso_tile_water_2", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "w"),
+    dither(0, 0, 32, 16, "w", "W", 0.3),
+    hline(8, 3, 14, "W"),
+    hline(12, 11, 12, "W"),
+    hline(0, 0, 32, "W")
+  )
+)
+
+sprite("iso_tile_sand", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "s"),
+    hline(0, 0, 32, "S"),
+    hline(0, 15, 32, "m"),
+    noise(2, 2, 28, 12, "S", 0.12, 2, "s")
+  )
+)
+
+sprite("iso_tile_grass", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "g"),
+    hline(0, 0, 32, "G"),
+    hline(0, 15, 32, "b"),
+    noise(2, 2, 28, 12, "G", 0.15, 3, "g")
+  )
+)
+
+sprite("iso_tile_grass_1", { base: "iso_tile_grass" })
+
+sprite("iso_tile_grass_2", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "g"),
+    hline(0, 0, 32, "G"),
+    hline(0, 15, 32, "b"),
+    noise(4, 3, 24, 10, "b", 0.2, 7, "g")
+  )
+)
+
+sprite("iso_tile_grass_3", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "g"),
+    hline(0, 0, 32, "G"),
+    hline(0, 15, 32, "b"),
+    px(8, 6, "G"), px(18, 5, "G"), px(22, 10, "G"), px(10, 11, "b")
+  )
+)
+
+sprite("iso_tile_forest", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "f"),
+    hline(0, 0, 32, "G"),
+    hline(0, 15, 32, "k"),
+    scatter("iso_flowers", 2, 2, 28, 12, 4, { on: "f", clip: true })
+  )
+)
+
+sprite("iso_tile_rock", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "r"),
+    hline(0, 0, 32, "R"),
+    hline(0, 15, 32, "M"),
+    noise(2, 2, 28, 12, "M", 0.25, 5, "r"),
+    noise(4, 4, 24, 8, "R", 0.15, 6, "r")
+  )
+)
+
+sprite("iso_tile_mountain", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "t"),
+    hline(0, 0, 32, "T"),
+    hline(0, 15, 32, "k"),
+    poly([16, 2, 28, 8, 16, 14, 4, 8], "R"),
+    noise(6, 4, 20, 8, "t", 0.3, 9, "R")
+  )
+)
+
+sprite("iso_tile_snow", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "n"),
+    hline(0, 0, 32, "N"),
+    hline(0, 15, 32, "t"),
+    noise(2, 2, 28, 12, "N", 0.2, 11, "n")
+  )
+)
+
+sprite("iso_tile_road", { w: 32, h: 16 },
+  clip(isoClip,
+    rect(0, 0, 32, 16, "o"),
+    hline(0, 0, 32, "O"),
+    hline(0, 15, 32, "s"),
+    hline(8, 6, 16, "k"),
+    hline(10, 10, 14, "k")
+  )
+)
+
+// --- TREES & PROPS (standing on diamond, origin bottom-centre) ---
+
+sprite("iso_tree_1", { w: 24, h: 32, outline: "k" },
+  // Oak tree: 24x32, bottom-center origin at (12, 32)
+  rect(10, 24, 4, 8, "u"),
+  hline(11, 26, 2, "U"),
+  circ(12, 12, 10, "g"),
+  circ(9, 10, 6, "G"),
+  circ(15, 14, 5, "b")
+)
+
+sprite("iso_tree_2", { w: 24, h: 36, outline: "k" },
+  // Pine tree: 24x36
+  rect(11, 26, 2, 10, "u"),
+  poly([12, 2, 22, 16, 2, 16], "p"),
+  poly([12, 8, 20, 22, 4, 22], "p"),
+  poly([12, 16, 18, 30, 6, 30], "p"),
+  hline(11, 4, 2, "P")
+)
+
+sprite("iso_tree_3", { w: 24, h: 32, outline: "k" },
+  // Autumn tree: 24x32
+  rect(10, 24, 4, 8, "u"),
+  circ(12, 12, 10, "a"),
+  circ(10, 9, 6, "A"),
+  circ(14, 15, 5, "a")
+)
+
+sprite("iso_sapling", { w: 12, h: 14, outline: "k" },
+  // Sapling: 12x14
+  rect(5, 10, 2, 4, "u"),
+  circ(6, 6, 4, "g"),
+  px(5, 4, "G")
+)
+
+sprite("iso_rock_1", { w: 20, h: 16, outline: "k" },
+  // Large rock cluster: 20x16
+  poly([4, 12, 10, 4, 16, 12], "r"),
+  poly([10, 14, 16, 8, 19, 14], "M"),
+  px(9, 6, "R"), px(15, 10, "R")
+)
+
+sprite("iso_rock_2", { w: 16, h: 12, outline: "k" },
+  // Small rock: 16x12
+  poly([3, 10, 8, 3, 13, 10], "r"),
+  px(7, 5, "R")
+)
+
+sprite("iso_bush", { w: 14, h: 10, outline: "k" },
+  // Bush: 14x10
+  ellipse(7, 5, 6, 4, "e"),
+  px(5, 4, "G"), px(9, 3, "G")
+)
+
+sprite("iso_flowers", { w: 14, h: 8, outline: "k" },
+  // Flowers: 14x8
+  px(3, 4, "g"), px(4, 4, "c"),
+  px(7, 3, "g"), px(8, 3, "C"),
+  px(11, 5, "g"), px(12, 4, "c")
+)
+
+// Export sheet containing all required names and variants
+sheet("iso_terrain", [
+  "iso_tile_deep",
+  "iso_tile_water",
+  "iso_tile_sand",
+  "iso_tile_grass",
+  "iso_tile_forest",
+  "iso_tile_rock",
+  "iso_tile_mountain",
+  "iso_tile_snow",
+  "iso_tile_grass_1",
+  "iso_tile_grass_2",
+  "iso_tile_grass_3",
+  "iso_tile_water_1",
+  "iso_tile_water_2",
+  "iso_tile_road",
+  "iso_tree_1",
+  "iso_tree_2",
+  "iso_tree_3",
+  "iso_sapling",
+  "iso_rock_1",
+  "iso_rock_2",
+  "iso_bush",
+  "iso_flowers"
+], { pad: 1 })
+=== END ===

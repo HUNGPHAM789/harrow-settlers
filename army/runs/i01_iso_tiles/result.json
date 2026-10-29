@@ -1,0 +1,33 @@
+{
+ "id": "i01_iso_tiles",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash-lite:k4",
+   "wrote": [
+    "art/iso_terrain.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_terrain.px.js:3:1: pal: palette key must be one character, got 'r1'\n\n"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3.5-flash-lite:k6",
+   "wrote": [
+    "art/iso_terrain.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_terrain.px.js:33: Invalid or unexpected token\n\n"
+  },
+  {
+   "n": 3,
+   "worker": "gemini:gemini-3.5-flash-lite:k7",
+   "wrote": [
+    "art/iso_terrain.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_terrain.px.js:10:1: pal: palette key must be one character, got 'k2'\n\n"
+  }
+ ],
+ "status": "failed"
+}

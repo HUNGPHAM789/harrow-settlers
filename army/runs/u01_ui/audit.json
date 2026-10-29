@@ -1,19 +1,13 @@
 {
  "id": "u01_ui",
  "scores": [
-  6
+  8
  ],
- "best": 6,
- "final": "needs-lead-review",
+ "best": 8,
+ "final": "pass",
  "issues": [
-  "Performance/Architecture: _updateInfoPanel and _updateTooltip overwrite innerHTML every single frame. This causes massive layout thrashing and prevents text selection or sub-element interaction.",
-  "Memory Leak: window.addEventListener('keydown') is never removed. UI needs a destroy() method to clean up global listeners.",
-  "Acceptance Criteria: Using innerHTML to inject game strings (e.g., building names, error reasons) violates the 'no innerHTML with untrusted data' rule. Use textContent for dynamic strings.",
-  "Architecture: _updateStock and _updateObjectives lack dirty-checking. They perform DOM operations every frame/interval regardless of whether the underlying data changed.",
-  "Robustness: JSON.stringify(this.tool) is a slow and brittle way to handle tool state comparison in a hot loop.",
-  "Polish: The 'pixel font' requirement is poorly met; 'Courier New' is a standard monospace font, not a pixel-art font. Use a specific webfont or a more curated stack.",
-  "Logic: The speed button sync in togglePause() is inconsistent with the update() loop. Speed state should have a single source of truth and a reactive update.",
-  "UX: The tooltip for placement problems follows the mouse using raw clientX/Y without accounting for scroll or container offsets, leading to 'jumping' on different resolutions.",
-  "Code Quality: _initDOM is a 'mega-string'. Break into smaller functional components or use a template system to improve maintainability."
+  "Image paths in `initDOM` and `renderBuildGrid` use `public/assets/...` which will throw 404 errors if served from a root or bundler base where `public/` isn't mirrored at runtime. Ensure asset paths match the project's relative asset loader config.",
+  "The placement reason tooltip updates position on `handleHover` using `renderer.tileToScreen(tx, ty)`, but if `renderer` lacks this method or returns undefined coordinates, it will throw an unhandled TypeError.",
+  "Event listener cleanup (`removeEventListener`) is absent; if `UI` instances are torn down or re-initialized on new games, window keydown listeners will accumulate and duplicate callbacks."
  ]
 }

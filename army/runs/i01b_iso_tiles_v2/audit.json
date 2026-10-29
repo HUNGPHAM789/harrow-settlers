@@ -1,0 +1,17 @@
+{
+ "id": "i01b_iso_tiles_v2",
+ "scores": [
+  4,
+  4,
+  5
+ ],
+ "best": 5,
+ "final": "needs-lead-review",
+ "issues": [
+  "Tile lighting direction violates isometric spec: the code uses a flat horizontal dither split or uniform tone across top/right faces instead of proper top-left primary light and a 3-tone gradient (top facet lightest, left facet mid-tone, right facet dark-tone, bottom vertex shadow).",
+  "Grass variant tiling: variants 1-6 use repetitive checkerboard dithering and sparse single-pixel dots rather than organic clustered tufts and patches, causing visible grid artifacts when tiled.",
+  "Contact shadows on props are far too large and blocky (e.g., iso_tree_1/2 cast massive dark solid blobs that overflow the 32x16 tile footprint and clip awkwardly).",
+  "Prop volume rendering: iso_tree_2 (pine) is disproportionately narrow and vertically misaligned with an awkward flat top-heavy trunk and crude shape; canopy shading lacks smooth clustered rounding.",
+  "Palette consistency: some tiles (like snow and water) rely too heavily on pure white/bright cyan dots that clash with sweetie16 warm earth tones and create a noisy, unreadable salt-and-pepper texture."
+ ]
+}

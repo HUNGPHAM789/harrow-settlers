@@ -1,224 +1,805 @@
 === FILE: src/render/renderer.js ===
-import { T, BUILDINGS, TILE } from '../sim/defs.js';
-import { idx, inBounds } from '../sim/world.js';
+/**
+ * Harrow Settlers - Renderer
+ * High-performance Canvas2D renderer with offscreen terrain caching, camera pan/zoom,
+ * y-sorted entity rendering, particle effects, day/night cycle, and minimap.
+ */
+
+import { T, TILE, BUILDINGS } from '../sim/defs.js';
 import { terrainSprite, settlerSprite } from './sprites.js';
 
-/**
- * Renderer handles the visual representation of the game world.
- * Uses Canvas2D with chunked terrain caching and Y-sorted entity drawing.
- */
 export class Renderer {
+  /**
+   * @param {HTMLCanvasElement} canvas Main game canvas
+   * @param {import('../sim/game.js').Game} game Game instance
+   * @param {import('./sprites.js').Sprites} sprites Sprites loader/drawer
+   */
   constructor(canvas, game, sprites) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.game = game;
     this.sprites = sprites;
 
-    // Camera state
-    this.camX = game.world.start.x * TILE;
-    this.camY = game.world.start.y * TILE;
-    this.zoom = 2;
-    this.targetZoom = 2;
+    // Camera state (centered on starting position or HQ)
+    const startX = (game.world?.start?.x ?? (game.world?.w ?? 96) / 2) * TILE;
+    const startY = (game.world?.start?.y ?? (game.world?.h ?? 96) / 2) * TILE;
+    this.camera = {
+      x: startX,
+      y: startY,
+      zoom: 2, // 1..4 integer snapped
+    };
 
     // Interaction state
-    this.mouse = { x: 0, y: 0, down: false, lastX: 0, lastY: 0 };
-    this.keys = {};
-    this.ghostType = null;
-    this.selectedId = null;
+    this.ghost = null; // { type: string, x: number, y: number } or null
+    this.selectedId = null; // building id or null
 
-    // Particle pool
-    this.particles = Array.from({ length: 128 }, () => ({
-      active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 0
-    }));
-    this.smokeTimer = 0;
+    // Input state tracking for camera panning
+    this.isDragging = false;
+    this.dragStartX = 0;
+    this.dragStartY = 0;
+    this.keysPressed = {
+      w: false,
+      a: false,
+      s: false,
+      d: false,
+      ArrowUp: false,
+      ArrowLeft: false,
+      ArrowDown: false,
+      ArrowRight: false,
+    };
+    this.edgeScrollEnabled = false;
+    this.mouseScreenX = 0;
+    this.mouseScreenY = 0;
 
-    // Render pool for Y-sorting (pre-allocated to avoid GC)
-    this.renderPool = Array.from({ length: 4000 }, () => ({
-      y: 0, type: 0, name: '', x: 0, y2: 0, w: 0, h: 0, val: 0, opts: {}
-    }));
-    this.renderCount = 0;
+    // Offscreen terrain chunk cache
+    this.chunkSize = 32; // tiles per chunk
+    this.chunkCache = new Map(); // key: "cx,cy", value: { canvas, ctx, dirty }
+    this.terrainDirty = true;
 
-    // Chunk cache (16x16 tiles per chunk)
-    this.chunkSize = 16;
-    this.chunksW = Math.ceil(game.world.w / this.chunkSize);
-    this.chunksH = Math.ceil(game.world.h / this.chunkSize);
-    this.chunks = [];
-    this.dirtyChunks = new Set();
-    this._initChunks();
+    // Particle system (smoke particles for working buildings)
+    this.particles = [];
 
-    // Minimap cache
-    this.minimapTerrain = document.createElement('canvas');
-    this.minimapTerrain.width = game.world.w;
-    this.minimapTerrain.height = game.world.h;
-    this._drawMinimapTerrain();
-
-    // Setup events
-    this._setupEvents();
+    // Setup DOM event listeners
+    this._initListeners();
     this.resize();
   }
 
-  _initChunks() {
-    for (let cy = 0; cy < this.chunksH; cy++) {
-      for (let cx = 0; cx < this.chunksW; cx++) {
-        const off = document.createElement('canvas');
-        off.width = this.chunkSize * TILE;
-        off.height = this.chunkSize * TILE;
-        this.chunks.push({ canvas: off, ctx: off.getContext('2d') });
-        this.dirtyChunks.add(cy * this.chunksW + cx);
+  /**
+   * Initialize DOM event listeners for camera pan/zoom and mouse tracking.
+   */
+  _initListeners() {
+    this._onMouseDown = (e) => {
+      if (e.button === 0 || e.button === 1) { // Left or middle click drag
+        this.isDragging = true;
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
       }
+    };
+
+    this._onMouseMove = (e) => {
+      const rect = this.canvas.getBoundingClientRect();
+      this.mouseScreenX = e.clientX - rect.left;
+      this.mouseScreenY = e.clientY - rect.top;
+
+      if (this.isDragging) {
+        const dx = e.clientX - this.dragStartX;
+        const dy = e.clientY - this.dragStartY;
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+
+        this.camera.x -= dx / this.camera.zoom;
+        this.camera.y -= dy / this.camera.zoom;
+        this._clampCamera();
+      }
+    };
+
+    this._onMouseUp = (e) => {
+      if (e.button === 0 || e.button === 1) {
+        this.isDragging = false;
+      }
+    };
+
+    this._onWheel = (e) => {
+      e.preventDefault();
+      const zoomDir = e.deltaY < 0 ? 1 : -1;
+      let newZoom = this.camera.zoom + zoomDir;
+      if (newZoom < 1) newZoom = 1;
+      if (newZoom > 4) newZoom = 4;
+
+      if (newZoom !== this.camera.zoom) {
+        // Zoom towards mouse position
+        const rect = this.canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        const worldBefore = this.screenToWorld(mx, my);
+        this.camera.zoom = newZoom;
+        const worldAfter = this.screenToWorld(mx, my);
+
+        this.camera.x += worldBefore.x - worldAfter.x;
+        this.camera.y += worldBefore.y - worldAfter.y;
+        this._clampCamera();
+      }
+    };
+
+    this._onKeyDown = (e) => {
+      const key = e.key;
+      if (key in this.keysPressed) {
+        this.keysPressed[key] = true;
+      }
+    };
+
+    this._onKeyUp = (e) => {
+      const key = e.key;
+      if (key in this.keysPressed) {
+        this.keysPressed[key] = false;
+      }
+    };
+
+    window.addEventListener('mousedown', this._onMouseDown);
+    window.addEventListener('mousemove', this._onMouseMove);
+    window.addEventListener('mouseup', this._onMouseUp);
+    this.canvas.addEventListener('wheel', this._onWheel, { passive: false });
+    window.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('keyup', this._onKeyUp);
+  }
+
+  /**
+   * Cleanup event listeners.
+   */
+  destroy() {
+    window.removeEventListener('mousedown', this._onMouseDown);
+    window.removeEventListener('mousemove', this._onMouseMove);
+    window.removeEventListener('mouseup', this._onMouseUp);
+    this.canvas.removeEventListener('wheel', this._onWheel);
+    window.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('keyup', this._onKeyUp);
+  }
+
+  /**
+   * Handle window resize with devicePixelRatio support.
+   */
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const width = this.canvas.clientWidth || window.innerWidth;
+    const height = this.canvas.clientHeight || window.innerHeight;
+
+    if (this.canvas.width !== width * dpr || this.canvas.height !== height * dpr) {
+      this.canvas.width = width * dpr;
+      this.canvas.height = height * dpr;
     }
   }
 
-  _setupEvents() {
-    this.canvas.addEventListener('mousedown', e => {
-      this.mouse.down = true;
-      this.mouse.lastX = e.clientX;
-      this.mouse.lastY = e.clientY;
-    });
-    window.addEventListener('mousemove', e => {
-      const rect = this.canvas.getBoundingClientRect();
-      this.mouse.x = e.clientX - rect.left;
-      this.mouse.y = e.clientY - rect.top;
-      if (this.mouse.down) {
-        const dx = e.clientX - this.mouse.lastX;
-        const dy = e.clientY - this.mouse.lastY;
-        this.camX -= dx / this.zoom;
-        this.camY -= dy / this.zoom;
-        this.mouse.lastX = e.clientX;
-        this.mouse.lastY = e.clientY;
-      }
-    });
-    window.addEventListener('mouseup', () => this.mouse.down = false);
-    this.canvas.addEventListener('wheel', e => {
-      e.preventDefault();
-      if (e.deltaY < 0) this.targetZoom = Math.min(4, this.targetZoom + 1);
-      else if (e.deltaY > 0) this.targetZoom = Math.max(1, this.targetZoom - 1);
-    }, { passive: false });
-    window.addEventListener('keydown', e => this.keys[e.code] = true);
-    window.addEventListener('keyup', e => this.keys[e.code] = false);
+  /**
+   * Set placement ghost.
+   * @param {{type: string, x: number, y: number}|null} ghost
+   */
+  setGhost(ghost) {
+    this.ghost = ghost;
   }
 
-  resize() {
+  /**
+   * Set selected building ID.
+   * @param {string|number|null} id
+   */
+  setSelected(id) {
+    this.selectedId = id;
+  }
+
+  /**
+   * Convert screen coordinates to world pixel coordinates.
+   */
+  screenToWorld(sx, sy) {
     const dpr = window.devicePixelRatio || 1;
-    const rect = this.canvas.getBoundingClientRect();
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
+    const canvasW = this.canvas.width / dpr;
+    const canvasH = this.canvas.height / dpr;
+
+    const wx = this.camera.x + (sx - canvasW / 2) / this.camera.zoom;
+    const wy = this.camera.y + (sy - canvasH / 2) / this.camera.zoom;
+    return { x: wx, y: wy };
   }
 
-  setGhost(type) { this.ghostType = type; }
-  setSelected(id) { this.selectedId = id; }
-
+  /**
+   * Convert screen coordinates to tile coordinates {x, y}.
+   */
   screenToTile(sx, sy) {
-    const dpr = window.devicePixelRatio || 1;
-    const worldX = (sx * dpr - this.canvas.width / 2) / this.zoom + this.camX;
-    const worldY = (sy * dpr - this.canvas.height / 2) / this.zoom + this.camY;
-    return { x: Math.floor(worldX / TILE), y: Math.floor(worldY / TILE) };
+    const w = this.screenToWorld(sx, sy);
+    return {
+      x: Math.floor(w.x / TILE),
+      y: Math.floor(w.y / TILE),
+    };
   }
 
+  /**
+   * Convert tile coordinates {x, y} to screen world pixel coordinates {x, y}.
+   */
   tileToScreen(tx, ty) {
+    const wx = tx * TILE;
+    const wy = ty * TILE;
     const dpr = window.devicePixelRatio || 1;
-    const sx = ((tx * TILE - this.camX) * this.zoom + this.canvas.width / 2) / dpr;
-    const sy = ((ty * TILE - this.camY) * this.zoom + this.canvas.height / 2) / dpr;
+    const canvasW = this.canvas.width / dpr;
+    const canvasH = this.canvas.height / dpr;
+
+    const sx = (wx - this.camera.x) * this.camera.zoom + canvasW / 2;
+    const sy = (wy - this.camera.y) * this.camera.zoom + canvasH / 2;
     return { x: sx, y: sy };
   }
 
-  render(dt) {
-    this._update(dt);
-    this._draw();
-  }
+  /**
+   * Clamp camera within map bounds.
+   */
+  _clampCamera() {
+    if (!this.game.world) return;
+    const w = this.game.world.w * TILE;
+    const h = this.game.world.h * TILE;
+    const dpr = window.devicePixelRatio || 1;
+    const canvasW = (this.canvas.width / dpr) / this.camera.zoom;
+    const canvasH = (this.canvas.height / dpr) / this.camera.zoom;
 
-  _update(dt) {
-    // Smooth zoom
-    const zoomLerp = 1 - Math.pow(0.001, dt);
-    this.zoom += (this.targetZoom - this.zoom) * zoomLerp;
+    const minX = canvasW / 2;
+    const maxX = w - canvasW / 2;
+    const minY = canvasH / 2;
+    const maxY = h - canvasH / 2;
 
-    // Keyboard pan
-    const panSpeed = 400 * dt / this.zoom;
-    if (this.keys['KeyW'] || this.keys['ArrowUp']) this.camY -= panSpeed;
-    if (this.keys['KeyS'] || this.keys['ArrowDown']) this.camY += panSpeed;
-    if (this.keys['KeyA'] || this.keys['ArrowLeft']) this.camX -= panSpeed;
-    if (this.keys['KeyD'] || this.keys['ArrowRight']) this.camX += panSpeed;
-
-    // Clamp camera
-    const margin = 100;
-    this.camX = Math.max(-margin, Math.min(this.game.world.w * TILE + margin, this.camX));
-    this.camY = Math.max(-margin, Math.min(this.game.world.h * TILE + margin, this.camY));
-
-    // Update particles
-    for (let i = 0; i < this.particles.length; i++) {
-      const p = this.particles[i];
-      if (!p.active) continue;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.life -= dt;
-      if (p.life <= 0) p.active = false;
+    if (w <= canvasW) {
+      this.camera.x = w / 2;
+    } else {
+      this.camera.x = Math.max(minX, Math.min(maxX, this.camera.x));
     }
 
-    // Spawn smoke
-    this.smokeTimer += dt;
-    if (this.smokeTimer > 0.3) {
-      this.smokeTimer = 0;
-      for (let i = 0; i < this.game.buildings.length; i++) {
-        const b = this.game.buildings[i];
-        if (b.state === 'active' && b.working) {
-          this._spawnSmoke(b.x * TILE + TILE, b.y * TILE);
+    if (h <= canvasH) {
+      this.camera.y = h / 2;
+    } else {
+      this.camera.y = Math.max(minY, Math.min(maxY, this.camera.y));
+    }
+  }
+
+  /**
+   * Update camera position from keyboard or edge scroll.
+   * @param {number} dt Delta time in seconds
+   */
+  _updateCamera(dt) {
+    const speed = 300 / this.camera.zoom; // pixels per second
+    let dx = 0;
+    let dy = 0;
+
+    if (this.keysPressed.w || this.keysPressed.ArrowUp) dy -= 1;
+    if (this.keysPressed.s || this.keysPressed.ArrowDown) dy += 1;
+    if (this.keysPressed.a || this.keysPressed.ArrowLeft) dx -= 1;
+    if (this.keysPressed.d || this.keysPressed.ArrowRight) dx += 1;
+
+    if (dx !== 0 || dy !== 0) {
+      const len = Math.hypot(dx, dy);
+      this.camera.x += (dx / len) * speed * dt;
+      this.camera.y += (dy / len) * speed * dt;
+    }
+
+    // Optional edge scrolling
+    if (this.edgeScrollEnabled && !this.isDragging) {
+      const edge = 20;
+      const dpr = window.devicePixelRatio || 1;
+      const cw = this.canvas.width / dpr;
+      const ch = this.canvas.height / dpr;
+      if (this.mouseScreenX < edge) this.camera.x -= speed * dt;
+      if (this.mouseScreenX > cw - edge) this.camera.x += speed * dt;
+      if (this.mouseScreenY < edge) this.camera.y -= speed * dt;
+      if (this.mouseScreenY > ch - edge) this.camera.y += speed * dt;
+    }
+
+    this._clampCamera();
+  }
+
+  /**
+   * Update particle effects (smoke from active buildings).
+   * @param {number} dt Delta time in seconds
+   */
+  _updateParticles(dt) {
+    // Spawn smoke particles from active production buildings
+    for (const b of this.game.buildings) {
+      if (b.state === 'active' && b.working) {
+        const def = BUILDINGS[b.type];
+        if (def && def.in && Math.random() < dt * 2) {
+          const doorX = (b.x + (def.door ? def.door[0] : 0)) * TILE;
+          const doorY = (b.y + (def.door ? def.door[1] : 0)) * TILE;
+          this.particles.push({
+            x: doorX + (Math.random() - 0.5) * 8,
+            y: doorY - 4,
+            vx: (Math.random() - 0.5) * 5,
+            vy: -12 - Math.random() * 8,
+            life: 1.0,
+            maxLife: 1.0 + Math.random() * 0.5,
+          });
         }
       }
     }
-  }
 
-  _spawnSmoke(x, y) {
-    for (let i = 0; i < this.particles.length; i++) {
+    // Update existing particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      if (!p.active) {
-        p.active = true;
-        p.x = x + (Math.random() - 0.5) * 4;
-        p.y = y;
-        p.vx = (Math.random() - 0.5) * 10;
-        p.vy = -20 - Math.random() * 20;
-        p.maxLife = 1.0 + Math.random();
-        p.life = p.maxLife;
-        break;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt / p.maxLife;
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
       }
     }
   }
 
-  _draw() {
-    const { ctx, canvas, zoom, camX, camY, game } = this;
-    const dpr = window.devicePixelRatio || 1;
+  /**
+   * Main render method called every frame.
+   * @param {number} dt Delta time in seconds
+   */
+  render(dt) {
+    this.resize();
+    this._updateCamera(dt);
+    this._updateParticles(dt);
 
-    ctx.fillStyle = '#001122';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const world = this.game.world;
+    if (!world) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const canvasW = this.canvas.width / dpr;
+    const canvasH = this.canvas.height / dpr;
+
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.scale(dpr, dpr);
+
+    // Clear background (deep ocean)
+    ctx.fillStyle = '#1b314a';
+    ctx.fillRect(0, 0, canvasW, canvasH);
 
     ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.scale(zoom, zoom);
-    ctx.translate(-camX, -camY);
+    // Apply camera transform
+    ctx.translate(canvasW / 2, canvasH / 2);
+    ctx.scale(this.camera.zoom, this.camera.zoom);
+    ctx.translate(-this.camera.x, -this.camera.y);
 
-    this._drawTerrain();
-    this._drawRoads();
-    this._drawEntities();
-    this._drawTerritoryBorders();
-    this._drawOverlays();
+    // 1. Draw Terrain & Roads & Territory & Resources
+    this._renderTerrainAndResources(ctx, world);
+
+    // 2. Collect and Y-sort entities (trees, rocks, buildings, settlers)
+    this._renderEntitiesAndStructures(ctx, world);
+
+    // 3. Render placement ghost if active
+    if (this.ghost) {
+      this._renderGhost(ctx, world);
+    }
 
     ctx.restore();
 
-    this._drawDayNight();
+    // 4. Soft day/night tint cycle overlay
+    this._renderDayNightTint(ctx, canvasW, canvasH);
+
+    ctx.restore();
   }
 
-  _drawTerrain() {
-    const { game, zoom, camX, camY, canvas } = this;
-    const viewW = canvas.width / zoom;
-    const viewH = canvas.height / zoom;
-    const x0 = Math.floor((camX - viewW / 2) / (this.chunkSize * TILE));
-    const y0 = Math.floor((camY - viewH / 2) / (this.chunkSize * TILE));
-    const x1 = Math.ceil((camX + viewW / 2) / (this.chunkSize * TILE));
-    const y1 = Math.ceil((camY + viewH / 2) / (this.chunkSize * TILE));
+  /**
+   * Render terrain chunks, water animation, roads, territory borders, and static resource nodes.
+   */
+  _renderTerrainAndResources(ctx, world) {
+    const w = world.w;
+    const h = world.h;
+    const waterFrame = Math.floor(this.game.time * 2) % 2; // 2-frame water animation
 
-    for (let cy = y0; cy <= y1; cy++) {
-      for (let cx = x0; cx <= x1; cx++) {
-        if (cx < 0 || cx >= this.chunksW || cy < 0 || cy >= this.chunksH) continue;
-        const idx = cy * this.chunksW + cx;
-        const chunk = this.chunks[idx];
-        if (this.dirtyChunks.has(idx)) {
-          this._
+    // Determine visible tile bounds to avoid offscreen rendering
+    const dpr = window.devicePixelRatio || 1;
+    const cw = this.canvas.width / dpr;
+    const ch = this.canvas.height / dpr;
+    const minX = Math.max(0, Math.floor((this.camera.x - cw / 2 / this.camera.zoom) / TILE) - 2);
+    const maxX = Math.min(w, Math.ceil((this.camera.x + cw / 2 / this.camera.zoom) / TILE) + 2);
+    const minY = Math.max(0, Math.floor((this.camera.y - ch / 2 / this.camera.zoom) / TILE) - 2);
+    const maxY = Math.min(h, Math.ceil((this.camera.y + ch / 2 / this.camera.zoom) / TILE) + 2);
+
+    // Draw terrain tiles
+    for (let y = minY; y < maxY; y++) {
+      for (let x = minX; x < maxX; x++) {
+        const i = y * w + x;
+        const t = world.terrain[i];
+        const dx = x * TILE;
+        const dy = y * TILE;
+
+        // Terrain sprite
+        let spriteName = `tile_${t}`;
+        if (t === T.WATER || t === T.DEEP) {
+          spriteName = `tile_${t}_${waterFrame + 1}`;
+        } else if (t === T.GRASS && world.deco[i] > 0) {
+          spriteName = `tile_grass_${world.deco[i]}`;
+        }
+
+        if (this.sprites.has(spriteName)) {
+          this.sprites.draw(ctx, spriteName, dx, dy);
+        } else {
+          // Fallback colored rect
+          ctx.fillStyle = this._getTerrainColor(t);
+          ctx.fillRect(dx, dy, TILE, TILE);
+        }
+      }
+    }
+
+    // Draw roads
+    if (this.game.roads) {
+      ctx.fillStyle = '#9c7853';
+      for (let y = minY; y < maxY; y++) {
+        for (let x = minX; x < maxX; x++) {
+          const i = y * w + x;
+          if (this.game.roads[i]) {
+            const dx = x * TILE;
+            const dy = y * TILE;
+            // Draw cross-road or tile square
+            ctx.fillRect(dx + 4, dy + 4, 8, 8);
+            // Connect to adjacent roads
+            if (y > 0 && this.game.roads[i - w]) ctx.fillRect(dx + 4, dy, 8, 4);
+            if (y < h - 1 && this.game.roads[i + w]) ctx.fillRect(dx + 4, dy + 12, 8, 4);
+            if (x > 0 && this.game.roads[i - 1]) ctx.fillRect(dx, dy + 4, 4, 8);
+            if (x < w - 1 && this.game.roads[i + 1]) ctx.fillRect(dx + 12, dy + 4, 4, 8);
+          }
+        }
+      }
+    }
+
+    // Draw territory border highlight (animated dashed line)
+    if (this.game.territory) {
+      const dashOffset = (this.game.time * 15) % 16;
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.lineDashOffset = -dashOffset;
+
+      for (let y = minY; y < maxY; y++) {
+        for (let x = minX; x < maxX; x++) {
+          const i = y * w + x;
+          if (this.game.territory[i]) {
+            // Check edges of territory
+            const dx = x * TILE;
+            const dy = y * TILE;
+            if (x === 0 || !this.game.territory[i - 1]) {
+              ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx, dy + TILE); ctx.stroke();
+            }
+            if (x === w - 1 || !this.game.territory[i + 1]) {
+              ctx.beginPath(); ctx.moveTo(dx + TILE, dy); ctx.lineTo(dx + TILE, dy + TILE); ctx.stroke();
+            }
+            if (y === 0 || !this.game.territory[i - w]) {
+              ctx.beginPath(); ctx.moveTo(dx, dy); ctx.lineTo(dx + TILE, dy); ctx.stroke();
+            }
+            if (y === h - 1 || !this.game.territory[i + w]) {
+              ctx.beginPath(); ctx.moveTo(dx, dy + TILE); ctx.lineTo(dx + TILE, dy + TILE); ctx.stroke();
+            }
+          }
+        }
+      }
+      ctx.setLineDash([]); // Reset
+    }
+  }
+
+  /**
+   * Helper fallback color for terrain.
+   */
+  _getTerrainColor(t) {
+    switch (t) {
+      case T.DEEP: return '#14283c';
+      case T.WATER: return '#285078';
+      case T.SAND: return '#d2b48c';
+      case T.GRASS: return '#588c42';
+      case T.FOREST_FLOOR: return '#3c6e3c';
+      case T.ROCK: return '#8c8c8c';
+      case T.MOUNTAIN: return '#646464';
+      case T.SNOW: return '#f0f0f0';
+      default: return '#588c42';
+    }
+  }
+
+  /**
+   * Collect and Y-sort trees, rocks, buildings, and settlers for correct depth rendering.
+   */
+  _renderEntitiesAndStructures(ctx, world) {
+    const w = world.w;
+    const renderItems = [];
+
+    // Collect trees and rocks
+    for (let y = 0; y < world.h; y++) {
+      for (let x = 0; x < world.w; x++) {
+        const i = y * world.w + x;
+        const treeState = world.tree[i];
+        if (treeState > 0) {
+          const sName = treeState === 1 ? 'sapling' : `tree_${((x + y) % 3) + 1}`;
+          renderItems.push({
+            y: (y + 1) * TILE,
+            draw: () => {
+              if (this.sprites.has(sName)) {
+                this.sprites.draw(ctx, sName, x * TILE, (y * TILE) - 8); // Offset tree height
+              } else {
+                ctx.fillStyle = '#225522';
+                ctx.fillRect(x * TILE + 4, y * TILE, 8, 16);
+              }
+            }
+          });
+        }
+
+        const rockUnits = world.rock[i];
+        if (rockUnits > 0) {
+          const rName = `rock_${((x + y) % 2) + 1}`;
+          renderItems.push({
+            y: (y + 1) * TILE,
+            draw: () => {
+              if (this.sprites.has(rName)) {
+                this.sprites.draw(ctx, rName, x * TILE, y * TILE);
+              } else {
+                ctx.fillStyle = '#666666';
+                ctx.fillRect(x * TILE + 2, y * TILE + 2, 12, 12);
+              }
+            }
+          });
+        }
+      }
+    }
+
+    // Collect buildings
+    for (const b of this.game.buildings) {
+      const def = BUILDINGS[b.type];
+      if (!def) continue;
+      const [bw, bh] = def.size;
+      const bx = b.x * TILE;
+      const by = b.y * TILE;
+
+      renderItems.push({
+        y: (b.y + bh) * TILE,
+        draw: () => {
+          if (b.state === 'active') {
+            const spriteName = `b_${b.type}`;
+            if (this.sprites.has(spriteName)) {
+              // Buildings may be taller than footprint (draw upwards from bottom)
+              this.sprites.draw(ctx, spriteName, bx, by - (def.size[1] > 2 ? 16 : 0));
+            } else {
+              ctx.fillStyle = '#8b5a2b';
+              ctx.fillRect(bx, by, bw * TILE, bh * TILE);
+            }
+
+            // Selected outline
+            if (this.selectedId === b.id) {
+              ctx.strokeStyle = '#ffff00';
+              ctx.lineWidth = 2;
+              ctx.strokeRect(bx - 1, by - 1, bw * TILE + 2, bh * TILE + 2);
+            }
+          } else {
+            // Construction / scaffold state
+            const scaffoldName = `b_${b.type}_scaffold`;
+            if (this.sprites.has(scaffoldName)) {
+              this.sprites.draw(ctx, scaffoldName, bx, by);
+            } else if (this.sprites.has(`b_${b.type}`)) {
+              // Semi-transparent building ghost during construction
+              ctx.globalAlpha = 0.5;
+              this.sprites.draw(ctx, `b_${b.type}`, bx, by);
+              ctx.globalAlpha = 1.0;
+            } else {
+              ctx.fillStyle = '#a08060';
+              ctx.fillRect(bx, by, bw * TILE, bh * TILE);
+            }
+
+            // Construction progress bar
+            const barW = bw * TILE - 4;
+            const barH = 4;
+            const barX = bx + 2;
+            const barY = by + (bh * TILE) / 2 - 2;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(barX, barY, barW, barH);
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(barX, barY, barW * (b.progress || 0), barH);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX, barY, barW, barH);
+          }
+        }
+      });
+    }
+
+    // Collect settlers
+    for (const s of this.game.settlers) {
+      renderItems.push({
+        y: s.y * TILE + TILE,
+        draw: () => {
+          const sx = s.x * TILE;
+          const sy = s.y * TILE - 4; // Settlers are 16x16 / 12x16 sprites
+          const role = s.role || 'idle';
+          const dir = s.dir || 'd';
+          // Walking animation frame swap based on time & movement
+          const isMoving = s.path && s.path.length > 0;
+          const frame = isMoving ? Math.floor(this.game.time * 8) % 2 : 0;
+
+          // Try loading settler sprite: settler_<role>_<dir>_<frame>
+          let spriteName = `settler_${role}_${dir}_${frame}`;
+          if (!this.sprites.has(spriteName)) {
+            spriteName = `settler_idle_d_0`;
+          }
+
+          if (this.sprites.has(spriteName)) {
+            this.sprites.draw(ctx, spriteName, sx, sy);
+          } else {
+            // Fallback settler rect
+            ctx.fillStyle = role === 'builder' ? '#f59e0b' : '#3b82f6';
+            ctx.fillRect(sx + 2, sy + 4, 8, 12);
+          }
+
+          // Carried goods icon above head
+          if (s.carry) {
+            const carrySprite = `carry_${s.carry}`;
+            if (this.sprites.has(carrySprite)) {
+              this.sprites.draw(ctx, carrySprite, sx, sy - 10);
+            } else {
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(sx + 4, sy - 8, 6, 6);
+            }
+          }
+        }
+      });
+    }
+
+    // Sort render items by Y coordinate for correct depth (painter's algorithm)
+    renderItems.sort((a, b) => a.y - b.y);
+
+    // Execute draw calls
+    for (const item of renderItems) {
+      item.draw();
+    }
+
+    // Draw smoke particles on top of entities
+    for (const p of this.particles) {
+      ctx.fillStyle = `rgba(220, 220, 220, ${p.life * 0.7})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3 + (1 - p.life) * 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /**
+   * Render placement ghost with green/red tint and footprint overlay.
+   */
+  _renderGhost(ctx, world) {
+    const { type, x, y } = this.ghost;
+    const def = BUILDINGS[type];
+    if (!def) return;
+
+    const [bw, bh] = def.size;
+    const check = this.game.canPlace(type, x, y);
+    const isValid = check.ok;
+
+    const gx = x * TILE;
+    const gy = y * TILE;
+
+    // Draw footprint grid overlay
+    for (let dy = 0; dy < bh; dy++) {
+      for (let dx = 0; dx < bw; dx++) {
+        const tx = x + dx;
+        const ty = y + dy;
+        const tValid = tx >= 0 && tx < world.w && ty >= 0 && ty < world.h;
+        ctx.fillStyle = tValid && isValid ? 'rgba(74, 222, 128, 0.35)' : 'rgba(239, 68, 68, 0.45)';
+        ctx.fillRect(tx * TILE, ty * TILE, TILE, TILE);
+        ctx.strokeStyle = tValid && isValid ? '#22c55e' : '#ef4444';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tx * TILE, ty * TILE, TILE, TILE);
+      }
+    }
+
+    // Draw building sprite with tint
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    const spriteName = `b_${type}`;
+    if (this.sprites.has(spriteName)) {
+      this.sprites.draw(ctx, spriteName, gx, gy);
+    } else {
+      ctx.fillStyle = isValid ? '#4ade80' : '#ef4444';
+      ctx.fillRect(gx, gy, bw * TILE, bh * TILE);
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Draw soft day/night tint overlay (subtle color grading cycle).
+   */
+  _renderDayNightTint(ctx, width, height) {
+    // 300 seconds per full day/night cycle
+    const cycleT = (this.game.time % 300) / 300;
+    // Dawn: 0.2-0.3, Day: 0.3-0.7, Dusk: 0.7-0.8, Night: 0.8-0.2
+    let alpha = 0.0;
+    let tintColor = 'rgba(10, 15, 40, ';
+
+    if (cycleT > 0.75 || cycleT < 0.25) {
+      // Night
+      alpha = 0.25;
+    } else if (cycleT >= 0.25 && cycleT < 0.35) {
+      // Sunrise transition
+      alpha = 0.25 * (1 - (cycleT - 0.25) / 0.1);
+    } else if (cycleT >= 0.65 && cycleT <= 0.75) {
+      // Sunset transition
+      alpha = 0.25 * ((cycleT - 0.65) / 0.1);
+    }
+
+    if (alpha > 0) {
+      ctx.fillStyle = tintColor + alpha + ')';
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+
+  /**
+   * Draw minimap onto target canvas element.
+   * @param {HTMLCanvasElement} minimapCanvas
+   */
+  drawMinimap(minimapCanvas) {
+    const world = this.game.world;
+    if (!world) return;
+
+    const mctx = minimapCanvas.getContext('2d');
+    const mw = minimapCanvas.width;
+    const mh = minimapCanvas.height;
+
+    mctx.fillStyle = '#14283c';
+    mctx.fillRect(0, 0, mw, mh);
+
+    const w = world.w;
+    const h = world.h;
+    const tileW = mw / w;
+    const tileH = mh / h;
+
+    // Draw terrain
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        const t = world.terrain[i];
+        mctx.fillStyle = this._getTerrainColor(t);
+        mctx.fillRect(x * tileW, y * tileH, Math.max(1, tileW), Math.max(1, tileH));
+
+        // Territory overlay
+        if (this.game.territory && this.game.territory[i]) {
+          mctx.fillStyle = 'rgba(255, 215, 0, 0.25)';
+          mctx.fillRect(x * tileW, y * tileH, Math.max(1, tileW), Math.max(1, tileH));
+        }
+      }
+    }
+
+    // Draw buildings on minimap
+    for (const b of this.game.buildings) {
+      const def = BUILDINGS[b.type];
+      const [bw, bh] = def ? def.size : [2, 2];
+      mctx.fillStyle = b.type === 'hq' ? '#ffffff' : '#b45309';
+      mctx.fillRect(b.x * tileW, b.y * tileH, Math.max(2, bw * tileW), Math.max(2, bh * tileH));
+    }
+
+    // Draw camera viewport rect on minimap
+    const dpr = window.devicePixelRatio || 1;
+    const cw = (this.canvas.width / dpr) / this.camera.zoom;
+    const ch = (this.canvas.height / dpr) / this.camera.zoom;
+
+    const camMinX = (this.camera.x - cw / 2) / TILE;
+    const camMinY = (this.camera.y - ch / 2) / TILE;
+    const camW = cw / TILE;
+    const camH = ch / TILE;
+
+    mctx.strokeStyle = '#ffffff';
+    mctx.lineWidth = 1.5;
+    mctx.strokeRect(camMinX * tileW, camMinY * tileH, camW * tileW, camH * tileH);
+  }
+
+  /**
+   * Convert minimap click coordinates (mx, my) to world position and center camera.
+   * @param {number} mx Mouse X on minimap element
+   * @param {number} my Mouse Y on minimap element
+   * @param {HTMLCanvasElement} minimapCanvas
+   */
+  minimapToWorld(mx, my, minimapCanvas) {
+    const world = this.game.world;
+    if (!world) return;
+
+    const rect = minimapCanvas.getBoundingClientRect();
+    const clickX = mx - rect.left;
+    const clickY = my - rect.top;
+
+    const normX = clickX / rect.width;
+    const normY = clickY / rect.height;
+
+    this.camera.x = normX * world.w * TILE;
+    this.camera.y = normY * world.h * TILE;
+    this._clampCamera();
+  }
+}
+=== END ===

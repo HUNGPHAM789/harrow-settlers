@@ -1,0 +1,248 @@
+=== FILE: art/iso_terrain.px.js ===
+use("sweetie16");
+
+pal({
+  d: "#1b1e2b", // Deep water dark
+  w: "#265c78", // Water mid dark
+  W: "#3b8cb0", // Water mid
+  l: "#64b5d6", // Water light
+  L: "#a3e4f3", // Water high light
+  
+  s: "#7a6b4e", // Sand dark
+  S: "#b89c68", // Sand base
+  v: "#d6bc85", // Sand damp edge
+  V: "#f2dcaf", // Sand light
+  
+  g: "#284222", // Grass dark
+  G: "#3b6330", // Grass base
+  h: "#528a42", // Grass mid
+  H: "#73b55c", // Grass light
+  
+  f: "#192918", // Forest floor dark
+  F: "#2a4227", // Forest floor mid
+  m: "#523a24", // Leaf litter brown
+  M: "#7a5938", // Leaf litter bright
+  
+  r: "#383a42", // Rock cobble dark
+  R: "#545763", // Rock cobble mid
+  x: "#737785", // Rock cobble light
+  X: "#989ca8", // Rock highlight
+  
+  n: "#444a59", // Mountain dark slope
+  N: "#6b7387", // Mountain mid
+  o: "#959eb3", // Mountain light top
+  O: "#c5cbdb", // Mountain snow cap
+  
+  c: "#b8c7db", // Snow shadow
+  C: "#d9e3f0", // Snow base
+  e: "#f0f5fc", // Snow light
+  
+  r1: "#6b543c", // Road packed dirt dark
+  r2: "#8c6c4c", // Road packed dirt mid
+  r3: "#ab8762"  // Road wheel rut
+});
+
+ramps("dfgmrn1", "FGSxNoC", "WHvXeo2", "lLVMIe3");
+
+// Base isometric diamond helper (32x16)
+function drawDiamond(c, fillKey, leftKey, rightKey, topKey) {
+  // 32 wide, 16 high. Left=0,8; Top=16,0; Right=31,8; Bottom=16,15
+  c.poly([16,0, 32,8, 16,16, 0,8], fillKey);
+  // Left slope highlight/shadow
+  c.line(0, 8, 16, 16, leftKey);
+  // Right slope shadow
+  c.line(16, 16, 31, 8, rightKey);
+  // Top corner light
+  c.px(16, 0, topKey);
+  c.px(15, 1, topKey);
+  c.px(17, 1, topKey);
+}
+
+// Terrain Base Tiles (32x16)
+sprite("iso_tile_deep", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "d", "d", "d", "w");
+  c.noise(4, 3, 24, 10, "w", 0.15, 1);
+});
+
+sprite("iso_tile_water", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "w", "d", "w", "W");
+  c.hline(8, 6, 16, "l");
+  c.hline(12, 9, 8, "L");
+});
+
+sprite("iso_tile_water_1", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "w", "d", "w", "W");
+  c.hline(6, 5, 18, "l");
+  c.hline(10, 8, 12, "L");
+});
+
+sprite("iso_tile_water_2", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "w", "d", "w", "W");
+  c.hline(10, 4, 14, "l");
+  c.hline(8, 11, 10, "L");
+});
+
+sprite("iso_tile_sand", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "S", "s", "s", "V");
+  // Damp edge hint on lower borders
+  c.line(2, 7, 16, 14, "v");
+  c.line(30, 7, 16, 14, "v");
+  c.noise(6, 4, 20, 8, "s", 0.1, 4);
+});
+
+sprite("iso_tile_grass", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "G", "g", "g", "H");
+  c.noise(4, 3, 24, 10, "h", 0.2, 5);
+  c.px(10, 6, "H"); c.px(21, 9, "H"); c.px(14, 11, "g");
+});
+
+sprite("iso_tile_grass_1", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "G", "g", "g", "H");
+  c.noise(5, 3, 22, 10, "h", 0.25, 12);
+  c.px(8, 8, "H"); c.px(22, 6, "H"); c.px(16, 5, "g");
+});
+
+sprite("iso_tile_grass_2", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "G", "g", "g", "H");
+  c.noise(3, 4, 26, 8, "h", 0.2, 22);
+  c.px(12, 10, "H"); c.px(19, 7, "H"); c.px(8, 5, "g");
+});
+
+sprite("iso_tile_grass_3", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "G", "g", "g", "H");
+  c.noise(6, 2, 20, 12, "h", 0.3, 33);
+  c.px(14, 4, "H"); c.px(9, 9, "H"); c.px(20, 10, "g");
+});
+
+sprite("iso_tile_forest", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "F", "f", "f", "M");
+  c.noise(4, 3, 24, 10, "m", 0.35, 7);
+  // Leaf litter patches
+  c.px(10, 6, "M"); c.px(11, 6, "m"); c.px(20, 9, "M"); c.px(15, 12, "m");
+});
+
+sprite("iso_tile_rock", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "R", "r", "r", "X");
+  // Cobble texture without harsh straight vertical splits
+  c.rect(8, 4, 4, 3, "r");
+  c.rect(16, 5, 5, 3, "x");
+  c.rect(12, 9, 6, 3, "X");
+  c.rect(6, 8, 5, 3, "r");
+  c.rect(20, 8, 4, 4, "R");
+});
+
+sprite("iso_tile_mountain", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "N", "n", "n", "O");
+  // Rocky slope with light top edge, organic faceted shading
+  c.poly([16, 2, 26, 7, 16, 11, 6, 7], "o");
+  c.line(16, 2, 6, 7, "O");
+  c.line(16, 2, 26, 7, "n");
+  c.line(6, 7, 16, 12, "n");
+  c.line(26, 7, 16, 12, "n");
+});
+
+sprite("iso_tile_snow", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "C", "c", "c", "e");
+  c.noise(5, 4, 22, 8, "e", 0.2, 9);
+  c.px(15, 4, "e"); c.px(16, 5, "e"); c.px(17, 4, "e");
+});
+
+sprite("iso_tile_road", { w: 32, h: 16 }, (c) => {
+  drawDiamond(c, "r2", "r1", "r1", "r3");
+  // Packed dirt with natural parallel wheel ruts along isometric axis
+  c.line(10, 5, 24, 12, "r1");
+  c.line(12, 4, 26, 11, "r3");
+  c.noise(4, 3, 24, 10, "r1", 0.1, 15);
+});
+
+// Props & Trees (Origin Bottom-Centre)
+pal({
+  tk: "#29180c", tr: "#5c3a21", tl: "#8a5835", tx: "#b87c51",
+  lk: "#182e16", lg: "#2e5728", lm: "#48823d", ll: "#6cb85c",
+  ak: "#422813", ar: "#8c4d1e", am: "#d9782b", al: "#f2ab41",
+  pk: "#11261f", pr: "#1c4538", pm: "#326e5b", pl: "#50a389",
+  rk: "#2b2d36", rr: "#4a4d5e", rx: "#73788f",
+  fk: "#591c2b", fm: "#a83853", fl: "#e06380", fw: "#ffffff"
+});
+
+// iso_tree_1: 24x32 round oak
+sprite("iso_tree_1", { w: 24, h: 32, outline: "tk" }, (c) => {
+  // Trunk
+  c.rect(10, 20, 4, 12, "tr");
+  c.line(10, 22, 13, 22, "tk");
+  c.line(10, 26, 13, 26, "tr");
+  // Canopy (Volumetric shading, top-left lit)
+  c.ellipse(12, 12, 10, 10, "lg");
+  c.ellipse(10, 10, 8, 8, "lm");
+  c.ellipse(8, 8, 5, 5, "ll");
+  c.noise(4, 4, 16, 16, "lk", 0.1, 3);
+});
+
+// iso_tree_2: 24x36 pine
+sprite("iso_tree_2", { w: 24, h: 36, outline: "pk" }, (c) => {
+  // Trunk
+  c.rect(11, 26, 2, 10, "tr");
+  // Layered triangular pine foliage
+  c.poly([12, 2, 22, 14, 2, 14], "pm");
+  c.poly([12, 2, 20, 6, 12, 6], "pl");
+  
+  c.poly([12, 10, 23, 22, 1, 22], "pr");
+  c.poly([12, 10, 21, 15, 12, 15], "pm");
+  
+  c.poly([12, 18, 24, 30, 0, 30], "pk");
+  c.poly([12, 18, 22, 23, 12, 23], "pr");
+});
+
+// iso_tree_3: 24x32 autumn
+sprite("iso_tree_3", { w: 24, h: 32, outline: "ak" }, (c) => {
+  // Trunk
+  c.rect(10, 20, 4, 12, "tr");
+  // Canopy autumn tones
+  c.ellipse(12, 12, 10, 10, "ar");
+  c.ellipse(10, 10, 8, 8, "am");
+  c.ellipse(8, 8, 5, 5, "al");
+});
+
+// iso_sapling: 12x14
+sprite("iso_sapling", { w: 12, h: 14, outline: "tk" }, (c) => {
+  c.rect(5, 9, 2, 5, "tr");
+  c.ellipse(6, 6, 4, 4, "ll");
+  c.ellipse(5, 5, 2, 2, "lm");
+});
+
+// iso_rock_1: 20x16
+sprite("iso_rock_1", { w: 20, h: 16, outline: "rk" }, (c) => {
+  c.poly([3, 12, 10, 6, 17, 10, 18, 15, 2, 15], "rr");
+  c.poly([8, 6, 15, 9, 10, 13, 4, 10], "rx");
+  c.px(9, 7, "rx"); c.px(10, 7, "rx");
+});
+
+// iso_rock_2: 16x12
+sprite("iso_rock_2", { w: 16, h: 12, outline: "rk" }, (c) => {
+  c.poly([2, 10, 8, 5, 14, 8, 15, 11, 1, 11], "rr");
+  c.poly([7, 5, 12, 8, 8, 10, 4, 8], "rx");
+});
+
+// iso_bush: 14x10
+sprite("iso_bush", { w: 14, h: 10, outline: "lk" }, (c) => {
+  c.ellipse(7, 6, 6, 4, "lg");
+  c.ellipse(5, 5, 4, 3, "ll");
+});
+
+// iso_flowers: 14x8
+sprite("iso_flowers", { w: 14, h: 8, outline: "lk" }, (c) => {
+  c.ellipse(7, 5, 6, 3, "lg");
+  c.px(3, 4, "fm"); c.px(4, 3, "fl");
+  c.px(9, 3, "fm"); c.px(10, 4, "fl");
+  c.px(6, 6, "fw"); c.px(11, 6, "fw");
+});
+
+sheet("iso_terrain", [
+  "iso_tile_deep", "iso_tile_water", "iso_tile_sand", "iso_tile_grass",
+  "iso_tile_forest", "iso_tile_rock", "iso_tile_mountain", "iso_tile_snow",
+  "iso_tile_grass_1", "iso_tile_grass_2", "iso_tile_grass_3",
+  "iso_tile_water_1", "iso_tile_water_2", "iso_tile_road",
+  "iso_tree_1", "iso_tree_2", "iso_tree_3", "iso_sapling",
+  "iso_rock_1", "iso_rock_2", "iso_bush", "iso_flowers"
+], { pad: 1 });
+=== END ===

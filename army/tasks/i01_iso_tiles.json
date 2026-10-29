@@ -1,0 +1,27 @@
+{
+ "id": "i01_iso_tiles",
+ "worker": "gemini",
+ "objective": "Write art/iso_terrain.px.js: isometric ground tiles, ALL exactly 32x16 diamonds per ISOMETRIC SPEC: iso_tile_deep, iso_tile_water, iso_tile_sand, iso_tile_grass, iso_tile_forest, iso_tile_rock, iso_tile_mountain, iso_tile_snow, iso_tile_grass_1, iso_tile_grass_2, iso_tile_grass_3, iso_tile_water_1, iso_tile_water_2, iso_tile_road. Grass has 3 variants that tile together with the base without visible repetition; water variants shift wave highlights (animated by frame swap); sand has a damp edge hint; forest floor has leaf litter; rock = grey cobble stone; mountain = rocky slope with a light top edge; snow = cool white-blue; road = packed dirt with wheel ruts. Then also trees and props standing on a tile, origin bottom-centre: iso_tree_1 (24x32 round oak), iso_tree_2 (24x36 pine), iso_tree_3 (24x32 autumn), iso_sapling (12x14), iso_rock_1 (20x16), iso_rock_2 (16x12), iso_bush (14x10), iso_flowers (14x8). Add these 8 names to required list.",
+ "outputs": [
+  "art/iso_terrain.px.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "army/ref/iso_note.md"
+ ],
+ "max_attempts": 3,
+ "acceptance": [
+  "builds with pxl without errors",
+  "every required sprite exists with exact size",
+  "true 2:1 isometric diamonds, seamless, top-left light",
+  "warm readable palette, 4-6 tones per material, charming and polished, commercial quality"
+ ],
+ "validate": [
+  "node tools/check_sprites.mjs art/iso_terrain.px.js iso_tile_deep iso_tile_water iso_tile_sand iso_tile_grass iso_tile_forest iso_tile_rock iso_tile_mountain iso_tile_snow iso_tile_grass_1 iso_tile_grass_2 iso_tile_grass_3 iso_tile_water_1 iso_tile_water_2 iso_tile_road iso_tree_1 iso_tree_2 iso_tree_3 iso_sapling iso_rock_1 iso_rock_2 iso_bush iso_flowers"
+ ],
+ "previews": [
+  "art/out/iso_terrain/_preview/*.png"
+ ]
+}

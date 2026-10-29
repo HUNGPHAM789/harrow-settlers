@@ -127,6 +127,118 @@
   "w": 32,
   "h": 48
  },
+ "iso_bush": {
+  "w": 16,
+  "h": 12
+ },
+ "iso_edge_grass_sand": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_edge_grass_water": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_flowers": {
+  "w": 16,
+  "h": 10
+ },
+ "iso_rock_1": {
+  "w": 22,
+  "h": 18
+ },
+ "iso_rock_2": {
+  "w": 18,
+  "h": 14
+ },
+ "iso_sapling": {
+  "w": 14,
+  "h": 16
+ },
+ "iso_tile_deep": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_forest": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_1": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_2": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_3": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_4": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_5": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_grass_6": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_mountain": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_road": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_rock": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_sand": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_snow": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_water": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_water_1": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_water_2": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tile_water_3": {
+  "w": 32,
+  "h": 16
+ },
+ "iso_tree_1": {
+  "w": 26,
+  "h": 34
+ },
+ "iso_tree_2": {
+  "w": 26,
+  "h": 38
+ },
+ "iso_tree_3": {
+  "w": 26,
+  "h": 34
+ },
  "carry_bread": {
   "w": 8,
   "h": 8
