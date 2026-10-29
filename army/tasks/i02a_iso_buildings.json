@@ -1,0 +1,31 @@
+{
+ "worker": "gemini",
+ "context": [
+  "army/ref/pxl_rules.md",
+  "art/iso_terrain.px.js",
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "army/ref/iso_note.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 4,
+ "acceptance": [
+  "builds with pxl without errors",
+  "exact sizes",
+  "true isometric: left wall darker, right wall mid, roof lightest, edges on 2:1 slopes",
+  "top-left light, 4-6 tones per material, selective dark outline, unmistakable silhouette per building",
+  "commercial polish"
+ ],
+ "id": "i02a_iso_buildings",
+ "outputs": [
+  "art/iso_buildings_a.px.js"
+ ],
+ "objective": "Write art/iso_buildings_a.px.js: ISOMETRIC buildings per ISOMETRIC SPEC (read army/ref/iso_note.md). Each sprite stands on its footprint diamond with the bottom vertex at image bottom-centre. Required (name WxH): b_iso_hq 96x104, b_iso_hut 64x62, b_iso_woodcutter 64x58, b_iso_forester 64x58, b_iso_quarry 64x56, b_iso_sawmill 80x72, b_iso_fisher 64x58, b_iso_farm 96x74; plus for each a _scaffold version (same size: wooden poles, partial walls, ladder). Build walls as two parallelograms via poly() (left/right faces), roofs as polygons with ridge lines, plank/stone-course lines following the 2:1 slope, windows/doors as small polys, tasteful props (log pile, anvil, sails, hay, flag). Use shade/light for volume and a selective darker outline. Recognisable by silhouette: woodcutter log pile+axe, forester saplings, quarry stone blocks, sawmill saw+planks, fisher dock+nets, farm barn+fields, hut thatched roof, castle keep with towers+flag; see defs.js for names/roles. Use helper functions (isoBox, isoRoof) defined once at the top of the file to avoid repeating code.\n\nREAD army/ref/pxl_rules.md FIRST: earlier attempts failed because of multi-character palette keys, reserved '_' key, missing {w,h}.",
+ "validate": [
+  "node tools/check_sprites.mjs art/iso_buildings_a.px.js b_iso_hq b_iso_hut b_iso_woodcutter b_iso_forester b_iso_quarry b_iso_sawmill b_iso_fisher b_iso_farm b_iso_hq_scaffold b_iso_hut_scaffold b_iso_woodcutter_scaffold b_iso_forester_scaffold b_iso_quarry_scaffold b_iso_sawmill_scaffold b_iso_fisher_scaffold b_iso_farm_scaffold"
+ ],
+ "previews": [
+  "art/out/iso_buildings_a/_preview/*.png"
+ ]
+}

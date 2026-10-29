@@ -1,0 +1,24 @@
+{
+ "id": "s01_awareness",
+ "worker": "gemini",
+ "tier": "standard",
+ "objective": "Modify src/sim/game.js (output the COMPLETE updated file) to add villager awareness, fully deterministic (use the game's seeded rng; never Math.random). Keep ALL existing behaviour/APIs. Add on every settler object: mood ('calm'|'happy'|'worried'|'hungry'|'proud'), emote (null | {kind:'!'|'?'|'heart'|'zzz'|'cheer'|'hammer'|'food', t:secondsLeft, age:secondsSinceStart}) and lookAt ({x,y}|null). Add method updateAwareness(dt) called once per tick: (1) when a building becomes 'active' (detect the transition by tracking a Set of ids already celebrated), settlers within 10 tiles get emote 'cheer', mood 'proud' for 8 s and lookAt the building centre (clear lookAt after 4 s); (2) food stock (fish+bread) < 2 -> every settler mood 'hungry', and every 12 s a random few get emote '!'; recovered food -> mood returns to 'calm'; (3) on settler birth, settlers within 6 tiles emote 'heart'; (4) idle settlers near HQ wander: every 6-14 s (per-settler timer from seeded rng) pick a walkable tile within 4 tiles of HQ door and path there; sometimes pause with emote 'zzz' or '?'; (5) two idle settlers within 2 tiles face each other (set lookAt each other) and alternate emote '?' / 'heart' for 3 s, with a 20 s cooldown; (6) at night (game.time % 240 > 180) idle settlers walk toward HQ and show 'zzz'; at dawn they stop; (7) builders working get emote 'hammer' occasionally, workers carrying food get 'food' rarely. Emote t counts down; remove at <=0; do not let awareness interfere with job assignment (only idle settlers wander; wandering must be interruptible the instant a job is assigned: when role changes from 'idle', clear emote/lookAt and wander path). Persist mood/emote/lookAt in toJSON/fromJSON with defaults for old saves. Add tests/awareness.test.mjs (node:test): over 300 sim seconds with a building placed, some settler gets an emote and a 'cheer'; determinism (two runs same seed identical toJSON); starving makes mood 'hungry'; wandering settlers get assigned to a job promptly.",
+ "outputs": [
+  "src/sim/game.js",
+  "tests/awareness.test.mjs"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js",
+  "src/sim/game.js"
+ ],
+ "acceptance": [
+  "existing tests still pass",
+  "deterministic",
+  "no stuck settlers"
+ ],
+ "validate": [
+  "node --test tests/*.test.mjs"
+ ],
+ "max_attempts": 4
+}

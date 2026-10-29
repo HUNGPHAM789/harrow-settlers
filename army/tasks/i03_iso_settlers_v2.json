@@ -1,0 +1,32 @@
+{
+ "worker": "gemini",
+ "context": [
+  "army/ref/pxl_rules.md",
+  "art/iso_terrain.px.js",
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "army/ref/iso_note.md",
+  "src/sim/defs.js",
+  "art/settlers.px.js"
+ ],
+ "max_attempts": 4,
+ "acceptance": [
+  "builds with pxl without errors",
+  "exact sizes",
+  "true isometric: left wall darker, right wall mid, roof lightest, edges on 2:1 slopes",
+  "top-left light, 4-6 tones per material, selective dark outline, unmistakable silhouette per building",
+  "commercial polish"
+ ],
+ "id": "i03_iso_settlers_v2",
+ "outputs": [
+  "art/settlers.px.js"
+ ],
+ "objective": "Rewrite art/settlers.px.js (replace the old file) for ISOMETRIC play: villagers 12x18 px, readable at 2x zoom, 3/4 view. Directions l,r,u,d mean the screen-facing quarter views (d = facing camera/down-right-ish front, u = back view, l/r = side). 3 frames each: 0 neutral stance, 1 and 2 walking (opposite leg + arm swing, 1px body bob). Roles by clothes/props: idle (blue tunic, bare head), builder (orange tunic, yellow hard hat, hammer in hand), worker (green tunic, straw hat, small tool), porter (brown tunic, backpack). Each with head with hair, skin tones, 4-5 tone cloth ramps hue-shifted, light top-left, a selective dark outline, small boots. Also emote glyph sprites 14x14 speech bubbles: emote_! emote_? emote_heart emote_zzz emote_cheer emote_hammer emote_food (white bubble, dark outline, tail, coloured glyph), plus carry_* 8x8 goods icons (log plank stone fish wheat flour bread coal ore iron tool) with 3-tone shading, deer_0 deer_1 (18x14), rabbit_0 rabbit_1 (8x8). Build with sprite() parts + base/swap, mx for l/r, loops; no hand-typed whole-character grids except tiny details (eye, boot).\n\nREAD army/ref/pxl_rules.md FIRST: earlier attempts failed because of multi-character palette keys, reserved '_' key, missing {w,h}.",
+ "validate": [
+  "node tools/check_sprites.mjs art/settlers.px.js settler_idle_l_0 settler_idle_l_1 settler_idle_l_2 settler_idle_r_0 settler_idle_r_1 settler_idle_r_2 settler_idle_u_0 settler_idle_u_1 settler_idle_u_2 settler_idle_d_0 settler_idle_d_1 settler_idle_d_2 settler_builder_l_0 settler_builder_l_1 settler_builder_l_2 settler_builder_r_0 settler_builder_r_1 settler_builder_r_2 settler_builder_u_0 settler_builder_u_1 settler_builder_u_2 settler_builder_d_0 settler_builder_d_1 settler_builder_d_2 settler_worker_l_0 settler_worker_l_1 settler_worker_l_2 settler_worker_r_0 settler_worker_r_1 settler_worker_r_2 settler_worker_u_0 settler_worker_u_1 settler_worker_u_2 settler_worker_d_0 settler_worker_d_1 settler_worker_d_2 settler_porter_l_0 settler_porter_l_1 settler_porter_l_2 settler_porter_r_0 settler_porter_r_1 settler_porter_r_2 settler_porter_u_0 settler_porter_u_1 settler_porter_u_2 settler_porter_d_0 settler_porter_d_1 settler_porter_d_2 emote_! emote_? emote_heart emote_zzz emote_cheer emote_hammer emote_food carry_log carry_plank carry_stone carry_fish carry_wheat carry_flour carry_bread carry_coal carry_ore carry_iron carry_tool deer_0 deer_1 rabbit_0 rabbit_1"
+ ],
+ "previews": [
+  "art/out/settlers/_preview/*.png"
+ ]
+}

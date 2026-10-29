@@ -1,0 +1,33 @@
+{
+ "id": "i02a_iso_buildings",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash-lite:k1",
+   "wrote": [
+    "art/iso_buildings_a.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_buildings_a.px.js:11:1: pal: palette key must be one character, got 'wd0'\n\n"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3.5-flash-lite:k6",
+   "wrote": [
+    "art/iso_buildings_a.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_buildings_a.px.js:4:1: pal: palette key must be one character, got 'W1'\n\n"
+  },
+  {
+   "n": 3,
+   "worker": "gemini:gemini-3.5-flash-lite:k8",
+   "wrote": [
+    "art/iso_buildings_a.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "error: iso_buildings_a.px.js:4:1: pal: palette key '_' is reserved (. _ space #)\n\n"
+  }
+ ],
+ "status": "failed"
+}

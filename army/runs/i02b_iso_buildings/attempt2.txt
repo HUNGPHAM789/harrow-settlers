@@ -1,0 +1,186 @@
+=== FILE: art/iso_buildings_b.px.js ===
+pal({
+  k: "#1b1630",
+  d: "#2a2139",
+  m: "#5a4d6e",
+  l: "#9e8cad",
+  w: "#f4f0ea",
+  r: "#a63a4c",
+  R: "#e2585e",
+  o: "#d87d31",
+  O: "#f5a65b",
+  y: "#e8c15a",
+  b: "#3a6ea5",
+  B: "#6fa8dc",
+  g: "#4c8a44",
+  G: "#8ccf63",
+  s: "#686868",
+  S: "#a0a0a0",
+  W: "#d0c8b0",
+  L: "#8c6239",
+  x: "#b08d57"
+})
+
+ramps("kds", "wW")
+
+// Helper: draw an isometric box (left wall, right wall, roof)
+function isoBox(c, x, y, w, h, z, { left, right, top }) {
+  // left wall: from bottom-left to bottom and up
+  c.poly([x, y - z, x + w, y - z + (w / 2), x + w, y + (w / 2), x, y], left)
+  // right wall: from bottom to bottom-right and up
+  c.poly([x + w, y - z + (w / 2), x + w + h, y - z - h + (w / 2) + (h / 2), x + w + h, y + h + (w / 2) - (h / 2), x + w, y + (w / 2)], right)
+  // roof top diamond
+  c.poly([x + w, y - z - h + (w / 2), x + w + h, y - z - h + (w / 2) + (h / 2), x, y - z - h + h, x - h, y - z - h + (w / 2)], top)
+}
+
+// Helper: scaffold version for a building
+function drawScaffold(c, width, height, totalH) {
+  // Wooden posts and cross beams following 2:1 slope
+  const col = "L"
+  const darkCol = "k"
+  c.line(4, height - 2, 4, height - totalH, col, 1)
+  c.line(width - 4, height - 2, width - 4, height - totalH, col, 1)
+  c.line(width / 2, height, width / 2, height - totalH, col, 1)
+  // Cross bars
+  c.hline(4, height - totalH / 2, width - 8, col)
+  c.hline(6, height - totalH / 4, width - 12, col)
+  // Ladder
+  c.vline(width / 2 - 2, height - totalH, totalH, darkCol)
+  c.vline(width / 2 + 2, height - totalH, totalH, darkCol)
+  for (let py = height - totalH + 4; py < height; py += 6) {
+    c.hline(width / 2 - 2, py, 4, "W")
+  }
+}
+
+// 1. b_iso_mill (2x3 tiles -> width = 80, height = 88)
+sprite("b_iso_mill", { outline: "k" }, (c) => {
+  const w = 80, h = 88
+  // Footprint diamond base center at bottom (40, 88)
+  // Walls
+  c.poly([16, 50, 48, 66, 48, 86, 16, 70], "s")
+  c.poly([48, 66, 76, 52, 76, 72, 48, 86], "S")
+  // Roof / Tower body
+  c.poly([24, 20, 56, 36, 56, 60, 24, 44], "w")
+  c.poly([56, 36, 72, 28, 72, 52, 56, 60], "W")
+  // Mill blades
+  c.line(48, 28, 48, 4, "L", 2)
+  c.line(32, 16, 64, 40, "L", 2)
+  c.poly([44, 12, 52, 12, 52, 20, 44, 20], "r")
+})
+sprite("b_iso_mill_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_mill", 0, 0)
+  drawScaffold(c, 80, 88, 60)
+})
+
+// 2. b_iso_bakery (2x2 tiles -> width = 64, height = 62)
+sprite("b_iso_bakery", { outline: "k" }, (c) => {
+  // Left wall, right wall, roof
+  c.poly([8, 30, 32, 42, 32, 58, 8, 46], "s")
+  c.poly([32, 42, 56, 30, 56, 46, 32, 58], "S")
+  c.poly([32, 14, 56, 26, 32, 38, 8, 26], "r")
+  // Chimney & smoke
+  c.rect(44, 18, 6, 12, "R")
+  c.rect(46, 10, 2, 6, "w")
+})
+sprite("b_iso_bakery_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_bakery", 0, 0)
+  drawScaffold(c, 64, 62, 40)
+})
+
+// 3. b_iso_mine (2x2 tiles -> width = 64, height = 60)
+sprite("b_iso_mine", { outline: "k" }, (c) => {
+  c.poly([10, 32, 32, 43, 32, 56, 10, 45], "s")
+  c.poly([32, 43, 54, 32, 54, 45, 32, 56], "S")
+  // Mine entrance arch
+  c.poly([22, 34, 32, 39, 32, 50, 22, 45], "k")
+  // Wooden beam support
+  c.line(22, 34, 22, 45, "L", 2)
+  c.line(42, 34, 42, 45, "L", 2)
+})
+sprite("b_iso_mine_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_mine", 0, 0)
+  drawScaffold(c, 64, 60, 36)
+})
+
+// 4. b_iso_smelter (2x2 tiles -> width = 64, height = 66)
+sprite("b_iso_smelter", { outline: "k" }, (c) => {
+  c.poly([8, 32, 32, 44, 32, 58, 8, 46], "s")
+  c.poly([32, 44, 56, 32, 56, 46, 32, 58], "S")
+  c.poly([32, 16, 56, 28, 32, 40, 8, 28], "o")
+  // Glowing furnace core
+  c.rect(28, 36, 8, 12, "O")
+})
+sprite("b_iso_smelter_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_smelter", 0, 0)
+  drawScaffold(c, 64, 66, 42)
+})
+
+// 5. b_iso_smith (3x2 tiles -> width = 80, height = 72)
+sprite("b_iso_smith", { outline: "k" }, (c) => {
+  c.poly([12, 36, 40, 50, 40, 68, 12, 54], "s")
+  c.poly([40, 50, 68, 36, 68, 54, 40, 68], "S")
+  c.poly([40, 20, 68, 34, 40, 48, 12, 34], "r")
+  // Anvil / tool prop
+  c.rect(34, 52, 6, 6, "s")
+})
+sprite("b_iso_smith_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_smith", 0, 0)
+  drawScaffold(c, 80, 72, 48)
+})
+
+// 6. b_iso_tower (2x2 tiles -> width = 64, height = 88)
+sprite("b_iso_tower", { outline: "k" }, (c) => {
+  c.poly([12, 34, 32, 44, 32, 84, 12, 74], "s")
+  c.poly([32, 44, 52, 34, 52, 74, 32, 84], "S")
+  // Battlements / conical roof
+  c.poly([32, 10, 52, 20, 32, 30, 12, 20], "r")
+  // Flag
+  c.line(32, 10, 32, 2, "k", 1)
+  c.poly([32, 2, 42, 6, 32, 10], "R")
+})
+sprite("b_iso_tower_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_tower", 0, 0)
+  drawScaffold(c, 64, 88, 60)
+})
+
+// 7. b_iso_market (3x2 tiles -> width = 80, height = 70)
+sprite("b_iso_market", { outline: "k" }, (c) => {
+  c.poly([12, 36, 40, 50, 40, 66, 12, 52], "s")
+  c.poly([40, 50, 68, 36, 68, 52, 40, 66], "S")
+  // Market Awning / Canopy stripes
+  c.poly([30, 20, 50, 30, 50, 42, 30, 32], "R")
+  c.poly([50, 30, 68, 22, 68, 34, 50, 42], "w")
+})
+sprite("b_iso_market_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_market", 0, 0)
+  drawScaffold(c, 80, 70, 46)
+})
+
+// 8. b_iso_monument (4x3 tiles -> width = 112, height = 120)
+sprite("b_iso_monument", { outline: "k" }, (c) => {
+  c.poly([16, 60, 56, 80, 56, 116, 16, 96], "s")
+  c.poly([56, 80, 96, 60, 96, 96, 56, 116], "S")
+  // Grand Hall Upper tier / Pillars
+  c.poly([36, 30, 76, 50, 76, 80, 36, 60], "W")
+  c.poly([76, 50, 96, 40, 76, 70, 56, 80], "w")
+  // Grand Roof
+  c.poly([56, 10, 96, 30, 56, 50, 16, 30], "r")
+  // Golden top crest
+  c.rect(54, 8, 4, 8, "y")
+})
+sprite("b_iso_monument_scaffold", { outline: "k" }, (c) => {
+  stamp("b_iso_monument", 0, 0)
+  drawScaffold(c, 112, 120, 80)
+})
+
+sheet("iso_buildings_b", [
+  "b_iso_mill", "b_iso_mill_scaffold",
+  "b_iso_bakery", "b_iso_bakery_scaffold",
+  "b_iso_mine", "b_iso_mine_scaffold",
+  "b_iso_smelter", "b_iso_smelter_scaffold",
+  "b_iso_smith", "b_iso_smith_scaffold",
+  "b_iso_tower", "b_iso_tower_scaffold",
+  "b_iso_market", "b_iso_market_scaffold",
+  "b_iso_monument", "b_iso_monument_scaffold"
+], { pad: 2 })
+=== END ===

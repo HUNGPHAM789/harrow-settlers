@@ -1,0 +1,31 @@
+{
+ "worker": "gemini",
+ "context": [
+  "army/ref/pxl_rules.md",
+  "art/iso_terrain.px.js",
+  "ARCH.md",
+  "army/ref/pxl_skill.md",
+  "army/ref/pxl_reference.md",
+  "army/ref/iso_note.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 4,
+ "acceptance": [
+  "builds with pxl without errors",
+  "exact sizes",
+  "true isometric: left wall darker, right wall mid, roof lightest, edges on 2:1 slopes",
+  "top-left light, 4-6 tones per material, selective dark outline, unmistakable silhouette per building",
+  "commercial polish"
+ ],
+ "id": "i02b_iso_buildings",
+ "outputs": [
+  "art/iso_buildings_b.px.js"
+ ],
+ "objective": "Write art/iso_buildings_b.px.js: ISOMETRIC buildings per ISOMETRIC SPEC (read army/ref/iso_note.md). Each sprite stands on its footprint diamond with the bottom vertex at image bottom-centre. Required (name WxH): b_iso_mill 80x88, b_iso_bakery 64x62, b_iso_mine 64x60, b_iso_smelter 64x66, b_iso_smith 80x72, b_iso_tower 64x88, b_iso_market 80x70, b_iso_monument 112x120; plus for each a _scaffold version (same size: wooden poles, partial walls, ladder). Build walls as two parallelograms via poly() (left/right faces), roofs as polygons with ridge lines, plank/stone-course lines following the 2:1 slope, windows/doors as small polys, tasteful props (log pile, anvil, sails, hay, flag). Use shade/light for volume and a selective darker outline. Recognisable by silhouette: woodcutter log pile+axe, forester saplings, quarry stone blocks, sawmill saw+planks, fisher dock+nets, farm barn+fields, hut thatched roof, castle keep with towers+flag; see defs.js for names/roles. Use helper functions (isoBox, isoRoof) defined once at the top of the file to avoid repeating code.\n\nREAD army/ref/pxl_rules.md FIRST: earlier attempts failed because of multi-character palette keys, reserved '_' key, missing {w,h}.",
+ "validate": [
+  "node tools/check_sprites.mjs art/iso_buildings_b.px.js b_iso_mill b_iso_bakery b_iso_mine b_iso_smelter b_iso_smith b_iso_tower b_iso_market b_iso_monument b_iso_mill_scaffold b_iso_bakery_scaffold b_iso_mine_scaffold b_iso_smelter_scaffold b_iso_smith_scaffold b_iso_tower_scaffold b_iso_market_scaffold b_iso_monument_scaffold"
+ ],
+ "previews": [
+  "art/out/iso_buildings_b/_preview/*.png"
+ ]
+}
