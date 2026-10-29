@@ -1,294 +1,374 @@
 === FILE: art/iso_buildings_a.px.js ===
-use("sweetie16")
+// ISOMETRIC BUILDINGS A per ISOMETRIC SPEC & strict PXL rules
+// Required: b_iso_hq (96x104), b_iso_hut (64x62), b_iso_woodcutter (64x58), b_iso_forester (64x58),
+// b_iso_quarry (64x56), b_iso_sawmill (80x72), b_iso_fisher (64x58), b_iso_farm (96x74)
+// plus respective _scaffold versions.
+// STRICT RULES: Single-char palette keys only, NO '_', '.', '#', '-', ' ' in pal keys. ramps() uses only existing keys.
 
-// Palette extensions & aliases for iso buildings
+use("sweetie16")
 pal({
-  k: "#1b1630",
-  w: "#fff6e0",
-  // Roofing / wood tones
-  R: "#a63a4c",
-  r: "#e2585e",
-  O: "#d97b39",
-  o: "#f2b253",
-  Y: "#d4a359",
-  y: "#fce38a",
-  // Stone / masonry tones
-  S: "#566c86",
-  s: "#788796",
-  P: "#9cadce",
-  // Wood / beam tones
-  B: "#5c4033",
-  b: "#8b5a2b",
-  // Foliage / nature
-  G: "#4c8a44",
-  g: "#8ccf63",
-  // Metal / tools
-  M: "#393d46",
-  m: "#626c7e",
-  // Water / accents
-  A: "#3b5dc9",
-  a: "#5b8eff",
-  // Scaffold poles & rope
-  X: "#7f583f",
-  x: "#b28d68",
-  // Neutral transparency helper
-  _: "_"
+  // Palettes (single chars only, a-z, A-Z, 0-9)
+  a: "#1b1630", // shadow / outline
+  b: "#2b2d42", // dark slate
+  c: "#4a4e69", // mid slate
+  d: "#6c757d", // light slate
+  e: "#adb5bd", // bright slate / metal
+  f: "#ffffff", // highlight
+  
+  // Wood tones (dark shadow to light oak)
+  g: "#2d1b0d", // dark wood shadow
+  h: "#582f0e", // wood dark
+  i: "#7f4f24", // wood mid
+  j: "#936639", // wood base
+  k: "#b08968", // wood lit
+  l: "#dda15e", // wood bright
+  
+  // Stone / Rock tones
+  m: "#1c2541", // stone shadow
+  n: "#3a506b", // stone dark
+  o: "#5bc0be", // stone mid
+  p: "#6fffe9", // stone lit
+  
+  // Thatch / Roof / Hay
+  q: "#386641", // roof moss / green dark
+  r: "#606c38", // roof green mid
+  s: "#aacc00", // roof green lit
+  t: "#bc6c25", // thatch dark
+  u: "#d4a373", // thatch mid
+  v: "#fefae0", // thatch lit / hay
+  
+  // Accents (Canvas, Sails, Flags, Fire, Metal)
+  w: "#e63946", // red flag / accent
+  x: "#f1faee", // sail / cloth white
+  y: "#a8dadc", // sail shadow
+  z: "#ffb703"  // gold / yellow accent
 })
 
-ramps("ksS", "rbwo", "Bby", "Gga", "Mms", "Xxa")
+ramps("ghijk", "mnop", "qrstuv", "abcd")
 
-// Helper function: draw an isometric box (building main body)
-// Left wall (darker), right wall (mid), roof/top (lightest)
-function isoBox(c, x, y, w, h, roofH, leftColor, rightColor, topColor) {
-  // w, h are footprint dimensions in tiles (1 tile = 32x16 diamond width/height approx, or pixel scale)
-  // Here w and h represent screen pixel spans for the box base
-  const halfW = w / 2;
-  const halfH = h / 2;
-  
-  // Left wall polygon
-  c.poly([
-    x, y,
-    x + halfW, y + halfH,
-    x + halfW, y + halfH + roofH,
-    x, y + roofH
-  ], leftColor);
-
-  // Right wall polygon
-  c.poly([
-    x + halfW, y + halfH,
-    x + w, y,
-    x + w, y + roofH,
-    x + halfW, y + halfH + roofH
-  ], rightColor);
-
-  // Top cap / base of roof
-  c.poly([
-    x, y,
-    x + halfW, y - halfH,
-    x + w, y,
-    x + halfW, y + halfH
-  ], topColor);
-}
-
-// Helper function: draw an isometric roof (pyramid or ridge)
-function isoRoof(c, x, y, w, h, roofH, ridgeColorLeft, ridgeColorRight, overhang = 4) {
-  const halfW = w / 2;
-  const halfH = h / 2;
-  
-  // Left slope of roof
-  c.poly([
-    x - overhang, y,
-    x + halfW, y - halfH - roofH,
-    x + halfW, y + halfH,
-    x, y + halfH
-  ], ridgeColorLeft);
-
-  // Right slope of roof
-  c.poly([
-    x + halfW, y - halfH - roofH,
-    x + w + overhang, y,
-    x + w, y + halfH,
-    x + halfW, y + halfH
-  ], ridgeColorRight);
-}
-
-// Helper function: scaffold overlay
-function drawScaffold(c, x, y, w, h, totalH) {
-  // Wooden scaffolding poles and horizontal planks
-  const step = 16;
-  for (let py = y; py <= y + totalH; py += step) {
-    c.hline(x + 4, py, w - 8, "x");
-    c.hline(x + 8, py + 2, w - 16, "X");
-  }
-  // Vertical poles
-  c.vline(x + 4, y, totalH, "X");
-  c.vline(x + w - 4, y, totalH, "X");
-  c.vline(x + Math.floor(w / 2), y - 8, totalH + 8, "x");
-  // Ladder
-  c.vline(x + Math.floor(w / 2) - 2, y + 4, totalH - 8, "w");
-  c.vline(x + Math.floor(w / 2) + 2, y + 4, totalH - 8, "w");
-  for (let ly = y + 8; ly < y + totalH - 4; ly += 6) {
-    c.hline(x + Math.floor(w / 2) - 2, ly, 4, "B");
+// --- HELPER FUNCTIONS FOR ISOMETRIC STRUCTURES ---
+// Helper to draw an isometric box building with top-left light (left face darker, right face mid, roof lightest)
+// Footprint diamond base width = (w_tiles + h_tiles) * 16, height = (w_tiles + h_tiles) * 8
+function isoBox(c, x, y, w, h, wallH, leftCol, rightCol, topCol, outlineCol) {
+  // x, y is top vertex of the roof / structure
+  // Left wall polygon, Right wall polygon, Roof polygon
+  c.poly([x, y + wallH, x - w, y + wallH - w/2, x - w, y - w/2, x, y], leftCol)
+  c.poly([x, y + wallH, x + h, y + wallH + h/2, x + h, y + h/2, x, y], rightCol)
+  c.poly([x, y, x - w, y - w/2, x - w + h, y - w/2 - h/2, x + h, y + h/2], topCol)
+  if (outlineCol) {
+    c.line(x, y + wallH, x - w, y + wallH - w/2, outlineCol, 1)
+    c.line(x, y + wallH, x + h, y + wallH + h/2, outlineCol, 1)
+    c.line(x, y + wallH, x, y, outlineCol, 1)
+    c.line(x, y - w/2, x - w, y - w/2, outlineCol, 1)
+    c.line(x, y + h/2, x + h, y + h/2, outlineCol, 1)
   }
 }
 
-// ==========================================
-// 1. b_iso_hq (96x104) - Castle / Keep
-// ==========================================
-sprite("b_iso_hq", { w: 96, h: 104, outline: "k" }, (c) => {
-  // Footprint diamond base center: x=48, bottom=104
-  // Main Keep Body
-  isoBox(c, 16, 40, 64, 32, 36, "S", "s", "P");
-  // Left Tower
-  isoBox(c, 8, 28, 32, 16, 44, "B", "b", "y");
-  // Right Tower
-  isoBox(c, 56, 28, 32, 16, 44, "B", "b", "y");
-  // Roofs on towers
-  isoRoof(c, 8, 28, 32, 16, 16, "R", "r", 6);
-  isoRoof(c, 56, 28, 32, 16, 16, "R", "r", 6);
-  // Central Keep Roof
-  isoRoof(c, 16, 40, 64, 32, 20, "r", "R", 8);
-  // Gate / Doors & Windows
-  c.poly([44, 60, 52, 56, 52, 76, 44, 80], "B");
-  c.poly([46, 62, 50, 60, 50, 74, 46, 76], "k");
-  // Flag on top tower
-  c.line(48, 12, 48, 2, "B", 1);
-  c.poly([48, 2, 58, 6, 48, 10], "r");
-  // Stone texture details
-  c.pixel(30, 55, "P"); c.pixel(66, 55, "S"); c.pixel(40, 65, "P");
-});
+function isoRoof(c, x, y, w, h, ridgeH, roofCol, outlineCol) {
+  // Isometric pyramid / ridge roof
+  c.poly([x, y - ridgeH, x - w, y - w/2, x - w + h, y - w/2 - h/2, x + h, y + h/2], roofCol)
+  if (outlineCol) {
+    c.line(x, y - ridgeH, x - w, y - w/2, outlineCol, 1)
+    c.line(x, y - ridgeH, x + h, y + h/2, outlineCol, 1)
+    c.line(x, y - ridgeH, x - w + h, y - w/2 - h/2, outlineCol, 1)
+  }
+}
 
-sprite("b_iso_hq_scaffold", { base: "b_iso_hq" }, (c) => {
-  drawScaffold(c, 16, 20, 64, 76);
-});
-
-
-// ==========================================
-// 2. b_iso_hut (64x62) - Settler Hut
-// ==========================================
-sprite("b_iso_hut", { w: 64, h: 62, outline: "k" }, (c) => {
-  // Footprint diamond: 64 wide, bottom-center at 32, 62
-  isoBox(c, 12, 26, 40, 20, 18, "B", "b", "Y");
-  // Thatched Roof
-  isoRoof(c, 12, 26, 40, 20, 16, "y", "O", 6);
-  // Door & windows
-  c.poly([28, 38, 34, 35, 34, 46, 28, 49], "k");
-  c.pixel(20, 32, "w"); c.pixel(44, 32, "w");
-});
-
-sprite("b_iso_hut_scaffold", { base: "b_iso_hut" }, (c) => {
-  drawScaffold(c, 12, 14, 40, 42);
-});
+function drawScaffoldFrame(c, w, h, width, height) {
+  // Wooden scaffolding poles, planks and ladder
+  c.rect(0, 0, width, height, "_")
+  // Vertical posts
+  c.line(4, height - 8, 4, 12, "h", 1)
+  c.line(width - 5, height - 8, width - 5, 12, "h", 1)
+  c.line(width/2, height - 4, width/2, 8, "i", 1)
+  // Horizontal crossbeams
+  c.hline(4, height - 20, width - 8, "i")
+  c.hline(4, height - 36, width - 8, "i")
+  // Ladder rungs
+  for (let ly = 16; ly < height - 12; ly += 6) {
+    c.hline(width/2 - 3, ly, 6, "j")
+  }
+  // Partial plank walls
+  c.rect(8, height - 28, 12, 10, "i")
+  c.rect(width - 20, height - 24, 10, 8, "j")
+}
 
 
 // ==========================================
-// 3. b_iso_woodcutter (64x58) - Woodcutter
+// 1. HEADQUARTER / CASTLE (b_iso_hq: 96x104)
 // ==========================================
-sprite("b_iso_woodcutter", { w: 64, h: 58, outline: "k" }, (c) => {
-  isoBox(c, 12, 24, 40, 20, 18, "B", "b", "Y");
-  isoRoof(c, 12, 24, 40, 20, 16, "R", "r", 6);
-  // Log pile prop on the side
-  c.rect(42, 38, 14, 12, "B");
-  c.hline(43, 40, 12, "b");
-  c.hline(43, 44, 12, "b");
-  c.pixel(45, 41, "w"); c.pixel(51, 45, "w");
-  // Axe lean
-  c.line(20, 42, 22, 34, "M", 1);
-  c.pixel(22, 33, "P");
-});
+sprite("b_iso_hq", { w: 96, h: 104, outline: "a" }, (c) => {
+  // Footprint diamond base center bottom (48, 104)
+  // Stone base walls
+  c.poly([48, 92, 16, 76, 16, 52, 48, 68], "n")
+  c.poly([48, 92, 80, 76, 80, 52, 48, 68], "o")
+  // Stone courses / brick lines
+  c.hline(24, 64, 20, "m")
+  c.hline(52, 64, 20, "p")
+  
+  // Castle Keep tower upper walls
+  c.poly([48, 60, 24, 48, 24, 24, 48, 36], "b")
+  c.poly([48, 60, 72, 48, 72, 24, 48, 36], "c")
+  
+  // Battlements / Crenellations
+  c.rect(44, 20, 8, 8, "n")
+  c.rect(20, 20, 6, 6, "n")
+  c.rect(70, 20, 6, 6, "o")
+  
+  // Wooden Gate & Iron studs
+  c.rect(42, 70, 12, 22, "h")
+  c.rect(45, 75, 6, 12, "g")
+  c.px(44, 76, "e")
+  c.px(51, 76, "e")
+  
+  // Windows (slits)
+  c.rect(32, 38, 3, 8, "a")
+  c.rect(60, 38, 3, 8, "m")
+  
+  // Red Flag on pole
+  c.line(48, 20, 48, 6, "e", 1)
+  c.poly([48, 6, 58, 10, 48, 14], "w")
+  
+  // Side towers
+  c.poly([16, 56, 4, 50, 4, 36, 16, 42], "n")
+  c.poly([16, 56, 28, 50, 28, 36, 16, 42], "o")
+  c.poly([80, 56, 92, 50, 92, 36, 80, 42], "n")
+  c.poly([80, 56, 68, 50, 68, 36, 80, 42], "o")
+})
 
-sprite("b_iso_woodcutter_scaffold", { base: "b_iso_woodcutter" }, (c) => {
-  drawScaffold(c, 12, 12, 40, 40);
-});
-
-
-// ==========================================
-// 4. b_iso_forester (64x58) - Forester
-// ==========================================
-sprite("b_iso_forester", { w: 64, h: 58, outline: "k" }, (c) => {
-  isoBox(c, 12, 24, 40, 20, 18, "B", "b", "Y");
-  isoRoof(c, 12, 24, 40, 20, 16, "G", "g", 6);
-  // Saplings / potted plants prop
-  c.rect(44, 40, 12, 10, "S");
-  c.circ(50, 38, 6, "g");
-  c.circ(46, 42, 4, "G");
-});
-
-sprite("b_iso_forester_scaffold", { base: "b_iso_forester" }, (c) => {
-  drawScaffold(c, 12, 12, 40, 40);
-});
-
-
-// ==========================================
-// 5. b_iso_quarry (64x56) - Quarry
-// ==========================================
-sprite("b_iso_quarry", { w: 64, h: 56, outline: "k" }, (c) => {
-  isoBox(c, 12, 24, 40, 20, 16, "S", "s", "P");
-  isoRoof(c, 12, 24, 40, 20, 14, "s", "S", 5);
-  // Stone blocks prop
-  c.rect(42, 38, 16, 12, "S");
-  c.box(43, 39, 6, 5, "P");
-  c.box(50, 42, 7, 6, "s");
-  // Pickaxe lean
-  c.line(22, 40, 26, 30, "M", 1);
-  c.pixel(26, 29, "w");
-});
-
-sprite("b_iso_quarry_scaffold", { base: "b_iso_quarry" }, (c) => {
-  drawScaffold(c, 12, 12, 40, 38);
-});
+sprite("b_iso_hq_scaffold", { w: 96, h: 104, outline: "a" }, (c) => {
+  drawScaffoldFrame(c, 96, 104, 96, 104)
+  // Partial castle walls behind scaffold
+  c.poly([48, 88, 24, 76, 24, 60, 48, 72], "n")
+  c.poly([48, 88, 72, 76, 72, 60, 48, 72], "o")
+  // Wooden crane & ropes
+  c.line(48, 30, 48, 70, "h", 2)
+  c.line(48, 30, 70, 40, "i", 1)
+  c.rect(66, 38, 8, 8, "j")
+})
 
 
 // ==========================================
-// 6. b_iso_sawmill (80x72) - Sawmill
+// 2. SETTLER HUT (b_iso_hut: 64x62)
 // ==========================================
-sprite("b_iso_sawmill", { w: 80, h: 72, outline: "k" }, (c) => {
-  isoBox(c, 10, 28, 60, 24, 22, "B", "b", "Y");
-  isoRoof(c, 10, 28, 60, 24, 18, "r", "R", 7);
-  // Planks stacked outside
-  c.rect(50, 44, 22, 16, "O");
-  c.hline(51, 47, 20, "o");
-  c.hline(51, 52, 20, "o");
-  c.hline(51, 57, 20, "o");
-  // Saw blade symbol/prop
-  c.circ(40, 38, 6, "M");
-  c.pixel(40, 38, "w");
-});
+sprite("b_iso_hut", { w: 64, h: 62, outline: "g" }, (c) => {
+  // Footprint diamond base center bottom (32, 62)
+  // Wooden base walls
+  c.poly([32, 54, 12, 44, 12, 30, 32, 40], "h")
+  c.poly([32, 54, 52, 44, 52, 30, 32, 40], "i")
+  // Plank texture lines
+  c.line(16, 42, 22, 45, "g", 1)
+  c.line(48, 42, 42, 45, "j", 1)
+  
+  // Thatched conical roof
+  isoRoof(c, 32, 30, 22, 22, 16, "t", "g")
+  c.dither(20, 18, 24, 14, "t", "u", 0.4)
+  
+  // Door & Window
+  c.rect(28, 43, 8, 11, "g")
+  c.rect(42, 33, 5, 5, "v")
+})
 
-sprite("b_iso_sawmill_scaffold", { base: "b_iso_sawmill" }, (c) => {
-  drawScaffold(c, 10, 14, 60, 52);
-});
-
-
-// ==========================================
-// 7. b_iso_fisher (64x58) - Fisher
-// ==========================================
-sprite("b_iso_fisher", { w: 64, h: 58, outline: "k" }, (c) => {
-  isoBox(c, 12, 24, 40, 20, 18, "B", "b", "Y");
-  isoRoof(c, 12, 24, 40, 20, 16, "A", "a", "w");
-  // Dock / pier extension with net
-  c.poly([40, 42, 60, 32, 60, 44, 40, 54], "b");
-  c.hline(42, 46, 16, "B");
-  c.hline(44, 50, 14, "B");
-  // Hanging net
-  c.pixel(52, 38, "w"); c.pixel(54, 42, "w"); c.pixel(53, 46, "w");
-});
-
-sprite("b_iso_fisher_scaffold", { base: "b_iso_fisher" }, (c) => {
-  drawScaffold(c, 12, 12, 40, 40);
-});
+sprite("b_iso_hut_scaffold", { w: 64, h: 62, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 64, 62, 64, 62)
+  c.poly([32, 50, 16, 42, 16, 32, 32, 40], "h")
+  c.poly([32, 50, 48, 42, 48, 32, 32, 40], "i")
+})
 
 
 // ==========================================
-// 8. b_iso_farm (96x74) - Farm (Barn + fields)
+// 3. WOODCUTTER (b_iso_woodcutter: 64x58)
 // ==========================================
-sprite("b_iso_farm", { w: 96, h: 74, outline: "k" }, (c) => {
-  // Main barn building
-  isoBox(c, 16, 28, 64, 32, 24, "R", "r", "O");
-  isoRoof(c, 16, 28, 64, 32, 20, "o", "Y", 8);
-  // Hay stack prop
-  c.circ(78, 54, 10, "y");
-  c.circ(76, 52, 6, "O");
-  // Wheat field lines in front
-  c.poly([16, 60, 48, 74, 80, 60, 48, 46], "G");
-  c.hline(30, 60, 20, "y");
-  c.hline(34, 64, 16, "y");
-});
+sprite("b_iso_woodcutter", { w: 64, h: 58, outline: "g" }, (c) => {
+  // Footprint center (32, 58)
+  // Walls
+  c.poly([32, 50, 14, 41, 14, 28, 32, 37], "i")
+  c.poly([32, 50, 50, 41, 50, 28, 32, 37], "j")
+  
+  // Wooden Plank Roof (asymmetrical/gable)
+  c.poly([32, 28, 14, 41, 24, 20], "h")
+  c.poly([32, 28, 50, 41, 40, 20], "k")
+  c.line(32, 28, 32, 18, "l", 1)
+  
+  // Props: Log pile & Axe leaning against wall
+  c.rect(10, 46, 12, 8, "h")
+  c.px(12, 48, "i")
+  c.px(15, 47, "j")
+  c.px(18, 49, "k")
+  // Axe
+  c.line(8, 52, 12, 44, "h", 1)
+  c.px(12, 44, "e") // axe head
+})
 
-sprite("b_iso_farm_scaffold", { base: "b_iso_farm" }, (c) => {
-  drawScaffold(c, 16, 14, 64, 54);
-});
+sprite("b_iso_woodcutter_scaffold", { w: 64, h: 58, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 64, 58, 64, 58)
+  c.poly([32, 48, 16, 40, 16, 30, 32, 38], "i")
+  c.poly([32, 48, 48, 40, 48, 30, 32, 38], "j")
+})
 
 
-// Export sheet for pxl build
+// ==========================================
+// 4. FORESTER (b_iso_forester: 64x58)
+// ==========================================
+sprite("b_iso_forester", { w: 64, h: 58, outline: "g" }, (c) => {
+  // Footprint center (32, 58)
+  // Walls
+  c.poly([32, 50, 14, 41, 14, 28, 32, 37], "j")
+  c.poly([32, 50, 50, 41, 50, 28, 32, 37], "k")
+  
+  // Green roof (mossy/leafy theme)
+  isoRoof(c, 32, 28, 20, 20, 12, "q", "g")
+  c.dither(22, 20, 20, 10, "q", "s", 0.3)
+  
+  // Props: Saplings in planters / pots outside
+  c.rect(12, 46, 6, 6, "n")
+  c.px(15, 43, "s")
+  c.px(15, 44, "r")
+  
+  c.rect(46, 46, 6, 6, "n")
+  c.px(49, 43, "s")
+  c.px(49, 44, "r")
+})
+
+sprite("b_iso_forester_scaffold", { w: 64, h: 58, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 64, 58, 64, 58)
+  c.poly([32, 48, 16, 40, 16, 30, 32, 38], "j")
+  c.poly([32, 48, 48, 40, 48, 30, 32, 38], "k")
+})
+
+
+// ==========================================
+// 5. QUARRY (b_iso_quarry: 64x56)
+// ==========================================
+sprite("b_iso_quarry", { w: 64, h: 56, outline: "m" }, (c) => {
+  // Footprint center (32, 56)
+  // Stone masonry walls
+  c.poly([32, 48, 12, 38, 12, 26, 32, 36], "m")
+  c.poly([32, 48, 52, 38, 52, 26, 32, 36], "n")
+  
+  // Flat stone slab roof with crane beam
+  c.poly([32, 26, 12, 38, 32, 30, 52, 38], "o")
+  c.line(32, 30, 32, 14, "h", 1)
+  c.line(32, 14, 44, 18, "h", 1)
+  
+  // Props: Stone blocks piled around
+  c.rect(10, 44, 10, 8, "n")
+  c.rect(14, 42, 8, 6, "o")
+  c.rect(44, 44, 12, 8, "p")
+})
+
+sprite("b_iso_quarry_scaffold", { w: 64, h: 56, outline: "m" }, (c) => {
+  drawScaffoldFrame(c, 64, 56, 64, 56)
+  c.poly([32, 46, 16, 38, 16, 28, 32, 36], "m")
+  c.poly([32, 46, 48, 38, 48, 28, 32, 36], "n")
+})
+
+
+// ==========================================
+// 6. SAWMILL (b_iso_sawmill: 80x72)
+// ==========================================
+sprite("b_iso_sawmill", { w: 80, h: 72, outline: "g" }, (c) => {
+  // Footprint center (40, 72) - 3x2 footprint
+  c.poly([40, 64, 16, 52, 16, 36, 40, 48], "h")
+  c.poly([40, 64, 64, 52, 64, 36, 40, 48], "i")
+  
+  // Wide gable roof
+  isoRoof(c, 40, 36, 26, 26, 16, "k", "g")
+  c.dither(28, 24, 24, 12, "k", "l", 0.3)
+  
+  // Props: Stack of planks and giant circular saw blade silhouette on gable
+  c.rect(14, 56, 16, 10, "i")
+  c.rect(16, 54, 14, 4, "j")
+  c.rect(18, 52, 12, 3, "k")
+  
+  // Saw blade graphic on wall
+  c.circ(40, 44, 5, "e")
+  c.circ(40, 44, 2, "g")
+})
+
+sprite("b_iso_sawmill_scaffold", { w: 80, h: 72, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 80, 72, 80, 72)
+  c.poly([40, 62, 20, 50, 20, 38, 40, 50], "h")
+  c.poly([40, 62, 60, 50, 60, 38, 40, 50], "i")
+})
+
+
+// ==========================================
+// 7. FISHER (b_iso_fisher: 64x58)
+// ==========================================
+sprite("b_iso_fisher", { w: 64, h: 58, outline: "g" }, (c) => {
+  // Footprint center (32, 58)
+  // Wooden coastal hut on stilts / dock
+  c.poly([32, 50, 14, 41, 14, 28, 32, 37], "h")
+  c.poly([32, 50, 50, 41, 50, 28, 32, 37], "i")
+  
+  // Roof
+  isoRoof(c, 32, 28, 20, 20, 12, "t", "g")
+  
+  // Dock platform extending forward
+  c.poly([32, 54, 20, 48, 44, 48], "i")
+  c.line(24, 52, 24, 57, "g", 1)
+  c.line(40, 52, 40, 57, "g", 1)
+  
+  // Hanging fishing net / sails drying
+  c.rect(12, 34, 4, 12, "e")
+  c.px(13, 36, "a")
+  c.px(13, 40, "a")
+})
+
+sprite("b_iso_fisher_scaffold", { w: 64, h: 58, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 64, 58, 64, 58)
+  c.poly([32, 48, 16, 40, 16, 30, 32, 38], "h")
+  c.poly([32, 48, 48, 40, 48, 30, 32, 38], "i")
+})
+
+
+// ==========================================
+// 8. FARM (b_iso_farm: 96x74)
+// ==========================================
+sprite("b_iso_farm", { w: 96, h: 74, outline: "g" }, (c) => {
+  // Footprint center (48, 74) - 3x3 footprint
+  // Large barn walls
+  c.poly([48, 66, 18, 51, 18, 34, 48, 49], "h")
+  c.poly([48, 66, 78, 51, 78, 34, 48, 49], "i")
+  
+  // Red/Brown barn roof with hay loft door
+  isoRoof(c, 48, 34, 30, 30, 18, "w", "g")
+  c.rect(44, 28, 8, 8, "g") // loft door
+  c.rect(46, 30, 4, 4, "v") // hay visible
+  
+  // Hay bales stacked outside
+  c.rect(16, 56, 10, 8, "v")
+  c.rect(18, 54, 8, 6, "z")
+  c.rect(70, 56, 10, 8, "v")
+})
+
+sprite("b_iso_farm_scaffold", { w: 96, h: 74, outline: "g" }, (c) => {
+  drawScaffoldFrame(c, 96, 74, 96, 74)
+  c.poly([48, 64, 24, 52, 24, 38, 48, 50], "h")
+  c.poly([48, 64, 72, 52, 72, 38, 48, 50], "i")
+})
+
+
+// ==========================================
+// SHEET EXPORT
+// ==========================================
 sheet("iso_buildings_a", [
-  "b_iso_hq", "b_iso_hq_scaffold",
-  "b_iso_hut", "b_iso_hut_scaffold",
-  "b_iso_woodcutter", "b_iso_woodcutter_scaffold",
-  "b_iso_forester", "b_iso_forester_scaffold",
-  "b_iso_quarry", "b_iso_quarry_scaffold",
-  "b_iso_sawmill", "b_iso_sawmill_scaffold",
-  "b_iso_fisher", "b_iso_fisher_scaffold",
-  "b_iso_farm", "b_iso_farm_scaffold"
+  "b_iso_hq",
+  "b_iso_hq_scaffold",
+  "b_iso_hut",
+  "b_iso_hut_scaffold",
+  "b_iso_woodcutter",
+  "b_iso_woodcutter_scaffold",
+  "b_iso_forester",
+  "b_iso_forester_scaffold",
+  "b_iso_quarry",
+  "b_iso_quarry_scaffold",
+  "b_iso_sawmill",
+  "b_iso_sawmill_scaffold",
+  "b_iso_fisher",
+  "b_iso_fisher_scaffold",
+  "b_iso_farm",
+  "b_iso_farm_scaffold"
 ], { pad: 2 })
 === END ===

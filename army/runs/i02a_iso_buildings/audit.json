@@ -1,0 +1,17 @@
+{
+ "id": "i02a_iso_buildings",
+ "scores": [
+  3,
+  4,
+  3
+ ],
+ "best": 4,
+ "final": "needs-lead-review",
+ "issues": [
+  "Scaffold generation fails PXL correctness: `c.rect(0, 0, width, height, \"_\")` passes an invalid palette key '_' which violates single-character alphanumeric rules.",
+  "Several roof implementations use floating polygons detached from the walls (e.g. woodcutter, farm, hut), leaving large white gaps instead of solid isometric structures.",
+  "Inconsistent lighting logic: HQ uses cyan/blue lighting on the right side while woodcutter and farm use warm wood tones with floating red/green roofs.",
+  "Silhouette and scale mismatch on scaffold sprites: the universal scaffold function draws identical frames ignoring the specific bounding box requirements and building footprints.",
+  "Missing or malformed helper reuse: `isoBox` and `isoRoof` are defined at the top but only partially utilized, leading to hardcoded polygons with misaligned vertex coordinates."
+ ]
+}

@@ -7,27 +7,8 @@
    "wrote": [
     "art/iso_buildings_b.px.js"
    ],
-   "validate_rc": 1,
-   "validate_out": "error: iso_buildings_b.px.js:6:1: pal: palette key must be one character, got 'W0'\n\n"
-  },
-  {
-   "n": 2,
-   "worker": "gemini:gemini-3.5-flash-lite:k9",
-   "wrote": [
-    "art/iso_buildings_b.px.js"
-   ],
-   "validate_rc": 1,
-   "validate_out": "-> /Users/hungpham/projects/harrow-settlers/art/out/iso_buildings_b (17 errors)\nerror: iso_buildings_b.px.js:55:1: sprite 'b_iso_mill': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:69:1: sprite 'b_iso_mill_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:75:1: sprite 'b_iso_bakery': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:84:1: sprite 'b_iso_bakery_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:90:1: sprite 'b_iso_mine': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:99:1: sprite 'b_iso_mine_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:105:1: sprite 'b_iso_smelter': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:112:1: sprite 'b_iso_smelter_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:118:1: sprite 'b_iso_smith': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:125:1: sprite 'b_iso_smith_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:131:1: sprite 'b_iso_tower': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:140:1: sprite 'b_iso_tower_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:146:1: sprite 'b_iso_market': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:153:1: sprite 'b_iso_market_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:159:1: sprite 'b_iso_monument': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:170:1: sprite 'b_iso_monument_scaffold': no size: give { w, h } or a grid string\nerror: iso_buildings_b.px.js:175:1: sheet 'iso_buildings_b': depends on 'b_iso_mill', which failed\n\n"
-  },
-  {
-   "n": 3,
-   "worker": "gemini:gemini-3.5-flash-lite:k10",
-   "wrote": [
-    "art/iso_buildings_b.px.js"
-   ],
-   "validate_rc": 1,
-   "validate_out": "error: iso_buildings_b.px.js:26:1: ramps: ramp \"ktGg\" uses unknown key 't' (did you mean '0'?)\n\n"
+   "validate_rc": 0
   }
  ],
- "status": "failed"
+ "status": "validated"
 }

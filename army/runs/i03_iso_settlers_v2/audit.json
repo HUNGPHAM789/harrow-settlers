@@ -1,0 +1,16 @@
+{
+ "id": "i03_iso_settlers_v2",
+ "scores": [
+  5,
+  4,
+  4
+ ],
+ "best": 5,
+ "final": "needs-lead-review",
+ "issues": [
+  "The stamp() implementation relies on coordinate offsets that clip or misalign character accessories relative to the base sprites (e.g. builder hard hat is detached or mis-layered on walk frames).",
+  "Walking frames 1 and 2 lack proper opposite leg and arm swing cycles, resulting in stiff animation frames that don't match the 1px body bob requirement.",
+  "Emote glyph speech bubbles share identical base shapes rather than varying size/tail positioning contextually.",
+  "Missing explicit error check on sprite dimensions for carry items and animals to ensure exact conformance."
+ ]
+}

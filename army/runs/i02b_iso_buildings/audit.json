@@ -1,0 +1,17 @@
+{
+ "id": "i02b_iso_buildings",
+ "scores": [
+  3,
+  4,
+  3
+ ],
+ "best": 4,
+ "final": "needs-lead-review",
+ "issues": [
+  "Single-character palette keys include numbers ('1', '2', etc.) and special characters which violate pxl rules and cause parsing/rendering bugs.",
+  "Several buildings completely lack their defining props or geometry (e.g. the mill is missing its sails/blades in the render; the mine tunnel entrance is clipped or misplaced).",
+  "Color ramp usage is flat; walls are rendered almost entirely in single flat tones without texture or stone-course lines following the 2:1 slope as requested.",
+  "Scaffold generator overlaps incorrectly with building heights, leaving floating braces or misaligned corner poles.",
+  "Proportions and silhouettes across several structures (like the tower and monument) look boxy and lack fine pixel-art detail refinement."
+ ]
+}

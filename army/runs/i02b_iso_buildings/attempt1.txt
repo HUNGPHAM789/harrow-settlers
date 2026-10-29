@@ -1,317 +1,349 @@
 === FILE: art/iso_buildings_b.px.js ===
-// ISOMETRIC buildings part B per ISOMETRIC SPEC
-// b_iso_mill 80x88, b_iso_bakery 64x62, b_iso_mine 64x60, b_iso_smelter 64x66,
-// b_iso_smith 80x72, b_iso_tower 64x88, b_iso_market 80x70, b_iso_monument 112x120
-// plus corresponding _scaffold versions.
+// ISOMETRIC buildings per ISOMETRIC SPEC and PXL HARD RULES.
+// Strictly using single-character alphanumeric palette keys (a-z, A-Z, 0-9 except reserved ones).
+// Includes base building sprites and corresponding _scaffold versions for all required buildings:
+// b_iso_mill (80x88), b_iso_bakery (64x62), b_iso_mine (64x60), b_iso_smelter (64x66),
+// b_iso_smith (80x72), b_iso_tower (64x88), b_iso_market (80x70), b_iso_monument (112x120).
+
+use("sweetie16")
 
 pal({
-  // Palettes: sweetie16 warm wood/stone/roof tones
-  k: "#1b1630", // outline
-  d: "#2a2139", // dark shadow
-  w: "#fff6e0", // highlight / sails
-  // Wood tones
-  W0: "#3e2723",
-  W1: "#5d4037",
-  W2: "#795548",
-  W3: "#8d6e63",
-  W4: "#a1887f",
-  // Stone / Wall tones
-  S0: "#263238",
-  S1: "#37474f",
-  S2: "#455a64",
-  S3: "#546e7a",
-  S4: "#78909c",
-  // Roof / Tile tones (Terracotta / Red / Slate)
-  R0: "#b71c1c",
-  R1: "#c62828",
-  R2: "#d32f2f",
-  R3: "#e53935",
-  // Metal / Iron tones
-  M0: "#212121",
-  M1: "#424242",
-  M2: "#616161",
-  M3: "#9e9e9e",
-  // Accent / Gold / Canvas
-  A0: "#f57f17",
-  A1: "#fbc02d",
-  A2: "#ffee58",
-  // Foliage / Nature
-  F0: "#1b5e20",
-  F1: "#2e7d32",
-  F2: "#4caf50"
-});
+  // Wood / Planks tones (warm brown/amber)
+  a: "#2b1b0f", // Dark outline / shadow
+  b: "#4a2e18", // Dark wood
+  c: "#7f4f24", // Mid wood
+  d: "#b08968", // Lit wood / plank
+  e: "#dda15e", // Bright wood / highlight
 
-ramps("W0W1W2W3W4", "S0S1S2S3S4", "R0R1R2R3", "M0M1M2M3", "A0A1A2");
+  // Stone / Masonry tones (cool slate/grey)
+  f: "#1b263b", // Dark stone shadow
+  g: "#415a77", // Dark stone
+  h: "#778da9", // Mid stone
+  i: "#93a8c1", // Lit stone
+  j: "#e0fbfc", // Bright stone edge
 
-// Helper macros / drawing functions for isometric boxes and roofs
-// isoBox(c, x, y, w, h, depth, {leftColor, rightColor, topColor})
-// isoRoof(c, x, y, w, h, peakHeight, roofColor)
-// We define standard building components or draw them directly inside sprite funcs.
+  // Metal / Iron tones (dark steel & highlights)
+  k: "#1c2541", // Steel shadow
+  l: "#3a506b", // Steel base
+  m: "#5bc0be", // Steel lit
+  n: "#6fffe9", // Steel glint
 
-// --- 1. Mill (b_iso_mill 80x88) ---
-// Footprint: 2x3 tiles -> width = (2+3)*16 = 80px. Height = 88px.
-sprite("b_iso_mill", { w: 80, h: 88, outline: "k" }, (c) => {
-  // Footprint diamond center bottom: (40, 88)
-  // Left wall
-  c.poly([40, 64, 8, 48, 8, 24, 40, 40], "S1");
-  // Right wall
-  c.poly([40, 64, 72, 48, 72, 24, 40, 40], "S2");
-  // Stone course lines / details on walls
-  c.line(24, 56, 24, 32, "S0");
-  c.line(56, 56, 56, 32, "S3");
-  // Tower cylindrical body or octagonal approximation via poly
-  c.poly([24, 40, 40, 48, 56, 40, 56, 16, 40, 8, 24, 16], "S3");
-  // Roof / Cap (Cone/Pyramid roof with 2:1 slope ridges)
-  c.poly([40, 2, 16, 16, 40, 28, 64, 16], "R1");
-  c.poly([40, 2, 64, 16, 40, 28], "R0"); // shaded side
-  // Door & Windows
-  c.rect(36, 50, 8, 14, "W1");
-  c.rect(38, 52, 4, 10, "W0");
-  c.rect(30, 24, 4, 6, "S0");
-  c.rect(46, 24, 4, 6, "S0");
-  // Windmill blades (cross) centered at (40, 16)
-  c.line(16, 4, 64, 28, "W2", 2);
-  c.line(16, 28, 64, 4, "W2", 2);
-  // Canvas sails on blades
-  c.poly([40, 16, 56, 24, 64, 20, 48, 12], "w");
-  c.poly([40, 16, 24, 8, 16, 12, 32, 20], "w");
-  c.poly([40, 16, 32, 4, 36, 2, 40, 10], "w");
-  c.poly([40, 16, 48, 28, 44, 30, 40, 22], "w");
-});
+  // Roof / Thatch / Tile tones (red-brown / terracotta / tile)
+  o: "#582f0e", // Roof shadow
+  p: "#8c2d19", // Roof dark
+  q: "#bc4749", // Roof mid
+  r: "#f28482", // Roof lit
+  s: "#f5cac3", // Roof bright ridge
 
-sprite("b_iso_mill_scaffold", { base: "b_iso_mill", swap: { S1: "W1", S2: "W2", S3: "W3", R0: "W0", R1: "W1" } }, (c) => {
-  // Wooden scaffold poles and planks overlay
-  c.line(12, 70, 12, 20, "W0", 2);
-  c.line(68, 70, 68, 20, "W0", 2);
-  c.hline(12, 40, 56, "W1");
-  c.hline(12, 25, 56, "W1");
-  // Ladder on side
-  c.line(16, 60, 16, 30, "W2");
-  c.hline(14, 35, 4, "W3");
-  c.hline(14, 45, 4, "W3");
-  c.hline(14, 55, 4, "W3");
-});
+  // Details: Canvas, sails, wheat, fire, flags, gold
+  t: "#ffffff", // Sail / white cloth / paper
+  u: "#dacc3e", // Gold / wheat yellow
+  v: "#ffb703", // Fire / bright warm
+  w: "#fb8500", // Flame deep
+  x: "#9b2226", // Red banner / accent
+  y: "#283618", // Dark foliage / shadow
+  z: "#606c38"  // Green accent
+})
 
+// --- REUSABLE HELPER FUNCTIONS ---
+// Draws a true isometric box with correct 2:1 slope faces, left wall darker, right wall mid, roof lightest.
+// Footprint is based on tile width/height.
+function isoBox(c, x, y, wW, wH, wallH, leftCol, rightCol, roofTopCol) {
+  // Left wall face
+  c.poly([x, y + wallH, x + wW, y + wallH + wW / 2, x + wW, y + wallH + wW / 2 + wallH, x, y + wW / 2 + wallH], leftCol)
+  // Right wall face
+  c.poly([x + wW, y + wallH + wW / 2, x + wW + wH, y + wallH + wW / 2 - wH / 2, x + wW + wH, y + wallH + wW / 2 - wH / 2 + wallH, x + wW, y + wallH + wW / 2 + wallH], rightCol)
+  // Roof / Top
+  c.poly([x, y + wallH, x + wW, y + wallH + wW / 2, x + wW + wH, y + wallH + wW / 2 - wH / 2, x + wH, y + wallH - wH / 2], roofTopCol)
+}
 
-// --- 2. Bakery (b_iso_bakery 64x62) ---
-// Footprint: 2x2 tiles -> width = 64px, height = 62px.
-sprite("b_iso_bakery", { w: 64, h: 62, outline: "k" }, (c) => {
-  // Left wall (stone/brick)
-  c.poly([32, 54, 8, 42, 8, 26, 32, 38], "S1");
-  // Right wall
-  c.poly([32, 54, 56, 42, 56, 26, 32, 38], "S2");
-  // Stone chimney
-  c.poly([46, 24, 54, 20, 54, 10, 46, 14], "S3");
-  c.poly([46, 14, 54, 10, 50, 8, 42, 12], "S4"); // chimney top
-  // Roof (gabled, ridge along center)
-  c.poly([32, 14, 8, 26, 32, 38, 56, 26], "R2");
-  c.poly([32, 14, 56, 26, 32, 38], "R1"); // right roof slope
-  // Door and warm glowing oven window
-  c.rect(26, 42, 8, 12, "W1");
-  c.rect(28, 44, 4, 8, "W0");
-  c.rect(42, 32, 8, 6, "A1"); // glowing window
-  // Bread props / sacks outside
-  c.rect(14, 48, 6, 5, "W4");
-  c.rect(16, 46, 4, 3, "A0"); // bread loaf
-});
+// Draws textured plank or stone course lines following 2:1 slope
+function drawCourses(c, x, y, wW, wH, wallH, step, col) {
+  for (let h = step; h < wallH; h += step) {
+    c.line(x, y + wallH + (wW/2) * (h/wallH) - h, x + wW, y + wallH + wW/2 + (wW/2)*(h/wallH) - h, col, 1)
+  }
+}
 
-sprite("b_iso_bakery_scaffold", { base: "b_iso_bakery", swap: { S1: "W1", S2: "W2", S3: "W3", R1: "W0", R2: "W1" } }, (c) => {
-  c.line(10, 54, 10, 20, "W0", 2);
-  c.line(54, 54, 54, 20, "W0", 2);
-  c.hline(10, 38, 44, "W1");
-  c.line(10, 45, 18, 42, "W2");
-});
+// Standard scaffold structure for unbuilt buildings (_scaffold version)
+function drawScaffold(c, w, h, footprintW, footprintH) {
+  // Wooden posts and framing beams
+  c.rect(0, 0, w, h, "_")
+  const cx = w / 2
+  const bottomY = h - 4
+  
+  // Vertical support poles
+  c.line(cx - 24, bottomY - 32, cx - 24, bottomY, "b", 2)
+  c.line(cx + 24, bottomY - 32, cx + 24, bottomY, "b", 2)
+  c.line(cx - 10, bottomY - 44, cx - 10, bottomY, "c", 2)
+  c.line(cx + 10, bottomY - 44, cx + 10, bottomY, "c", 2)
 
+  // Horizontal crossbeams & diagonal braces
+  c.line(cx - 28, bottomY - 24, cx + 28, bottomY - 24, "c", 2)
+  c.line(cx - 28, bottomY - 12, cx + 28, bottomY - 12, "b", 2)
+  c.line(cx - 24, bottomY - 28, cx + 10, bottomY - 40, "d", 1)
+  c.line(cx + 24, bottomY - 28, cx - 10, bottomY - 40, "d", 1)
 
-// --- 3. Mine (b_iso_mine 64x60) ---
-// Footprint: 2x2 tiles -> width = 64px, height = 60px.
-sprite("b_iso_mine", { w: 64, h: 60, outline: "k" }, (c) => {
-  // Rocky mound / wooden headframe structure
-  c.poly([32, 52, 12, 42, 12, 28, 32, 38], "S0");
-  c.poly([32, 52, 52, 42, 52, 28, 32, 38], "S1");
-  // Mine entrance tunnel (dark opening)
-  c.poly([24, 44, 40, 44, 38, 32, 26, 32], "M0");
-  // Wooden headframe timber gantry over entrance
-  c.line(20, 48, 32, 16, "W1", 2);
-  c.line(44, 48, 32, 16, "W1", 2);
-  c.hline(26, 22, 12, "W2");
-  c.line(32, 16, 32, 8, "M2", 2); // pulley
-  // Ore cart prop
-  c.rect(16, 45, 8, 6, "M1");
-  c.circ(18, 52, 2, "M0");
-  c.circ(22, 52, 2, "M0");
-  c.rect(18, 44, 4, 3, "A2"); // gold ore inside cart
-});
+  // Partial scaffolding platforms & ladder rungs
+  c.rect(cx - 18, bottomY - 26, 36, 3, "d")
+  c.line(cx - 6, bottomY - 36, cx - 6, bottomY - 4, "c", 1)
+  c.line(cx - 2, bottomY - 36, cx - 2, bottomY - 4, "c", 1)
+  for (let ly = bottomY - 34; ly < bottomY - 6; ly += 6) {
+    c.hline(cx - 6, ly, 4, "e")
+  }
+  // Soft contact shadow
+  c.ellipse(cx, bottomY, footprintW, 4, "a")
+}
 
-sprite("b_iso_mine_scaffold", { base: "b_iso_mine", swap: { S0: "W0", S1: "W1" } }, (c) => {
-  c.line(14, 50, 14, 22, "W2", 2);
-  c.line(50, 50, 50, 22, "W2", 2);
-  c.hline(14, 36, 36, "W3");
-  // Ladder
-  c.line(46, 48, 46, 24, "W1");
-});
+// ==========================================
+// 1. b_iso_mill (80x88) - Windmill with sails
+// ==========================================
+sprite("b_iso_mill", { w: 80, h: 88, outline: "a" }, (c) => {
+  // Soft contact shadow
+  c.ellipse(40, 84, 28, 6, "a")
+  // Main cylindrical/octagonal tower body (isometric box representation)
+  isoBox(c, 24, 30, 32, 24, 36, "g", "h", "i")
+  drawCourses(c, 24, 30, 32, 24, 36, 8, "f")
+
+  // Conical / Cap Roof
+  c.poly([40, 16, 60, 26, 40, 36, 20, 26], "p")
+  c.poly([40, 16, 60, 26, 40, 28], "q")
+  c.line(40, 16, 40, 36, "o", 1)
+
+  // Door and windows
+  c.poly([36, 58, 44, 62, 44, 68, 36, 64], "a")
+  c.poly([37, 59, 43, 62, 43, 67, 37, 64], "b")
+  c.rect(30, 42, 4, 6, "a")
+  c.rect(48, 42, 4, 6, "a")
+
+  // Rotating sails / blades centered on front facade
+  const sx = 40, sy = 42
+  c.line(sx - 26, sy - 26, sx + 26, sy + 26, "b", 2)
+  c.line(sx - 26, sy + 26, sx + 26, sy - 26, "b", 2)
+  // Sail cloths on blades
+  c.poly([sx - 26, sy - 26, sx - 10, sy - 18, sx - 18, sy - 10], "t")
+  c.poly([sx + 26, sy + 26, sx + 10, sy + 18, sx + 18, sy + 10], "t")
+  c.poly([sx - 26, sy + 26, sx - 18, sy + 18, sy - 10, sy + 26], "t")
+  c.poly([sx + 26, sy - 26, sx + 18, sy - 18, sy + 10, sy - 26], "t")
+})
+
+sprite("b_iso_mill_scaffold", { w: 80, h: 88, outline: "a" }, (c) => {
+  drawScaffold(c, 80, 88, 32, 16)
+  // Add partial mill cap frame
+  c.poly([40, 22, 56, 30, 40, 38, 24, 30], "b")
+})
 
 
-// --- 4. Smelter (b_iso_smelter 64x66) ---
-// Footprint: 2x2 tiles -> width = 64px, height = 66px.
-sprite("b_iso_smelter", { w: 64, h: 66, outline: "k" }, (c) => {
-  // Stone furnace structure
-  c.poly([32, 58, 10, 47, 10, 27, 32, 38], "S1");
-  c.poly([32, 58, 54, 47, 54, 27, 32, 38], "S2");
-  // Large brick stack / chimney in center
-  c.poly([26, 38, 38, 38, 38, 12, 26, 12], "S3");
-  c.poly([38, 38, 46, 34, 46, 16, 38, 20], "S4");
-  // Glowing fire pit / door at base
-  c.rect(26, 46, 12, 10, "M0");
-  c.rect(28, 48, 8, 6, "A0"); // fire glow
-  c.line(32, 48, 32, 54, "A2");
-  // Coal pile prop
-  c.circ(16, 52, 4, "M0");
-  c.circ(20, 54, 3, "M0");
-});
+// ==========================================
+// 2. b_iso_bakery (64x62) - Bakery with chimney & smoke/bread props
+// ==========================================
+sprite("b_iso_bakery", { w: 64, h: 62, outline: "a" }, (c) => {
+  c.ellipse(32, 58, 22, 5, "a")
+  // Stone oven base with wooden workshop
+  isoBox(c, 16, 22, 24, 20, 24, "g", "h", "i")
+  drawCourses(c, 16, 22, 24, 20, 24, 6, "f")
 
-sprite("b_iso_smelter_scaffold", { base: "b_iso_smelter", swap: { S1: "W1", S2: "W2", S3: "W3" } }, (c) => {
-  c.line(12, 56, 12, 24, "W1", 2);
-  c.line(52, 56, 52, 24, "W1", 2);
-  c.hline(12, 40, 40, "W2");
-  c.hline(12, 28, 40, "W2");
-});
+  // Gable / Thatched or Tiled Roof
+  c.poly([28, 10, 48, 20, 28, 30, 8, 20], "q")
+  c.poly([28, 10, 48, 20, 28, 22], "r")
 
+  // Chimney with smoke
+  c.rect(42, 8, 6, 12, "f")
+  c.rect(41, 7, 8, 3, "g")
+  c.px(44, 4, "h")
+  c.px(45, 2, "i")
 
-// --- 5. Smithy (b_iso_smith 80x72) ---
-// Footprint: 3x2 tiles -> width = (3+2)*16 = 80px. height = 72px.
-sprite("b_iso_smith", { w: 80, h: 72, outline: "k" }, (c) => {
-  // Left wall (half timber, half stone)
-  c.poly([40, 60, 10, 45, 10, 27, 40, 42], "W2");
-  // Right wall
-  c.poly([40, 60, 70, 45, 70, 27, 40, 42], "W3");
-  // Roof (asymmetric or gabled)
-  c.poly([40, 20, 10, 27, 40, 42, 70, 27], "R1");
-  c.poly([40, 20, 70, 27, 56, 34, 40, 28], "R0");
-  // Open forge bay on right with anvil
-  c.rect(52, 42, 12, 12, "M0");
-  c.rect(56, 46, 6, 6, "M2"); // anvil top
-  c.rect(28, 45, 10, 12, "W1"); // main door
-  // Chimney
-  c.rect(20, 18, 8, 14, "S2");
-  // Tool rack prop outside
-  c.line(18, 52, 18, 42, "W1", 2);
-  c.line(16, 44, 22, 44, "M3"); // sword/tool shape
-});
+  // Wooden door & bread cart / flour sacks prop
+  c.poly([24, 40, 30, 43, 30, 49, 24, 46], "b")
+  c.rect(8, 46, 6, 6, "d") // Flour sack
+  c.rect(10, 45, 4, 2, "t")
+})
 
-sprite("b_iso_smith_scaffold", { base: "b_iso_smith", swap: { W2: "W0", W3: "W1", R1: "W2" } }, (c) => {
-  c.line(14, 62, 14, 25, "W1", 2);
-  c.line(66, 62, 66, 25, "W1", 2);
-  c.hline(14, 42, 52, "W2");
-  c.hline(14, 28, 52, "W2");
-});
+sprite("b_iso_bakery_scaffold", { w: 64, h: 62, outline: "a" }, (c) => {
+  drawScaffold(c, 64, 62, 24, 16)
+})
 
 
-// --- 6. Watchtower (b_iso_tower 64x88) ---
-// Footprint: 2x2 tiles -> width = 64px, height = 88px.
-sprite("b_iso_tower", { w: 64, h: 88, outline: "k" }, (c) => {
-  // Stone tower base
-  c.poly([32, 78, 16, 70, 16, 40, 32, 48], "S1");
-  c.poly([32, 78, 48, 70, 48, 40, 32, 48], "S2");
-  // Upper tower body (stone/wood crenellations)
-  c.poly([16, 40, 32, 48, 48, 40, 48, 20, 32, 12, 16, 20], "S3");
-  // Crenellations
-  c.poly([16, 20, 22, 16, 22, 22, 16, 25], "S1");
-  c.poly([48, 20, 42, 16, 42, 22, 48, 25], "S2");
-  c.poly([32, 12, 38, 15, 32, 18, 26, 15], "S3");
-  // Conical roof cap
-  c.poly([32, 2, 14, 18, 32, 26, 50, 18], "R1");
-  c.poly([32, 2, 50, 18, 32, 26], "R0");
-  // Flag on top
-  c.line(32, 2, 32, -6, "W1", 2);
-  c.poly([32, -6, 44, -2, 32, 2], "R2"); // red flag
-  // Door & slit windows
-  c.rect(28, 64, 8, 12, "W1");
-  c.rect(22, 30, 3, 6, "S0");
-  c.rect(39, 30, 3, 6, "S0");
-});
+// ==========================================
+// 3. b_iso_mine (64x60) - Mine entrance with ore cart and tracks
+// ==========================================
+sprite("b_iso_mine", { w: 64, h: 60, outline: "a" }, (c) => {
+  c.ellipse(32, 56, 22, 5, "a")
+  // Rock face / Mountain outcrop base
+  isoBox(c, 16, 18, 24, 20, 30, "f", "g", "h")
 
-sprite("b_iso_tower_scaffold", { base: "b_iso_tower", swap: { S1: "W1", S2: "W2", S3: "W3", R0: "W0", R1: "W1" } }, (c) => {
-  c.line(12, 82, 12, 15, "W0", 2);
-  c.line(52, 82, 52, 15, "W0", 2);
-  c.hline(12, 60, 40, "W1");
-  c.hline(12, 40, 40, "W1");
-  c.hline(12, 20, 40, "W1");
-});
+  // Dark mine shaft tunnel opening (arch)
+  c.poly([24, 30, 34, 35, 34, 48, 24, 43], "a")
+  c.poly([26, 32, 32, 35, 32, 46, 26, 43], "f")
+
+  // Wooden timber frame around tunnel
+  c.line(22, 28, 22, 46, "b", 2)
+  c.line(36, 28, 36, 46, "b", 2)
+  c.hline(22, 28, 14, "c")
+
+  // Mine cart on tracks outside
+  c.rect(38, 40, 10, 6, "k")
+  c.rect(40, 37, 6, 4, "l")
+  c.px(41, 38, "m") // Ore gleam
+  c.line(32, 46, 52, 46, "a", 1)
+  c.line(32, 48, 52, 48, "a", 1)
+})
+
+sprite("b_iso_mine_scaffold", { w: 64, h: 60, outline: "a" }, (c) => {
+  drawScaffold(c, 64, 60, 24, 16)
+})
 
 
-// --- 7. Market (b_iso_market 80x70) ---
-// Footprint: 3x2 tiles -> width = 80px, height = 70px.
-sprite("b_iso_market", { w: 80, h: 70, outline: "k" }, (c) => {
-  // Wooden stall base & counters
-  c.poly([40, 58, 12, 44, 12, 32, 40, 46], "W1");
-  c.poly([40, 58, 68, 44, 68, 32, 40, 46], "W2");
-  // Canopy poles
-  c.line(16, 44, 16, 18, "W0", 2);
-  c.line(64, 44, 64, 18, "W0", 2);
-  c.line(40, 50, 40, 22, "W0", 2);
-  // Striped awning / canopy roof
-  c.poly([40, 16, 12, 28, 40, 40, 68, 28], "A1");
-  // Awning stripes
-  c.line(40, 16, 12, 28, "R2", 2);
-  c.line(40, 16, 68, 28, "w", 2);
-  // Goods on display tables (pots, fruit, sacks)
-  c.rect(22, 42, 8, 5, "A0");
-  c.rect(32, 45, 6, 5, "S3");
-  c.rect(50, 42, 10, 6, "R0");
-});
+// ==========================================
+// 4. b_iso_smelter (64x66) - Smelter with roaring furnace & iron ore
+// ==========================================
+sprite("b_iso_smelter", { w: 64, h: 66, outline: "a" }, (c) => {
+  c.ellipse(32, 62, 22, 5, "a")
+  // Heavy stone masonry smelter
+  isoBox(c, 16, 20, 24, 20, 32, "f", "g", "h")
+  drawCourses(c, 16, 20, 24, 20, 32, 8, "a")
 
-sprite("b_iso_market_scaffold", { base: "b_iso_market", swap: { W1: "W0", W2: "W1", A1: "W2" } }, (c) => {
-  c.line(10, 62, 10, 20, "W1", 2);
-  c.line(70, 62, 70, 20, "W1", 2);
-  c.hline(10, 40, 60, "W2");
-});
+  // Large industrial chimney stack
+  c.poly([34, 6, 46, 12, 34, 18, 22, 12], "g")
+  c.rect(30, 10, 8, 16, "f")
+  c.rect(32, 2, 4, 8, "o")
+  c.px(34, 1, "w")
+  c.px(33, 0, "v")
+
+  // Glowing furnace hearth opening at bottom
+  c.poly([22, 40, 30, 44, 30, 52, 22, 48], "k")
+  c.poly([24, 42, 28, 44, 28, 50, 24, 48], "w")
+  c.px(26, 46, "v")
+
+  // Iron ingot props
+  c.rect(42, 50, 6, 3, "l")
+  c.rect(44, 48, 4, 3, "m")
+})
+
+sprite("b_iso_smelter_scaffold", { w: 64, h: 66, outline: "a" }, (c) => {
+  drawScaffold(c, 64, 66, 24, 16)
+})
 
 
-// --- 8. Monument / Great Hall (b_iso_monument 112x120) ---
-// Footprint: 4x3 tiles -> width = (4+3)*16 = 112px. height = 120px.
-sprite("b_iso_monument", { w: 112, h: 120, outline: "k" }, (c) => {
-  // Grand stone foundation & castle walls
-  c.poly([56, 100, 16, 80, 16, 50, 56, 70], "S1");
-  c.poly([56, 100, 96, 80, 96, 50, 56, 70], "S2");
-  // Main Hall Structure
-  c.poly([56, 70, 28, 56, 28, 30, 56, 44], "S2");
-  c.poly([56, 70, 84, 56, 84, 30, 56, 44], "S3");
-  // Grand central tower / spire
-  c.poly([56, 44, 40, 36, 40, 12, 56, 20], "S3");
-  c.poly([56, 44, 72, 36, 72, 12, 56, 20], "S4");
-  // Roofs (slate blue/grey with gold accents)
-  c.poly([56, 20, 28, 34, 56, 48, 84, 34], "R0");
-  c.poly([56, 2, 40, 12, 56, 22, 72, 12], "R1"); // spire roof
-  // Grand Entrance Doors & stained glass rose window
-  c.rect(48, 76, 16, 24, "W0");
-  c.circ(56, 32, 6, "A1"); // rose window
-  c.line(56, 26, 56, 38, "S0");
-  c.line(50, 32, 62, 32, "S0");
-  // Flags and finials
-  c.line(56, 2, 56, -8, "M3", 2);
-  c.poly([56, -8, 70, -3, 56, 2], "A2"); // golden banner
-  // Side towers
-  c.rect(20, 40, 12, 36, "S1");
-  c.rect(80, 40, 12, 36, "S2");
-});
+// ==========================================
+// 5. b_iso_smith (80x72) - Blacksmith with anvil & toolrack
+// ==========================================
+sprite("b_iso_smith", { w: 80, h: 72, outline: "a" }, (c) => {
+  c.ellipse(40, 68, 28, 5, "a")
+  // Workshop building with open porch
+  isoBox(c, 20, 22, 28, 20, 30, "b", "c", "d")
+  drawCourses(c, 20, 22, 28, 20, 30, 10, "a")
 
-sprite("b_iso_monument_scaffold", { base: "b_iso_monument", swap: { S1: "W0", S2: "W1", S3: "W2", S4: "W3", R0: "W1" } }, (c) => {
-  // Massive wooden scaffolding covering the Great Hall construction
-  c.line(10, 110, 10, 10, "W0", 2);
-  c.line(102, 110, 102, 10, "W0", 2);
-  c.hline(10, 80, 92, "W1");
-  c.hline(10, 50, 92, "W1");
-  c.hline(10, 25, 92, "W1");
-  c.line(25, 110, 25, 10, "W2");
-  c.line(87, 110, 87, 10, "W2");
-  // Ladders and plank walkways
-  c.line(15, 100, 15, 20, "W3");
-  c.hline(15, 65, 10, "W3");
-  c.hline(15, 35, 10, "W3");
-});
+  // Roof
+  c.poly([34, 10, 54, 20, 34, 30, 14, 20], "o")
+  c.poly([34, 10, 54, 20, 34, 22], "p")
 
-// Sheet export for all buildings and their scaffold variants
+  // Anvil and tool rack prop outside
+  c.rect(56, 52, 8, 6, "k")
+  c.rect(58, 48, 4, 4, "l") // Anvil top
+  c.px(59, 49, "m")
+  c.line(16, 44, 16, 58, "c", 2) // Tool rack stand
+  c.line(14, 46, 18, 46, "m", 1) // Tools hanging
+  c.line(14, 50, 18, 50, "m", 1)
+})
+
+sprite("b_iso_smith_scaffold", { w: 80, h: 72, outline: "a" }, (c) => {
+  drawScaffold(c, 80, 72, 28, 18)
+})
+
+
+// ==========================================
+// 6. b_iso_tower (64x88) - Watchtower with crenellations & banner
+// ==========================================
+sprite("b_iso_tower", { w: 64, h: 88, outline: "a" }, (c) => {
+  c.ellipse(32, 84, 22, 5, "a")
+  // Tall fortified stone tower body
+  isoBox(c, 20, 24, 24, 20, 52, "f", "g", "h")
+  drawCourses(c, 20, 24, 24, 20, 52, 12, "a")
+
+  // Crenellations / battlements on top
+  c.poly([32, 20, 44, 26, 32, 32, 20, 26], "i")
+  c.px(22, 23, "f")
+  c.px(28, 20, "f")
+  c.px(36, 18, "f")
+  c.px(42, 21, "f")
+
+  // Wooden door and narrow arrow slits
+  c.poly([28, 64, 34, 67, 34, 76, 28, 73], "a")
+  c.poly([29, 65, 33, 67, 33, 75, 29, 73], "b")
+  c.rect(26, 38, 3, 8, "f")
+  c.rect(40, 46, 3, 8, "f")
+
+  // Guard flag banner
+  c.line(32, 20, 32, 4, "l", 1)
+  c.poly([32, 4, 42, 8, 38, 14, 32, 10], "x")
+})
+
+sprite("b_iso_tower_scaffold", { w: 64, h: 88, outline: "a" }, (c) => {
+  drawScaffold(c, 64, 88, 24, 16)
+})
+
+
+// ==========================================
+// 7. b_iso_market (80x70) - Market stall with striped canopy & goods crates
+// ==========================================
+sprite("b_iso_market", { w: 80, h: 70, outline: "a" }, (c) => {
+  c.ellipse(40, 66, 28, 6, "a")
+  // Open trading booth with wooden pillars
+  isoBox(c, 22, 26, 28, 20, 24, "b", "c", "d")
+
+  // Striped cloth canopy roof (red and white)
+  c.poly([36, 12, 58, 23, 36, 34, 14, 23], "t")
+  c.poly([36, 12, 43, 16, 36, 30, 29, 26], "x")
+  c.poly([50, 19, 57, 23, 50, 34, 43, 30], "x")
+
+  // Stalls and merchandise crates (pottery, fruits, sacks)
+  c.rect(26, 44, 8, 6, "c")
+  c.rect(36, 46, 8, 5, "u")
+  c.rect(48, 44, 6, 6, "d")
+  c.px(28, 43, "v") // Fruit / item
+  c.px(30, 43, "w")
+})
+
+sprite("b_iso_market_scaffold", { w: 80, h: 70, outline: "a" }, (c) => {
+  drawScaffold(c, 80, 70, 28, 18)
+})
+
+
+// ==========================================
+// 8. b_iso_monument (112x120) - Great Hall / Wonder with grand hall & statues
+// ==========================================
+sprite("b_iso_monument", { w: 112, h: 120, outline: "a" }, (c) => {
+  c.ellipse(56, 114, 42, 8, "a")
+  // Grand multi-tier stone hall structure
+  isoBox(c, 32, 36, 48, 32, 56, "f", "g", "h")
+  drawCourses(c, 32, 36, 48, 32, 56, 14, "a")
+
+  // Grand monumental double doors
+  c.poly([48, 80, 60, 86, 60, 102, 48, 96], "a")
+  c.poly([50, 81, 58, 85, 58, 101, 50, 97], "b")
+
+  // Upper grand gable roof with golden spire/crest
+  c.poly([56, 14, 84, 28, 56, 42, 28, 28], "q")
+  c.poly([56, 14, 84, 28, 56, 30], "r")
+  c.line(56, 14, 56, 2, "u", 2) // Golden spire tip
+  c.px(56, 1, "t")
+
+  // Side wings / towers
+  isoBox(c, 16, 52, 20, 16, 40, "g", "h", "i")
+  isoBox(c, 76, 52, 20, 16, 40, "g", "h", "i")
+
+  // Banners & ceremonial torches
+  c.line(32, 50, 32, 38, "l", 1)
+  c.poly([32, 38, 40, 42, 36, 48, 32, 44], "x")
+  c.line(80, 50, 80, 38, "l", 1)
+  c.poly([80, 38, 88, 42, 84, 48, 80, 44], "x")
+})
+
+sprite("b_iso_monument_scaffold", { w: 112, h: 120, outline: "a" }, (c) => {
+  drawScaffold(c, 112, 120, 48, 32)
+})
+
+// --- SHEET EXPORT ---
 sheet("iso_buildings_b", [
   "b_iso_mill", "b_iso_mill_scaffold",
   "b_iso_bakery", "b_iso_bakery_scaffold",
@@ -321,5 +353,5 @@ sheet("iso_buildings_b", [
   "b_iso_tower", "b_iso_tower_scaffold",
   "b_iso_market", "b_iso_market_scaffold",
   "b_iso_monument", "b_iso_monument_scaffold"
-], { pad: 2 });
+], { pad: 1 })
 === END ===

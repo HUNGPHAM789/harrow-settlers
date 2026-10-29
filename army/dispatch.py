@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Army dispatcher: gemini key pool + local ollama gpt-oss, file-output protocol, validate+retry, audit.
-Usage: dispatch.py run task.json | batch t1.json t2.json ... [-j N] | audit <runid> | keys
+Read-only usage: dispatch.py keys | quota | preflight.
+Legacy run/batch writes are disabled; use the isolated Settlers agent supervisor.
 Keys are read from ~/.config/gemkeys.txt and never printed."""
 import json, os, re, subprocess, sys, time, threading, urllib.request, urllib.error, itertools, concurrent.futures as cf
 import quota_ledger
@@ -119,8 +120,12 @@ def local_preflight(model="gpt-oss:20b"):
     free = subprocess.run("memory_pressure | grep -i 'free percentage'", shell=True, capture_output=True, text=True).stdout
     m = re.search(r"(\d+)%", free)
     if m and int(m.group(1)) < 25: raise RuntimeError("local preflight: free memory %s%% < 25%%" % m.group(1))
+def legacy_writes_disabled():
+    raise RuntimeError("Legacy dispatcher direct writes are disabled. Use ~/Documents/Codex/settlers-agent-system/README.md and the isolated supervisor; no task was started.")
+
 def aider_local(t, prompt, rd, att, model="gpt-oss:20b"):
-    """Aider harness + local Ollama model, in a throwaway copy of the repo; only allowed output files are copied back."""
+    """Disabled: legacy output promotion can overwrite unvalidated work."""
+    legacy_writes_disabled()
     import shutil, tempfile
     model = t.get("model", model) if t.get("model", "").startswith("gpt-oss") else model
     with LOCAL_SEM:
@@ -162,6 +167,7 @@ def strip_fence(s):
     m = re.match(r"^\s*```[a-zA-Z]*\n(.*?)\n```\s*$", s, re.S)
     return m.group(1) if m else s
 def run_task(t, feedback=""):
+    legacy_writes_disabled()
     rid = t["id"]; rd = os.path.join(ROOT, "army/runs", rid); os.makedirs(rd, exist_ok=True)
     ctx = ""
     for p in t.get("context", []):
@@ -226,9 +232,11 @@ def audit(t, rid):
 def snap(t):
     return {p: open(os.path.join(ROOT, p)).read() for p in t["outputs"] if os.path.exists(os.path.join(ROOT, p))}
 def restore(files):
+    legacy_writes_disabled()
     for p, c in files.items(): open(os.path.join(ROOT, p), "w").write(c)
 def run_audited(t, rounds=2, bar=8):
-    """Generate, audit, and improve for at least `rounds` extra turns while score < bar. Keeps the BEST version (never regresses)."""
+    """Disabled: use the isolated supervisor for generation, validation and review."""
+    legacy_writes_disabled()
     r = run_task(t); hist = []
     if r["status"] != "validated": return {"id": t["id"], "final": "failed", "run": r}
     best = (-1, None, [])
@@ -252,6 +260,9 @@ if __name__ == "__main__":
     if cmd == "preflight":
         preflight(); sys.exit()
     if cmd in ("run", "batch"):
+        try: legacy_writes_disabled()
+        except RuntimeError as e:
+            print(str(e), file=sys.stderr); sys.exit(2)
         paths = [a for a in sys.argv[2:] if a.endswith(".json")]
         j = int(sys.argv[sys.argv.index("-j") + 1]) if "-j" in sys.argv else 3
         tasks = [json.load(open(p)) for p in paths]

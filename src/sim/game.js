@@ -92,13 +92,21 @@ export class Game {
         home: hq.id,
         job: null,
         dir: 'd',
-        stuckTimer: 0
+        stuckTimer: 0,
+        mood: 'calm',
+        emote: null,
+        lookAt: null,
+        _wanderTimer: 0,
+        _socialCooldown: 0,
+        _idlePauseTimer: 0
       });
     }
 
     this._birthTimer = 0;
     this._foodDebt = 0;
     this._starveTimer = 0;
+    this._celebratedActiveBuildings = new Set();
+    this._starveEmoteTimer = 0;
 
     this._updateStats();
   }
@@ -312,10 +320,13 @@ export class Game {
         settler.job = null;
         settler.home = null;
         settler.path = [];
+        settler.emote = null;
+        settler.lookAt = null;
       }
     }
 
     this.buildings.splice(index, 1);
+    this._celebratedActiveBuildings.delete(id);
 
     if (building.type === 'tower') {
       this.updateTerritory();
@@ -380,6 +391,9 @@ export class Game {
     // 3. Settler movement & state logic
     this._updateSettlers(dt);
 
+    // 3.5 Update villager awareness
+    this.updateAwareness(dt);
+
     // 4. Population birth check (every 25s)
     this._birthTimer += dt;
     if (this._birthTimer >= 25.0) {
@@ -387,7 +401,7 @@ export class Game {
       const foodStock = (this.stock.bread || 0) + (this.stock.fish || 0);
       if (this.stats.pop < this.stats.housing && foodStock >= 2) {
         const hqDoor = this.getHqDoor();
-        this.settlers.push({
+        const newSettler = {
           id: this._nextSettlerId++,
           x: hqDoor.x + 0.5,
           y: hqDoor.y + 0.5,
@@ -398,8 +412,24 @@ export class Game {
           home: null,
           job: null,
           dir: 'd',
-          stuckTimer: 0
-        });
+          stuckTimer: 0,
+          mood: 'calm',
+          emote: null,
+          lookAt: null,
+          _wanderTimer: 0,
+          _socialCooldown: 0,
+          _idlePauseTimer: 0
+        };
+        this.settlers.push(newSettler);
+
+        // (3) on settler birth, settlers within 6 tiles emote 'heart'
+        for (const s of this.settlers) {
+          if (Math.hypot(s.x - newSettler.x, s.y - newSettler.y) <= 6.0) {
+            s.emote = { kind: 'heart', t: 4.0, age: this.time };
+            s.mood = 'happy';
+          }
+        }
+
         this.events.push({
           t: this.time,
           kind: 'born',
@@ -472,6 +502,152 @@ export class Game {
   }
 
   /**
+   * Updates villager awareness, moods, emotes, and social behaviors.
+   * @param {number} dt
+   */
+  updateAwareness(dt) {
+    const foodStock = (this.stock.bread || 0) + (this.stock.fish || 0);
+    const isNight = (this.time % 240) > 180;
+    const hqDoor = this.getHqDoor();
+
+    // (2) food stock < 2 -> every settler mood 'hungry', and every 12 s a random few get emote '!'
+    if (foodStock < 2) {
+      for (const s of this.settlers) {
+        s.mood = 'hungry';
+      }
+      this._starveEmoteTimer = (this._starveEmoteTimer || 0) + dt;
+      if (this._starveEmoteTimer >= 12.0) {
+        this._starveEmoteTimer = 0;
+        for (const s of this.settlers) {
+          if (this._rand() < 0.4) {
+            s.emote = { kind: '!', t: 4.0, age: this.time };
+          }
+        }
+      }
+    } else {
+      this._starveEmoteTimer = 0;
+      for (const s of this.settlers) {
+        if (s.mood === 'hungry') {
+          s.mood = 'calm';
+        }
+      }
+    }
+
+    // (1) when a building becomes 'active'
+    for (const b of this.buildings) {
+      if (b.state === 'active' && !this._celebratedActiveBuildings.has(b.id)) {
+        this._celebratedActiveBuildings.add(b.id);
+        const bdef = BUILDINGS[b.type];
+        const bcx = b.x + bdef.size[0] / 2;
+        const bcy = b.y + bdef.size[1] / 2;
+
+        for (const s of this.settlers) {
+          if (Math.hypot(s.x - bcx, s.y - bcy) <= 10.0) {
+            s.emote = { kind: 'cheer', t: 8.0, age: this.time };
+            s.mood = 'proud';
+            s.lookAt = { x: bcx, y: bcy };
+          }
+        }
+      }
+    }
+
+    // Clear lookAt after 4 s for building celebration
+    for (const s of this.settlers) {
+      if (s.mood === 'proud' && s.emote && s.emote.kind === 'cheer') {
+        if (this.time - s.emote.age >= 4.0 && s.lookAt) {
+          // Clear lookAt if it was focused on a building centre
+          s.lookAt = null;
+        }
+      }
+    }
+
+    // (5) two idle settlers within 2 tiles face each other and alternate emote '?' / 'heart' for 3 s with 20 s cooldown
+    const idleSettlers = this.settlers.filter(s => s.role === 'idle');
+    for (let i = 0; i < idleSettlers.length; i++) {
+      const s1 = idleSettlers[i];
+      s1._socialCooldown = Math.max(0, (s1._socialCooldown || 0) - dt);
+      if (s1._socialCooldown > 0) continue;
+
+      for (let j = i + 1; j < idleSettlers.length; j++) {
+        const s2 = idleSettlers[j];
+        s2._socialCooldown = Math.max(0, (s2._socialCooldown || 0) - dt);
+        if (s2._socialCooldown > 0) continue;
+
+        const dist = Math.hypot(s1.x - s2.x, s1.y - s2.y);
+        if (dist <= 2.0) {
+          s1._socialCooldown = 20.0;
+          s2._socialCooldown = 20.0;
+          s1.lookAt = { x: s2.x, y: s2.y };
+          s2.lookAt = { x: s1.x, y: s1.y };
+          const kind = this._rand() < 0.5 ? '?' : 'heart';
+          s1.emote = { kind, t: 3.0, age: this.time };
+          s2.emote = { kind, t: 3.0, age: this.time };
+          s1.mood = 'happy';
+          s2.mood = 'happy';
+          break;
+        }
+      }
+    }
+
+    // (4) & (6) Idle settler wandering & night behavior
+    for (const s of this.settlers) {
+      // Emote countdown
+      if (s.emote) {
+        s.emote.t -= dt;
+        if (s.emote.t <= 0) {
+          s.emote = null;
+        }
+      }
+
+      // If role changed from 'idle', wandering/lookAt/emotes handled on assignment, but ensure state consistency
+      if (s.role !== 'idle') continue;
+
+      if (isNight) {
+        // (6) at night idle settlers walk toward HQ and show 'zzz'
+        s.emote = s.emote || { kind: 'zzz', t: 6.0, age: this.time };
+        s.mood = 'calm';
+        const distToHq = Math.hypot(s.x - (hqDoor.x + 0.5), s.y - (hqDoor.y + 0.5));
+        if (distToHq > 2.0 && s.path.length === 0) {
+          s.path = findPath(this.world, Math.floor(s.x), Math.floor(s.y), hqDoor.x, hqDoor.y, {
+            blocked: (x, y) => this._isTileBlocked(x, y, hqDoor.x, hqDoor.y)
+          }) || [];
+        }
+      } else {
+        // (4) idle settlers near HQ wander: every 6-14 s pick a walkable tile within 4 tiles of HQ door and path there; sometimes pause with 'zzz' or '?'
+        s._wanderTimer = (s._wanderTimer || 0) - dt;
+        if (s._wanderTimer <= 0) {
+          // pick 6-14 s interval using deterministic rng
+          s._wanderTimer = 6.0 + this._rand() * 8.0;
+
+          const distToHq = Math.hypot(s.x - (hqDoor.x + 0.5), s.y - (hqDoor.y + 0.5));
+          if (distToHq <= 6.0 && s.path.length === 0) {
+            // Pick a walkable tile within 4 tiles of HQ door
+            const rx = hqDoor.x + Math.floor(this._rand() * 9) - 4;
+            const ry = hqDoor.y + Math.floor(this._rand() * 9) - 4;
+            if (inBounds(this.world, rx, ry)) {
+              const rIdx = idx(this.world.w, rx, ry);
+              if (WALKABLE[this.world.terrain[rIdx]]) {
+                const path = findPath(this.world, Math.floor(s.x), Math.floor(s.y), rx, ry, {
+                  blocked: (x, y) => this._isTileBlocked(x, y, rx, ry)
+                });
+                if (path && path.length > 0) {
+                  s.path = path;
+                  if (this._rand() < 0.3) {
+                    s.emote = { kind: this._rand() < 0.5 ? 'zzz' : '?', t: 3.0, age: this.time };
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // (7) builders working get emote 'hammer' occasionally, workers carrying food get 'food' rarely
+      // Handled in settler state update loop or worker updates.
+    }
+  }
+
+  /**
    * Assigns idle settlers to queued construction or active building worker slots.
    * @private
    */
@@ -509,6 +685,8 @@ export class Game {
             bestSettler.job = b.id;
             bestSettler.state = 'walking_to_build';
             bestSettler.path = path;
+            bestSettler.emote = null;
+            bestSettler.lookAt = null;
 
             // Remove from idle pool
             const idx = idleSettlers.indexOf(bestSettler);
@@ -562,6 +740,8 @@ export class Game {
               bestSettler.job = b.id;
               bestSettler.state = 'walking_to_work';
               bestSettler.path = path;
+              bestSettler.emote = null;
+              bestSettler.lookAt = null;
 
               const idx = idleSettlers.indexOf(bestSettler);
               if (idx !== -1) idleSettlers.splice(idx, 1);
@@ -585,6 +765,17 @@ export class Game {
     const hqDoor = this.getHqDoor();
 
     for (const settler of this.settlers) {
+      // (7) builders working get emote 'hammer' occasionally, workers carrying food get 'food' rarely
+      if (settler.role === 'builder' && settler.state === 'building') {
+        if (!settler.emote && this._rand() < 0.05 * dt) {
+          settler.emote = { kind: 'hammer', t: 2.5, age: this.time };
+        }
+      } else if (settler.role === 'worker' && settler.carry && (settler.carry === 'fish' || settler.carry === 'bread')) {
+        if (!settler.emote && this._rand() < 0.02 * dt) {
+          settler.emote = { kind: 'food', t: 2.5, age: this.time };
+        }
+      }
+
       // Idle settler behavior
       if (settler.role === 'idle') {
         if (settler.carry) {
@@ -614,6 +805,8 @@ export class Game {
           settler.job = null;
           settler.state = 'idle';
           settler.path = [];
+          settler.emote = null;
+          settler.lookAt = null;
           continue;
         }
 
@@ -652,6 +845,8 @@ export class Game {
             settler.job = null;
             settler.state = 'idle';
             settler.path = [];
+            settler.emote = null;
+            settler.lookAt = null;
           }
         }
         continue;
@@ -665,6 +860,8 @@ export class Game {
           settler.job = null;
           settler.state = 'idle';
           settler.path = [];
+          settler.emote = null;
+          settler.lookAt = null;
           continue;
         }
 
@@ -824,6 +1021,8 @@ export class Game {
           settler.role = 'idle';
           settler.state = 'idle';
           settler.job = null;
+          settler.emote = null;
+          settler.lookAt = null;
           settler.x = hqDoor.x + 0.5;
           settler.y = hqDoor.y + 0.5;
         }
@@ -1041,7 +1240,12 @@ export class Game {
       rngSteps: this._rngSteps,
       stock: { ...this.stock },
       buildings: JSON.parse(JSON.stringify(this.buildings)),
-      settlers: JSON.parse(JSON.stringify(this.settlers)),
+      settlers: JSON.parse(JSON.stringify(this.settlers.map(s => ({
+        ...s,
+        mood: s.mood || 'calm',
+        emote: s.emote ? { ...s.emote } : null,
+        lookAt: s.lookAt ? { ...s.lookAt } : null
+      })))),
       roads: Array.from(this.roads),
       territory: Array.from(this.territory),
       events: JSON.parse(JSON.stringify(this.events)),
@@ -1052,6 +1256,7 @@ export class Game {
       birthTimer: this._birthTimer,
       foodDebt: this._foodDebt,
       starveTimer: this._starveTimer,
+      celebratedActiveBuildings: Array.from(this._celebratedActiveBuildings),
       worldState: {
         tree: Array.from(this.world.tree),
         rock: Array.from(this.world.rock),
@@ -1080,7 +1285,16 @@ export class Game {
 
     game.stock = { ...obj.stock };
     game.buildings = JSON.parse(JSON.stringify(obj.buildings));
-    game.settlers = JSON.parse(JSON.stringify(obj.settlers));
+    
+    game.settlers = JSON.parse(JSON.stringify(obj.settlers)).map(s => ({
+      mood: 'calm',
+      emote: null,
+      lookAt: null,
+      _wanderTimer: 0,
+      _socialCooldown: 0,
+      _idlePauseTimer: 0,
+      ...s
+    }));
 
     if (obj.roads) game.roads.set(obj.roads);
     if (obj.territory) game.territory.set(obj.territory);
@@ -1093,6 +1307,7 @@ export class Game {
     game._birthTimer = obj.birthTimer || 0;
     game._foodDebt = obj.foodDebt || 0;
     game._starveTimer = obj.starveTimer || 0;
+    game._celebratedActiveBuildings = new Set(obj.celebratedActiveBuildings || []);
 
     if (obj.worldState) {
       if (obj.worldState.tree) game.world.tree.set(obj.worldState.tree);

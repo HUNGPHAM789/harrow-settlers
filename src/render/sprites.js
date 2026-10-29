@@ -242,11 +242,12 @@ async function fetchSafe(url) {
  * @returns {Promise<CanvasImageSource|null>}
  */
 async function loadImageFile(name) {
+  const enc = encodeURIComponent(name);
   const paths = [
-    `public/assets/sprites/${name}.png`,
-    `assets/sprites/${name}.png`,
-    `public/assets/${name}.png`,
-    `assets/${name}.png`,
+    `public/assets/sprites/${enc}.png`,
+    `assets/sprites/${enc}.png`,
+    `public/assets/${enc}.png`,
+    `assets/${enc}.png`,
   ];
 
   for (const path of paths) {

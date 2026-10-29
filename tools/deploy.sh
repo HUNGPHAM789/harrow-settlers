@@ -1,4 +1,8 @@
 #!/bin/zsh
+# Fail closed: this legacy script deploys the mutable checkout without complete validation.
+print -u2 "Legacy deploy disabled: use the Settlers delivery gate and verify visual review plus the exact deployment URL."
+print -u2 "python3 ~/Documents/Codex/settlers-agent-system/delivery_gate.py --source ~/projects/harrow-settlers --require-isometric"
+exit 2
 # Deploy static game to Vercel. Procedure from memory (reference_all_credentials, feedback_vercel_cli_deploy_blocked_git_author):
 #  - CLI inside a git repo whose HEAD author email isn't a Vercel team member HANGS SILENTLY -> deploy from a NON-GIT staging dir.
 #  - non-interactive needs --scope henryps-projects-fc41e2ba ; --archive=tgz avoids the file-count cap.
