@@ -1,0 +1,869 @@
+=== FILE: art/buildings.px.js ===
+// Harrow Settlers - Building Sprites & Scaffolds
+// Pixel art definitions for all economy & territory buildings + scaffold versions.
+
+pal({
+  k: "#181425", // Dark outline / shadow
+  d: "#262b44", // Deep slate / dark timber shadow
+  w: "#3a4466", // Dark stone shadow
+  s: "#5a6988", // Mid stone
+  S: "#8b9bb4", // Light stone
+  L: "#c0cbdc", // Stone highlight / pale slate
+
+  b: "#3e2723", // Dark wood shadow
+  B: "#5d4037", // Mid wood
+  m: "#8d6e63", // Light timber / planks
+  M: "#d7ccc8", // Pale wood highlight
+
+  y: "#a1662f", // Dark thatch / warm plank
+  Y: "#d9933b", // Mid plank / thatch
+  t: "#e2b446", // Straw / bright thatch
+  T: "#f3e17d", // Gold highlight / wheat
+
+  r: "#7a2424", // Dark red tile
+  R: "#b83838", // Red roof tile
+  o: "#e66030", // Orange roof highlight
+
+  g: "#2e5129", // Dark foliage/grass
+  G: "#487532", // Mid foliage
+  v: "#68a342", // Bright green leaf
+
+  f: "#ff4500", // Deep fire glow
+  F: "#ffa500", // Bright flame / gold flag
+  a: "#ffeb3b", // Warm window glow / highlight
+
+  c: "#42a5f5", // Banner blue / steel cyan
+  C: "#90caf9", // Bright blue highlight
+  i: "#78909c", // Dark metal / iron
+  I: "#b0bec5", // Bright iron highlight
+
+  x: "#8d7051", // Earth shadow
+  X: "#bcaaa4"  // Dirt highlight
+});
+
+ramps(
+  "kdwSSL",
+  "kbBmM",
+  "kyYtT",
+  "krRo",
+  "kgGv",
+  "kfiI",
+  "kxX"
+);
+
+// --- Drawing Helpers ---
+
+function drawStoneBlock(c, x, y, w, h) {
+  c.rect(x, y, w, h, "s");
+  c.box(x, y, w, h, "k");
+  c.hline(x + 1, y + 1, w - 2, "S");
+  c.vline(x + 1, y + 1, h - 2, "L");
+  c.hline(x + 1, y + h - 1, w - 2, "w");
+  c.vline(x + w - 1, y + 1, h - 2, "w");
+}
+
+function drawTimberWall(c, x, y, w, h) {
+  c.rect(x, y, w, h, "m");
+  c.box(x, y, w, h, "k");
+  // Vertical plank seams
+  for (let px = x + 4; px < x + w - 2; px += 4) {
+    c.vline(px, y + 1, h - 2, "B");
+    c.vline(px + 1, y + 1, h - 2, "M");
+  }
+}
+
+function drawPitchedRoof(c, x, y, w, h, darkCol, midCol, lightCol, hiCol) {
+  const midX = Math.floor(x + w / 2);
+  for (let row = 0; row < h; row++) {
+    const curY = y + row;
+    const widthAtRow = Math.floor((row / h) * w);
+    const x1 = midX - Math.floor(widthAtRow / 2);
+    const x2 = midX + Math.floor(widthAtRow / 2);
+    if (x2 > x1) {
+      c.hline(x1, curY, x2 - x1 + 1, midCol);
+      c.px(x1, curY, hiCol);
+      c.px(x1 + 1, curY, lightCol);
+      c.px(x2, curY, darkCol);
+    }
+  }
+  // Roof outline
+  c.line(midX, y, x, y + h, "k");
+  c.line(midX, y, x + w - 1, y + h, "k");
+  c.hline(x, y + h, w, "k");
+}
+
+function drawThatchRoof(c, x, y, w, h) {
+  drawPitchedRoof(c, x, y, w, h, "y", "Y", "t", "T");
+}
+
+function drawTileRoof(c, x, y, w, h) {
+  drawPitchedRoof(c, x, y, w, h, "r", "R", "R", "o");
+}
+
+function drawDoor(c, x, y, w, h) {
+  c.rect(x, y, w, h, "B");
+  c.box(x, y, w, h, "k");
+  c.hline(x + 1, y + 1, w - 2, "m");
+  c.px(x + w - 2, y + Math.floor(h / 2), "T"); // Iron/brass handle
+}
+
+function drawWindow(c, x, y) {
+  c.rect(x, y, 4, 5, "a");
+  c.box(x, y, 4, 5, "k");
+  c.px(x + 1, y + 1, "F");
+}
+
+function drawSmoke(c, x, y) {
+  c.rect(x - 1, y - 2, 3, 2, "L");
+  c.rect(x - 3, y - 5, 4, 3, "S");
+  c.rect(x - 5, y - 9, 5, 4, "L");
+}
+
+function drawGenericScaffold(c, W, H, propType) {
+  // Ground shadow
+  c.rect(2, H - 4, W - 4, 3, "k");
+
+  // Partial base wall under construction
+  c.rect(4, H - 12, W - 8, 9, "s");
+  c.box(4, H - 12, W - 8, 9, "k");
+  for (let bx = 8; bx < W - 8; bx += 8) {
+    c.vline(bx, H - 12, 9, "w");
+  }
+  c.hline(4, H - 7, W - 8, "w");
+
+  // Vertical scaffold poles
+  const topY = 10;
+  const poles = [];
+  for (let px = 4; px <= W - 4; px += 12) poles.push(px);
+  if (poles[poles.length - 1] < W - 5) poles.push(W - 5);
+
+  for (const px of poles) {
+    c.vline(px, topY, H - topY - 3, "k");
+    c.vline(px + 1, topY, H - topY - 3, "B");
+    c.px(px + 1, topY, "M");
+  }
+
+  // Horizontal staging planks
+  const levels = [H - 16, H - 28, H - 40];
+  if (H >= 64) levels.push(H - 52);
+
+  for (const ly of levels) {
+    if (ly >= topY) {
+      c.rect(2, ly, W - 4, 3, "k");
+      c.rect(3, ly + 1, W - 6, 1, "Y");
+      c.rect(3, ly, W - 6, 1, "m");
+    }
+  }
+
+  // Diagonal wood braces
+  for (let i = 0; i < poles.length - 1; i++) {
+    const x1 = poles[i] + 1;
+    const x2 = poles[i + 1];
+    const y1 = levels[0] || H - 16;
+    const y2 = levels[1] || topY + 8;
+    if (y2 >= topY) {
+      c.line(x1, y1, x2, y2, "b");
+    }
+  }
+
+  // Ladder on right side
+  const lx = W - 9;
+  c.vline(lx, topY + 4, H - topY - 7, "k");
+  c.vline(lx + 4, topY + 4, H - topY - 7, "k");
+  c.vline(lx + 1, topY + 4, H - topY - 7, "B");
+  c.vline(lx + 3, topY + 4, H - topY - 7, "B");
+  for (let ly = topY + 8; ly < H - 6; ly += 5) {
+    c.hline(lx + 1, ly, 3, "Y");
+  }
+
+  // Specific props per building scaffold type
+  if (propType === 'hq') {
+    // Castle crane / hoist
+    c.rect(6, 4, 14, 3, "B");
+    c.box(6, 4, 14, 3, "k");
+    c.vline(12, 7, 14, "k"); // Rope
+    drawStoneBlock(c, 9, 21, 7, 6);
+  } else if (propType === 'woodcutter') {
+    // Log stack prop
+    c.rect(6, H - 8, 8, 4, "B");
+    c.box(6, H - 8, 8, 4, "k");
+    c.px(7, H - 6, "m");
+  } else if (propType === 'sawmill') {
+    // Timber planks
+    c.rect(6, H - 8, 12, 4, "y");
+    c.box(6, H - 8, 12, 4, "k");
+    c.hline(7, H - 6, 10, "Y");
+  } else if (propType === 'farm') {
+    // Hay bales
+    c.rect(6, H - 9, 8, 6, "Y");
+    c.box(6, H - 9, 8, 6, "k");
+    c.rect(7, H - 8, 6, 4, "t");
+  } else if (propType === 'mill') {
+    // Windmill sail hub frame
+    c.circ(16, 18, 5, "k");
+    c.circ(16, 18, 4, "B");
+    c.line(16, 18, 4, 6, "k");
+    c.line(16, 18, 28, 30, "k");
+  } else if (propType === 'smith') {
+    // Anvil base
+    c.rect(10, H - 8, 8, 5, "B");
+    c.box(10, H - 8, 8, 5, "k");
+    c.rect(9, H - 11, 10, 3, "i");
+    c.box(9, H - 11, 10, 3, "k");
+  } else if (propType === 'mine') {
+    // Mine tunnel frame draft
+    c.rect(8, H - 18, 12, 14, "b");
+    c.box(8, H - 18, 12, 14, "k");
+    c.rect(10, H - 16, 8, 12, "k");
+  } else if (propType === 'market') {
+    // Stall counter & crates
+    c.rect(6, H - 9, 14, 5, "m");
+    c.box(6, H - 9, 14, 5, "k");
+  } else if (propType === 'monument') {
+    // Monument Great Hall crane
+    c.rect(16, 2, 24, 4, "B");
+    c.box(16, 2, 24, 4, "k");
+    c.vline(28, 6, 20, "k");
+    drawStoneBlock(c, 24, 26, 9, 8);
+  }
+}
+
+
+// --- 1. Castle / Headquarters (b_hq 48x64) ---
+sprite("b_hq", { w: 48, h: 64 }, (c) => {
+  // Ground shadow
+  c.rect(2, 58, 44, 5, "k");
+
+  // Outer keep side towers
+  drawStoneBlock(c, 3, 20, 10, 40);
+  drawStoneBlock(c, 35, 20, 10, 40);
+
+  // Tower battlements
+  c.rect(2, 16, 12, 5, "s");
+  c.box(2, 16, 12, 5, "k");
+  c.rect(34, 16, 12, 5, "s");
+  c.box(34, 16, 12, 5, "k");
+
+  // Central Keep Body
+  drawStoneBlock(c, 11, 18, 26, 42);
+
+  // Central High Spire Tower
+  drawStoneBlock(c, 17, 8, 14, 16);
+  drawTileRoof(c, 15, 2, 18, 8);
+
+  // Flag pole and banner
+  c.vline(24, 0, 8, "k");
+  c.vline(25, 0, 8, "I");
+  c.rect(26, 1, 9, 6, "r");
+  c.box(26, 1, 9, 6, "k");
+  c.hline(27, 2, 7, "R");
+
+  // Grand Castle Door (matching door at dx=1, dy=3)
+  drawDoor(c, 18, 44, 12, 16);
+  c.arc = true;
+  c.rect(19, 42, 10, 3, "k"); // Arch top
+
+  // Castle windows
+  drawWindow(c, 6, 28);
+  drawWindow(c, 38, 28);
+  drawWindow(c, 15, 26);
+  drawWindow(c, 29, 26);
+  drawWindow(c, 22, 12);
+
+  // Stone masonry line detail
+  c.hline(12, 34, 24, "w");
+  c.hline(12, 48, 24, "w");
+});
+
+sprite("b_hq_scaffold", { w: 48, h: 64 }, (c) => {
+  drawGenericScaffold(c, 48, 64, 'hq');
+});
+
+
+// --- 2. Settler Hut (b_hut 32x48) ---
+sprite("b_hut", { w: 32, h: 48 }, (c) => {
+  // Shadow
+  c.rect(2, 43, 28, 4, "k");
+
+  // Main Timber Body
+  drawTimberWall(c, 4, 22, 24, 22);
+
+  // Roof
+  drawThatchRoof(c, 2, 10, 28, 13);
+
+  // Stone Chimney & Smoke
+  c.rect(22, 6, 5, 12, "s");
+  c.box(22, 6, 5, 12, "k");
+  drawSmoke(c, 24, 5);
+
+  // Door (dx=0, dy=2)
+  drawDoor(c, 6, 32, 7, 12);
+
+  // Window
+  drawWindow(c, 18, 30);
+});
+
+sprite("b_hut_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'hut');
+});
+
+
+// --- 3. Woodcutter (b_woodcutter 32x48) ---
+sprite("b_woodcutter", { w: 32, h: 48 }, (c) => {
+  c.rect(1, 42, 30, 5, "k");
+
+  // Cabin body on left
+  drawTimberWall(c, 2, 22, 18, 22);
+  drawThatchRoof(c, 0, 12, 22, 11);
+  drawDoor(c, 4, 32, 6, 12);
+
+  // Right Side Props: Stack of logs
+  c.rect(19, 32, 11, 12, "B");
+  c.box(19, 32, 11, 12, "k");
+  for (let ly = 33; ly <= 41; ly += 4) {
+    c.hline(20, ly, 9, "m");
+    c.px(20, ly + 1, "M");
+    c.px(28, ly + 1, "m");
+  }
+
+  // Tree Stump with Axe prop
+  c.rect(21, 26, 6, 5, "B");
+  c.box(21, 26, 6, 5, "k");
+  c.px(22, 27, "m");
+  // Axe head stuck in stump
+  c.rect(23, 21, 4, 4, "I");
+  c.box(23, 21, 4, 4, "k");
+  c.line(22, 25, 26, 19, "b"); // Handle
+});
+
+sprite("b_woodcutter_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'woodcutter');
+});
+
+
+// --- 4. Forester (b_forester 32x48) ---
+sprite("b_forester", { w: 32, h: 48 }, (c) => {
+  c.rect(2, 42, 28, 5, "k");
+
+  // Cabin body
+  drawTimberWall(c, 3, 20, 20, 24);
+  drawThatchRoof(c, 1, 10, 24, 11);
+  drawDoor(c, 5, 32, 6, 12);
+  drawWindow(c, 15, 28);
+
+  // Leafy green vines on roof edge
+  c.rect(2, 20, 22, 2, "G");
+  c.px(4, 21, "v");
+  c.px(12, 21, "v");
+  c.px(18, 21, "v");
+
+  // Porch Sapling Nursery Box on right
+  c.rect(22, 34, 8, 10, "B");
+  c.box(22, 34, 8, 10, "k");
+  c.rect(23, 35, 6, 2, "x");
+
+  // Two young green saplings growing in box
+  c.vline(24, 29, 6, "b");
+  c.rect(23, 27, 3, 3, "v");
+  c.box(23, 27, 3, 3, "g");
+
+  c.vline(28, 30, 5, "b");
+  c.rect(27, 28, 3, 3, "v");
+  c.box(27, 28, 3, 3, "g");
+});
+
+sprite("b_forester_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'forester');
+});
+
+
+// --- 5. Quarry (b_quarry 32x48) ---
+sprite("b_quarry", { w: 32, h: 48 }, (c) => {
+  c.rect(1, 42, 30, 5, "k");
+
+  // Mason lean-to shed
+  drawStoneBlock(c, 2, 22, 18, 22);
+  c.line(0, 16, 21, 22, "k"); // Slanted roof beam
+  c.line(0, 15, 21, 21, "s");
+  drawDoor(c, 4, 32, 6, 12);
+
+  // Stack of cut stone blocks outside
+  drawStoneBlock(c, 20, 36, 10, 8);
+  drawStoneBlock(c, 22, 29, 8, 7);
+  drawStoneBlock(c, 24, 23, 6, 6);
+
+  // Pickaxe prop leaning on stones
+  c.line(18, 42, 25, 24, "b"); // Wooden handle
+  c.hline(23, 24, 5, "I");    // Iron pick head
+  c.px(23, 24, "k");
+  c.px(27, 24, "k");
+});
+
+sprite("b_quarry_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'quarry');
+});
+
+
+// --- 6. Sawmill (b_sawmill 48x48) ---
+sprite("b_sawmill", { w: 48, h: 48 }, (c) => {
+  c.rect(2, 42, 44, 5, "k");
+
+  // Wide timber structure
+  drawTimberWall(c, 4, 18, 40, 26);
+  drawThatchRoof(c, 2, 8, 44, 11);
+
+  // Door at dx=1, dy=2
+  drawDoor(c, 18, 32, 8, 12);
+
+  // Prominent Circular Saw Blade in open left bay
+  c.rect(6, 26, 10, 14, "k"); // Dark bay cutout
+  c.circ(11, 33, 5, "i");
+  c.ring(11, 33, 5, "k");
+  c.circ(11, 33, 2, "I");
+  c.px(11, 33, "C"); // Blade center highlight
+  // Saw blade teeth outline
+  c.px(11, 27, "C");
+  c.px(11, 39, "C");
+  c.px(5, 33, "C");
+  c.px(17, 33, "C");
+
+  // Right prop: Stack of sawn timber planks
+  c.rect(31, 30, 12, 14, "y");
+  c.box(31, 30, 12, 14, "k");
+  for (let py = 32; py <= 42; py += 3) {
+    c.hline(32, py, 10, "Y");
+    c.px(32, py, "T");
+  }
+});
+
+sprite("b_sawmill_scaffold", { w: 48, h: 48 }, (c) => {
+  drawGenericScaffold(c, 48, 48, 'sawmill');
+});
+
+
+// --- 7. Fisher (b_fisher 32x48) ---
+sprite("b_fisher", { w: 32, h: 48 }, (c) => {
+  c.rect(1, 42, 30, 5, "k");
+
+  // Pier stilt supports at bottom
+  c.vline(4, 38, 8, "k");
+  c.vline(5, 38, 8, "b");
+  c.vline(14, 38, 8, "k");
+  c.vline(15, 38, 8, "b");
+  c.vline(24, 38, 8, "k");
+  c.vline(25, 38, 8, "b");
+
+  // Hut body
+  drawTimberWall(c, 2, 18, 20, 22);
+  drawThatchRoof(c, 0, 10, 24, 9);
+  drawDoor(c, 4, 28, 6, 12);
+
+  // Drying Fish Nets Rack on right
+  c.vline(22, 20, 22, "k");
+  c.vline(29, 20, 22, "k");
+  c.hline(22, 20, 8, "k");
+
+  // Fish net mesh grid
+  for (let ny = 22; ny <= 38; ny += 3) {
+    c.hline(23, ny, 6, "Y");
+  }
+  for (let nx = 24; nx <= 28; nx += 2) {
+    c.vline(nx, 21, 18, "y");
+  }
+
+  // Hanging fish props
+  c.px(24, 26, "C");
+  c.px(24, 27, "i");
+  c.px(27, 30, "C");
+  c.px(27, 31, "i");
+});
+
+sprite("b_fisher_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'fisher');
+});
+
+
+// --- 8. Farm (b_farm 48x64) ---
+sprite("b_farm", { w: 48, h: 64 }, (c) => {
+  c.rect(2, 58, 44, 5, "k");
+
+  // Large Rustic Barn Body
+  c.rect(4, 28, 40, 32, "r");
+  c.box(4, 28, 40, 32, "k");
+  // Vertical timber beams on barn
+  for (let bx = 10; bx < 40; bx += 8) {
+    c.vline(bx, 29, 30, "b");
+    c.vline(bx + 1, 29, 30, "B");
+  }
+
+  // High Straw Thatch Roof
+  drawThatchRoof(c, 1, 10, 46, 19);
+
+  // Double Barn Doors at center (dx=1, dy=3)
+  drawDoor(c, 17, 44, 14, 16);
+  c.vline(24, 45, 14, "k"); // Split line between doors
+
+  // Golden Haystack / Hay bales prop on right
+  c.rect(34, 46, 10, 12, "Y");
+  c.box(34, 46, 10, 12, "k");
+  c.rect(35, 47, 8, 10, "t");
+  c.px(36, 48, "T");
+  c.px(40, 52, "T");
+
+  // Golden wheat bundle prop by door
+  c.vline(13, 48, 10, "y");
+  c.rect(11, 46, 5, 4, "T");
+  c.box(11, 46, 5, 4, "k");
+});
+
+sprite("b_farm_scaffold", { w: 48, h: 64 }, (c) => {
+  drawGenericScaffold(c, 48, 64, 'farm');
+});
+
+
+// --- 9. Windmill (b_mill 32x64) ---
+sprite("b_mill", { w: 32, h: 64 }, (c) => {
+  c.rect(2, 58, 28, 5, "k");
+
+  // Round Stone Mill Tower
+  drawStoneBlock(c, 6, 20, 20, 40);
+
+  // Conical Roof Cap
+  drawTileRoof(c, 4, 12, 24, 9);
+
+  // Door at bottom (dx=0, dy=3)
+  drawDoor(c, 8, 46, 7, 14);
+  drawWindow(c, 18, 30);
+
+  // SAIL AXLE HUB
+  c.circ(16, 16, 3, "i");
+  c.ring(16, 16, 3, "k");
+
+  // 4 LARGE WINDMILL SAILS (X shape)
+  // Blade 1: Top-Left
+  for (let i = 0; i < 12; i++) {
+    c.px(16 - i, 16 - i, "b");
+    if (i > 2) {
+      c.rect(16 - i - 3, 16 - i, 3, 2, "M");
+      c.box(16 - i - 3, 16 - i, 3, 2, "k");
+    }
+  }
+  // Blade 2: Top-Right
+  for (let i = 0; i < 12; i++) {
+    c.px(16 + i, 16 - i, "b");
+    if (i > 2) {
+      c.rect(16 + i, 16 - i - 3, 2, 3, "M");
+      c.box(16 + i, 16 - i - 3, 2, 3, "k");
+    }
+  }
+  // Blade 3: Bottom-Left
+  for (let i = 0; i < 12; i++) {
+    c.px(16 - i, 16 + i, "b");
+    if (i > 2) {
+      c.rect(16 - i, 16 + i, 2, 3, "M");
+      c.box(16 - i, 16 + i, 2, 3, "k");
+    }
+  }
+  // Blade 4: Bottom-Right
+  for (let i = 0; i < 12; i++) {
+    c.px(16 + i, 16 + i, "b");
+    if (i > 2) {
+      c.rect(16 + i + 1, 16 + i - 2, 3, 2, "M");
+      c.box(16 + i + 1, 16 + i - 2, 3, 2, "k");
+    }
+  }
+});
+
+sprite("b_mill_scaffold", { w: 32, h: 64 }, (c) => {
+  drawGenericScaffold(c, 32, 64, 'mill');
+});
+
+
+// --- 10. Bakery (b_bakery 32x48) ---
+sprite("b_bakery", { w: 32, h: 48 }, (c) => {
+  c.rect(1, 42, 30, 5, "k");
+
+  // Bakery Building
+  drawStoneBlock(c, 2, 20, 24, 24);
+  drawTileRoof(c, 0, 10, 28, 11);
+
+  // Prominent Bakery Chimney on left with heavy smoke
+  c.rect(4, 2, 7, 12, "s");
+  c.box(4, 2, 7, 12, "k");
+  // Chimney inner glow
+  c.px(6, 3, "f");
+  drawSmoke(c, 7, 1);
+
+  // Oven Door with glowing fire interior
+  c.rect(14, 30, 9, 14, "k");
+  c.rect(15, 33, 7, 10, "f");
+  c.rect(16, 35, 5, 7, "F");
+  c.px(18, 37, "a");
+
+  // Fresh bread loaves on front shelf
+  c.rect(4, 36, 8, 3, "B");
+  c.box(4, 36, 8, 3, "k");
+  c.px(5, 35, "Y");
+  c.px(7, 35, "Y");
+  c.px(9, 35, "Y");
+  c.px(6, 35, "T");
+  c.px(8, 35, "T");
+});
+
+sprite("b_bakery_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'bakery');
+});
+
+
+// --- 11. Mine (b_mine 32x48) ---
+sprite("b_mine", { w: 32, h: 48 }, (c) => {
+  c.rect(0, 42, 32, 5, "k");
+
+  // Mountain Rock Face Backdrop
+  c.rect(1, 10, 30, 34, "w");
+  c.box(1, 10, 30, 34, "k");
+  // Rock texture & cracks
+  for (let rx = 4; rx < 28; rx += 6) {
+    c.vline(rx, 12, 10, "s");
+    c.px(rx + 1, 14, "S");
+  }
+
+  // TIMBER-FRAMED MINE TUNNEL ENTRANCE
+  c.rect(5, 18, 22, 26, "b");
+  c.box(5, 18, 22, 26, "k");
+  c.rect(8, 22, 16, 22, "k"); // Dark deep shaft inside
+
+  // Heavy timber frame header & posts
+  c.rect(4, 16, 24, 5, "B");
+  c.box(4, 16, 24, 5, "k");
+  c.vline(5, 21, 23, "B");
+  c.vline(26, 21, 23, "B");
+
+  // Mine Cart on Rails out front
+  c.hline(2, 42, 28, "i"); // Track rails
+  c.rect(10, 36, 12, 6, "i");
+  c.box(10, 36, 12, 6, "k");
+  c.circ(12, 42, 2, "k");
+  c.circ(20, 42, 2, "k");
+  // Ore in cart
+  c.px(12, 35, "S");
+  c.px(15, 34, "S");
+  c.px(18, 35, "S");
+
+  // Glowing hanging lantern
+  c.vline(22, 21, 4, "k");
+  c.rect(21, 25, 3, 4, "F");
+  c.box(21, 25, 3, 4, "k");
+  c.px(22, 26, "a");
+});
+
+sprite("b_mine_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'mine');
+});
+
+
+// --- 12. Smelter (b_smelter 32x48) ---
+sprite("b_smelter", { w: 32, h: 48 }, (c) => {
+  c.rect(1, 42, 30, 5, "k");
+
+  // Heavy Stone Blast Furnace Building
+  drawStoneBlock(c, 2, 16, 22, 28);
+  drawTileRoof(c, 0, 8, 26, 9);
+
+  // Tall Chimney with dark smoke
+  c.rect(18, 2, 6, 12, "w");
+  c.box(18, 2, 6, 12, "k");
+  drawSmoke(c, 20, 1);
+
+  // Glowing Fiery Furnace Arch
+  c.rect(6, 28, 12, 16, "k");
+  c.rect(7, 30, 10, 14, "f");
+  c.rect(8, 32, 8, 12, "F");
+  c.rect(9, 34, 6, 10, "a");
+
+  // Molten iron channel output
+  c.hline(11, 42, 10, "F");
+  c.hline(12, 43, 8, "a");
+
+  // Iron Ore Pile on side
+  c.rect(22, 36, 8, 8, "w");
+  c.box(22, 36, 8, 8, "k");
+  c.px(24, 38, "S");
+  c.px(27, 40, "S");
+});
+
+sprite("b_smelter_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'smelter');
+});
+
+
+// --- 13. Smithy (b_smith 48x48) ---
+sprite("b_smith", { w: 48, h: 48 }, (c) => {
+  c.rect(2, 42, 44, 5, "k");
+
+  // Forge Building
+  drawTimberWall(c, 4, 18, 38, 26);
+  drawThatchRoof(c, 2, 8, 42, 11);
+
+  // Door at dx=1, dy=2
+  drawDoor(c, 18, 32, 8, 12);
+
+  // Forge hearth on left with chimney & glowing coals
+  c.rect(6, 2, 8, 18, "s");
+  c.box(6, 2, 8, 18, "k");
+  drawSmoke(c, 9, 1);
+
+  c.rect(5, 26, 10, 16, "k");
+  c.rect(6, 30, 8, 10, "f");
+  c.rect(7, 32, 6, 8, "F");
+
+  // HEAVY ANVIL PROP on right
+  c.rect(32, 34, 8, 10, "B"); // Stump
+  c.box(32, 34, 8, 10, "k");
+
+  // Anvil metallic body
+  c.rect(30, 30, 12, 4, "i");
+  c.box(30, 30, 12, 4, "k");
+  c.hline(31, 31, 10, "I");
+  c.px(29, 30, "I"); // Anvil horn tip
+  c.px(29, 31, "k");
+});
+
+sprite("b_smith_scaffold", { w: 48, h: 48 }, (c) => {
+  drawGenericScaffold(c, 48, 48, 'smith');
+});
+
+
+// --- 14. Watchtower (b_tower 32x48) ---
+sprite("b_tower", { w: 32, h: 48 }, (c) => {
+  c.rect(3, 42, 26, 5, "k");
+
+  // Main Stone Shaft
+  drawStoneBlock(c, 6, 12, 20, 32);
+
+  // Overhanging Top Lookout Platform with Battlements
+  c.rect(4, 4, 24, 9, "s");
+  c.box(4, 4, 24, 9, "k");
+  // Crenellations
+  c.rect(4, 1, 4, 4, "s");
+  c.box(4, 1, 4, 4, "k");
+  c.rect(14, 1, 4, 4, "s");
+  c.box(14, 1, 4, 4, "k");
+  c.rect(24, 1, 4, 4, "s");
+  c.box(24, 1, 4, 4, "k");
+
+  // Hanging Territory Flag / Banner
+  c.rect(22, 13, 6, 14, "c");
+  c.box(22, 13, 6, 14, "k");
+  c.hline(23, 14, 4, "C");
+  c.vline(25, 14, 12, "C");
+
+  // Tower Door & Slit Windows
+  drawDoor(c, 12, 32, 7, 12);
+  drawWindow(c, 14, 20);
+});
+
+sprite("b_tower_scaffold", { w: 32, h: 48 }, (c) => {
+  drawGenericScaffold(c, 32, 48, 'tower');
+});
+
+
+// --- 15. Market (b_market 48x48) ---
+sprite("b_market", { w: 48, h: 48 }, (c) => {
+  c.rect(2, 42, 44, 5, "k");
+
+  // Rear Structure & Posts
+  drawTimberWall(c, 6, 20, 36, 24);
+  drawDoor(c, 20, 32, 8, 12);
+
+  // VIBRANT STRIPED AWNING CANOPY
+  const awningY = 12;
+  const awningH = 12;
+  c.rect(3, awningY, 42, awningH, "k");
+
+  for (let x = 4; x < 44; x++) {
+    const stripe = Math.floor((x - 4) / 4) % 2;
+    const col = (stripe === 0) ? "R" : "T";
+    c.vline(x, awningY + 1, awningH - 2, col);
+  }
+  // Scalloped edge
+  for (let x = 4; x < 44; x += 2) {
+    c.px(x, awningY + awningH - 1, "k");
+  }
+
+  // Market Counter Tables & Goods Props
+  c.rect(6, 30, 12, 12, "m");
+  c.box(6, 30, 12, 12, "k");
+  // Produce / apples / fish on counter
+  c.px(8, 29, "r");
+  c.px(10, 29, "f");
+  c.px(12, 29, "v");
+  c.px(14, 29, "r");
+
+  c.rect(30, 30, 12, 12, "m");
+  c.box(30, 30, 12, 12, "k");
+  // Barrel prop
+  c.rect(32, 28, 7, 10, "B");
+  c.box(32, 28, 7, 10, "k");
+  c.hline(33, 30, 5, "I");
+  c.hline(33, 35, 5, "I");
+});
+
+sprite("b_market_scaffold", { w: 48, h: 48 }, (c) => {
+  drawGenericScaffold(c, 48, 48, 'market');
+});
+
+
+// --- 16. Monument / Great Hall (b_monument 64x64) ---
+sprite("b_monument", { w: 64, h: 64 }, (c) => {
+  c.rect(2, 58, 60, 5, "k");
+
+  // Grand Outer Hall Stone Facade
+  drawStoneBlock(c, 6, 20, 52, 40);
+
+  // Majestic High Vaulted Roof
+  drawTileRoof(c, 2, 8, 60, 16);
+
+  // Central Spire / Finial
+  c.vline(31, 0, 9, "k");
+  c.vline(32, 0, 9, "F");
+  c.px(32, 0, "a");
+
+  // Grand Entrance Portal (matching door at dx=1, dy=3)
+  c.rect(22, 36, 20, 24, "k");
+  drawDoor(c, 24, 38, 16, 22);
+
+  // Grand Archway Trim
+  c.rect(21, 33, 22, 4, "S");
+  c.box(21, 33, 22, 4, "k");
+  c.hline(22, 34, 20, "L");
+
+  // Flanking Stone Columns
+  drawStoneBlock(c, 10, 24, 8, 34);
+  drawStoneBlock(c, 46, 24, 8, 34);
+
+  // Rose Stained-Glass Medallion Window above portal
+  c.circ(32, 23, 6, "S");
+  c.ring(32, 23, 6, "k");
+  c.circ(32, 23, 4, "c");
+  c.px(32, 23, "a");
+  c.px(30, 23, "F");
+  c.px(34, 23, "F");
+  c.px(32, 21, "r");
+  c.px(32, 25, "r");
+
+  // Ornate Gold & Blue Banners
+  c.rect(11, 26, 6, 18, "c");
+  c.box(11, 26, 6, 18, "k");
+  c.hline(12, 27, 4, "F");
+
+  c.rect(47, 26, 6, 18, "c");
+  c.box(47, 26, 6, 18, "k");
+  c.hline(48, 27, 4, "F");
+});
+
+sprite("b_monument_scaffold", { w: 64, h: 64 }, (c) => {
+  drawGenericScaffold(c, 64, 64, 'monument');
+});
+
+=== END ===

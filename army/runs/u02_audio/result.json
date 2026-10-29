@@ -1,0 +1,18 @@
+{
+ "id": "u02_audio",
+ "attempts": [
+  {
+   "n": 1,
+   "error": "gemini exhausted: http 503"
+  },
+  {
+   "n": 2,
+   "error": "gemini exhausted: http 429"
+  },
+  {
+   "n": 3,
+   "error": "gemini exhausted: http 429"
+  }
+ ],
+ "status": "failed"
+}

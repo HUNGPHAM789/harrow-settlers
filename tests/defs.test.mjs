@@ -1,0 +1,74 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { BUILDINGS, GOODS, T, WALKABLE, BUILDABLE, BUILD_ORDER, START_STOCK } from '../src/sim/defs.js';
+
+test('BUILDINGS: size, door, cost, in/out, cycle', () => {
+  for (const [name, def] of Object.entries(BUILDINGS)) {
+    // size
+    assert.ok(Array.isArray(def.size), `${name}.size is not an array`);
+    assert.strictEqual(def.size.length, 2, `${name}.size must have 2 elements`);
+    const [w, h] = def.size;
+    assert.ok(Number.isInteger(w) && w > 0, `${name}.size[0] must be a positive integer`);
+    assert.ok(Number.isInteger(h) && h > 0, `${name}.size[1] must be a positive integer`);
+
+    // door
+    assert.ok(Array.isArray(def.door), `${name}.door is not an array`);
+    assert.strictEqual(def.door.length, 2, `${name}.door must have 2 elements`);
+    const [dx, dy] = def.door;
+    assert.ok(Number.isInteger(dx) && dx >= 0 && dx <= w, `${name}.door[0] out of bounds`);
+    assert.ok(Number.isInteger(dy) && dy >= 0 && dy <= h, `${name}.door[1] out of bounds`);
+
+    // cost
+    if (def.cost) {
+      for (const key of Object.keys(def.cost)) {
+        assert.ok(GOODS.includes(key), `${name}.cost contains unknown good '${key}'`);
+      }
+    }
+
+    // in
+    if (def.in) {
+      for (const key of Object.keys(def.in)) {
+        assert.ok(GOODS.includes(key), `${name}.in contains unknown good '${key}'`);
+        assert.ok(Number.isInteger(def.in[key]) && def.in[key] > 0, `${name}.in[${key}] must be a positive integer`);
+      }
+    }
+
+    // out
+    if (def.out) {
+      for (const key of Object.keys(def.out)) {
+        assert.ok(GOODS.includes(key), `${name}.out contains unknown good '${key}'`);
+        assert.ok(Number.isInteger(def.out[key]) && def.out[key] > 0, `${name}.out[${key}] must be a positive integer`);
+      }
+    }
+
+    // cycle
+    if ('cycle' in def) {
+      assert.ok(Number.isInteger(def.cycle) && def.cycle > 0, `${name}.cycle must be a positive integer`);
+    }
+  }
+});
+
+test('T, WALKABLE, BUILDABLE lengths', () => {
+  const tKeys = Object.keys(T).length;
+  assert.strictEqual(WALKABLE.length, tKeys, 'WALKABLE length mismatch with T keys');
+  assert.strictEqual(BUILDABLE.length, tKeys, 'BUILDABLE length mismatch with T keys');
+});
+
+test('BUILD_ORDER correctness', () => {
+  const expected = Object.keys(BUILDINGS).filter(k => k !== 'hq');
+  assert.deepStrictEqual(BUILD_ORDER.sort(), expected.sort(), 'BUILD_ORDER does not match expected building keys');
+});
+
+test('START_STOCK goods', () => {
+  for (const key of Object.keys(START_STOCK)) {
+    assert.ok(GOODS.includes(key), `START_STOCK contains unknown good '${key}'`);
+  }
+});
+
+test('Only monument has wonder:true', () => {
+  const wonders = Object.entries(BUILDINGS)
+    .filter(([, def]) => def.wonder)
+    .map(([k]) => k);
+  assert.strictEqual(wonders.length, 1, 'More than one building has wonder:true');
+  assert.strictEqual(wonders[0], 'monument', 'The building with wonder:true is not monument');
+});

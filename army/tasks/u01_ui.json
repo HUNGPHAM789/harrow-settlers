@@ -1,0 +1,23 @@
+{
+ "id": "u01_ui",
+ "worker": "gemini",
+ "model": "gemini-3.8-flash",
+ "objective": "Implement src/ui/ui.js (class UI) and src/ui/style.css per ARCH.md. DOM-based HUD overlay over the canvas (root element #ui): top bar with stock icons (use <canvas>/<img> src public/assets/sprites/carry_<good>.png with CSS image-rendering:pixelated) and counts with +/- flash on change, population/housing, food rate, clock, speed buttons (pause,1x,2x,4x); left or bottom build palette grouped by category (Resources, Food, Industry, Civic) with cost tooltips (red when unaffordable), selected tool highlight, hotkeys 1-9; road tool; demolish tool; building info panel on selection (status, workers, inventory, production progress, demolish button); toast notifications from game.drainEvents(); objective tracker (checklist of milestones: first hut, sawmill running, 10 pop, bread, iron, Great Hall); pause menu (Esc: resume, restart, mute); victory modal with stats and Play Again; minimap container; tooltip when hovering a tile showing placement problem reason. Interface: new UI(root, game, renderer, {onNewGame, onToggleMute}); ui.update() called each frame; ui.tool property one of null|'road'|'demolish'|{build:type}; ui.handleCanvasClick(tx,ty,button) / handleHover(tx,ty). Crisp pixel aesthetic (pixel font via CSS monospace stack, 2px borders, warm parchment panels). Responsive for desktop and tablet; no external resources.",
+ "outputs": [
+  "src/ui/ui.js",
+  "src/ui/style.css"
+ ],
+ "acceptance": [
+  "usable and clear",
+  "no innerHTML with untrusted data",
+  "all game events surfaced"
+ ],
+ "validate": [
+  "node --check src/ui/ui.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 3
+}

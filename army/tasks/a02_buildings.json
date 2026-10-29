@@ -1,7 +1,7 @@
 {
  "id": "a02_buildings",
  "worker": "gemini",
- "model": "gemini-3.5-flash",
+ "model": "gemini-3.8-flash",
  "objective": "Write art/buildings.px.js. Each building sprite is footprint width x (footprint height + 16) px: the bottom rows sit on the footprint, the extra 16px top is roof/chimney/tower overhang (transparent where unused). Each building must be instantly recognisable by silhouette+props (woodcutter: log pile+axe stump; sawmill: saw blade + planks; windmill: sails; farm: barn+hay; mine: timber-framed tunnel mouth; smelter: furnace glow; smith: anvil+chimney smoke; tower: stone watchtower; market: striped awnings; hq: grand castle with flag; monument: majestic great hall). Also for every building a scaffold version b_<type>_scaffold (same size) showing wooden scaffolding+partial walls. Required sprites with sizes: b_hq 48x64, b_hut 32x48, b_woodcutter 32x48, b_forester 32x48, b_quarry 32x48, b_sawmill 48x48, b_fisher 32x48, b_farm 48x64, b_mill 32x64, b_bakery 32x48, b_mine 32x48, b_smelter 32x48, b_smith 48x48, b_tower 32x48, b_market 48x48, b_monument 64x64 plus scaffolds.",
  "outputs": [
   "art/buildings.px.js"

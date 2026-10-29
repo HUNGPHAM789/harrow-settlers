@@ -1,7 +1,7 @@
 {
  "id": "t03_path",
  "worker": "gemini",
- "model": "gemini-3.5-flash",
+ "model": "gemini-3.8-flash",
  "objective": "Implement src/sim/pathfind.js per ARCH.md (findPath, nearestTile). Also tests/pathfind.test.mjs: straight path, around obstacle, null when enclosed/water, no corner cutting, blocked callback, nearestTile, 200 random paths on a generated world finish fast. World for tests: build a tiny fake world object {w,h,terrain:Uint8Array} using T from defs.js (do NOT import world.js).",
  "outputs": [
   "src/sim/pathfind.js",

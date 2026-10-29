@@ -1,0 +1,14 @@
+{
+ "id": "l01_defs_test",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "aider+ollama:gpt-oss:20b",
+   "wrote": [
+    "tests/defs.test.mjs"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

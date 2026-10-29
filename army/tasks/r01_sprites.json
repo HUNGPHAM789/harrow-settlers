@@ -1,0 +1,21 @@
+{
+ "id": "r01_sprites",
+ "worker": "gemini",
+ "model": "gemini-3.8-flash",
+ "objective": "Implement src/render/sprites.js per ARCH.md: loadSprites() loads public/assets/manifest.json then each public/assets/sprites/<name>.png as ImageBitmap/Image in parallel (missing files tolerated). Sprites.has(name), Sprites.size(name), Sprites.draw(ctx,name,dx,dy,{flip?,alpha?,scale?,tint?}) with imageSmoothingEnabled=false; if sprite missing draw a deterministic hashed-color placeholder rect so the game is always playable. Also export `terrainSprite(type,x,y)` mapping terrain type+tile coords to a deterministic variant name (tile_grass_1..3, tile_water_1..2 etc, with names: tile_deep,tile_water,tile_sand,tile_grass,tile_forest,tile_rock,tile_mountain,tile_snow) and `settlerSprite(role,dir,frame)`. Pure, DOM only where needed.",
+ "outputs": [
+  "src/render/sprites.js"
+ ],
+ "acceptance": [
+  "no throw on missing assets",
+  "pixelated drawing"
+ ],
+ "validate": [
+  "node --check src/render/sprites.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 3
+}

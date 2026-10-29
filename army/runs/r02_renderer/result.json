@@ -1,0 +1,24 @@
+{
+ "id": "r02_renderer",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3-flash-preview:k6",
+   "wrote": [],
+   "error": "output truncated"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3-flash-preview:k9",
+   "wrote": [],
+   "error": "output truncated"
+  },
+  {
+   "n": 3,
+   "worker": "gemini:gemini-3-flash-preview:k1",
+   "wrote": [],
+   "error": "output truncated"
+  }
+ ],
+ "status": "failed"
+}

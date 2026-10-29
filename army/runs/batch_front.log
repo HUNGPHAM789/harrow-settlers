@@ -1,0 +1,29 @@
+{"id": "r01_sprites", "scores": [7, 7, 6], "best": 7, "final": "needs-lead-review", "issues": ["Fix canvas tinting in Sprites.draw: using globalCompositeOperation = 'source-atop' directly on the main rendering context tints background pixels already rendered on the canvas. Perform tinting on an offscreen canvas or temp buffer before compositing onto ctx.", "Fix memory leak in loadImageFile: call URL.revokeObjectURL(src) inside Image.onload and Image.onerror when falling back to HTMLImageElement creation.", "Normalize asset loading paths in loadSprites to cleanly handle root-relative web paths (e.g., '/assets/sprites/...') as public/ is usually stripped by web servers/bundlers at runtime."]}
+{"id": "r02_renderer", "scores": [3, 3], "best": 3, "final": "needs-lead-review", "issues": ["Fix fatal syntax error at the end of the file where code is cut off abruptly at `da` inside `drawMinimap`.", "Implement missing `minimapToWorld(mx, my, canvas)` method required by specification for minimap click-to-jump functionality.", "Complete `drawMinimap(canvas)` implementation including rendering territory overlay, active buildings, and current camera viewport rectangle.", "Remove per-frame array allocation in `renderYSortedObjects` caused by `this.renderPool.slice(0, this.renderCount)`; sort `renderPool` in-place up to `renderCount` or use a pre-allocated index array.", "Remove per-frame array allocations in hot path calls to `ctx.setLineDash([4, 2])` and `ctx.setLineDash([4, 4])` by caching dash array constants outside the render loop.", "Fix terrain chunk caching performance flaw where `waterChanged` forces full offscreen canvas redraws across all visible chunks every 0.4 seconds.", "Add `markChunkDirty(tx, ty)` method so terrain, road, or tile modifications in the simulation correctly invalidate affected chunk caches.", "Add `destroy()` or `unbindEvents()` method to clean up `window` event listeners (`keydown`, `keyup`, `mousemove`, `mouseup`, `resize`) and prevent memory leaks when re-instantiated."]}
+Traceback (most recent call last):
+  File "/Users/hungpham/projects/harrow-settlers/army/dispatch.py", line 149, in <module>
+    for r in ex.map(run_audited, tasks): print(json.dumps(r), flush=True)
+             ~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 639, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 311, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 443, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 395, in __get_result
+    raise self._exception
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/Users/hungpham/projects/harrow-settlers/army/dispatch.py", line 130, in run_audited
+    a = audit(t, t["id"]); hist.append(a["score"])
+  File "/Users/hungpham/projects/harrow-settlers/army/dispatch.py", line 116, in audit
+    txt, who = gemini("gemini-3.5-flash", f"{RUBRIC}\n\nOBJECTIVE:\n{t['objective']}\nACCEPTANCE:{t.get('acceptance')}\n{ctx}", images=imgs)
+               ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/hungpham/projects/harrow-settlers/army/dispatch.py", line 51, in gemini
+    raise RuntimeError("gemini exhausted: " + last)
+RuntimeError: gemini exhausted: http 429

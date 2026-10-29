@@ -1,0 +1,22 @@
+{
+ "id": "r02_renderer",
+ "worker": "gemini",
+ "model": "gemini-3.8-flash",
+ "objective": "Implement src/render/renderer.js (class Renderer) per ARCH.md using Canvas2D and ./sprites.js (Sprites from loadSprites(): draw(ctx,name,dx,dy,opts), has(name), size(name); also helper exports terrainSprite(type,x,y) and settlerSprite(role,dir,frame)). Features: offscreen terrain chunk cache (re-render only dirty/visible), camera pan (mouse drag, WASD/arrows, edge scroll optional off), zoom wheel clamp 1..4 integer snapped, smooth; y-sorted drawing of trees/rocks/buildings/settlers; construction scaffold + progress bar; roads; territory border highlight (animated dashed); animated water (frame swap by time); settler walk animation using game.time; carried goods icon above head (sprite carry_<good>); placement ghost with green/red tint + footprint overlay; selected building outline; working building smoke particles; day/night soft tint cycle subtle; minimap drawMinimap(canvas) with terrain colors + buildings + territory + camera rect, click-to-jump helper minimapToWorld(mx,my,canvas); screenToTile/tileToScreen; setGhost(type|null); setSelected(id|null); resize handling with devicePixelRatio. Never mutate game state. Robust to missing sprites.",
+ "outputs": [
+  "src/render/renderer.js"
+ ],
+ "acceptance": [
+  "60fps with 96x96 map",
+  "no allocations per frame in hot loops where avoidable"
+ ],
+ "validate": [
+  "node --check src/render/renderer.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js",
+  "src/sim/world.js"
+ ],
+ "max_attempts": 3
+}

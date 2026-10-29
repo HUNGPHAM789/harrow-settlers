@@ -1,0 +1,358 @@
+=== FILE: src/render/sprites.js ===
+import { BUILDINGS, T } from '../sim/defs.js';
+
+/**
+ * Reusable offscreen canvas for sprite tinting.
+ */
+let tintCanvas = null;
+let tintCtx = null;
+
+function getTintedCanvas(image, tintColor, w, h, sx = 0, sy = 0) {
+  if (typeof document === 'undefined') return null;
+  if (!tintCanvas) {
+    tintCanvas = document.createElement('canvas');
+    tintCtx = tintCanvas.getContext('2d');
+  }
+  if (tintCanvas.width < w || tintCanvas.height < h) {
+    tintCanvas.width = Math.max(tintCanvas.width || 0, w);
+    tintCanvas.height = Math.max(tintCanvas.height || 0, h);
+  }
+
+  // Clear entire offscreen buffer
+  tintCtx.clearRect(0, 0, tintCanvas.width, tintCanvas.height);
+
+  tintCtx.globalCompositeOperation = 'source-over';
+  tintCtx.drawImage(image, sx, sy, w, h, 0, 0, w, h);
+
+  tintCtx.globalCompositeOperation = 'source-at';
+  tintCtx.fillStyle = tintColor;
+  tintCtx.fillRect(0, 0, w, h);
+
+  tintCtx.globalCompositeOperation = 'source-over';
+  return tintCanvas;
+}
+
+/**
+ * Fast string hashing function for deterministic placeholder colors.
+ */
+function hashString(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Infer default sprite dimensions if asset is missing.
+ */
+function getDefaultSpriteSize(name) {
+  if (!name) return { w: 16, h: 16 };
+  if (name.startsWith('b_')) {
+    const bType = name.replace(/^b_/, '').replace(/_scaffold$/, '');
+    const def = BUILDINGS[bType];
+    if (def && def.size) {
+      return { w: def.size[0] * 16, h: def.size[1] * 16 };
+    }
+    return { w: 32, h: 32 };
+  }
+  if (name.startsWith('settler_')) {
+    return { w: 12, h: 16 };
+  }
+  if (name.startsWith('good_')) {
+    return { w: 12, h: 12 };
+  }
+  return { w: 16, h: 16 };
+}
+
+/**
+ * Fallback list of sprite names to attempt loading if manifest is simple or unlisted.
+ */
+const KNOWN_SPRITES = [
+  'tile_deep', 'tile_water', 'tile_water_1', 'tile_water_2',
+  'tile_sand', 'tile_sand_1', 'tile_sand_2',
+  'tile_grass', 'tile_grass_1', 'tile_grass_2', 'tile_grass_3',
+  'tile_forest', 'tile_forest_1', 'tile_forest_2',
+  'tile_rock', 'tile_mountain', 'tile_snow',
+  'tree_1', 'tree_2', 'tree_3', 'sapling', 'rock_1', 'rock_2',
+  'deco_1', 'deco_2', 'deco_3', 'road'
+];
+
+// Add building & scaffold sprite names
+Object.keys(BUILDINGS).forEach((type) => {
+  KNOWN_SPRITES.push(`b_${type}`, `b_${type}_scaffold`);
+});
+
+// Add settler role/dir/frame sprites
+const ROLES = ['idle', 'builder', 'worker', 'porter'];
+const DIRS = ['u', 'd', 'l', 'r'];
+ROLES.forEach((r) => {
+  DIRS.forEach((d) => {
+    [0, 1, 2].forEach((f) => {
+      KNOWN_SPRITES.push(`settler_${r}_${d}_${f}`);
+    });
+  });
+});
+
+/**
+ * Normalizes and discovers the asset base directory once by probing manifest location.
+ */
+async function discoverAssetBase() {
+  const candidates = [
+    'public/assets/',
+    'assets/',
+    './public/assets/',
+    './assets/'
+  ];
+
+  for (const dir of candidates) {
+    try {
+      const res = await fetch(`${dir}manifest.json`);
+      if (res.ok) {
+        const manifest = await res.json();
+        return { baseDir: dir, manifest };
+      }
+    } catch (_) {
+      // ignore and try next candidate
+    }
+  }
+
+  return { baseDir: 'public/assets/', manifest: null };
+}
+
+/**
+ * Image loader helper (ImageBitmap or Image element).
+ */
+async function loadImage(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    if (typeof createImageBitmap === 'function') {
+      try {
+        return await createImageBitmap(blob);
+      } catch (_) {
+        // fallback to Image element
+      }
+    }
+    return await new Promise((resolve) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(blob);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(null);
+      };
+      img.src = objectUrl;
+    });
+  } catch (_) {
+    return null;
+  }
+}
+
+export class Sprites {
+  constructor(spritesMap = new Map()) {
+    this.sprites = spritesMap;
+  }
+
+  /**
+   * Check if a sprite or its base fallback exists in loaded assets.
+   */
+  has(name) {
+    if (this.sprites.has(name)) return true;
+    const baseName = name.replace(/_\d+$/, '');
+    return this.sprites.has(baseName);
+  }
+
+  /**
+   * Get size { w, h } of a sprite.
+   */
+  size(name) {
+    const s = this.getSpriteEntry(name);
+    if (s) {
+      return { w: s.w, h: s.h };
+    }
+    return getDefaultSpriteSize(name);
+  }
+
+  /**
+   * Internal helper to resolve sprite entry or variant fallback.
+   */
+  getSpriteEntry(name) {
+    if (this.sprites.has(name)) return this.sprites.get(name);
+    const baseName = name.replace(/_\d+$/, '');
+    if (this.sprites.has(baseName)) return this.sprites.get(baseName);
+    return null;
+  }
+
+  /**
+   * Draw a sprite onto ctx with options { flip, alpha, scale, tint }.
+   */
+  draw(ctx, name, dx, dy, opts = {}) {
+    const { flip = false, alpha = 1, scale = 1, tint = null } = opts;
+    const sprite = this.getSpriteEntry(name);
+    const size = sprite ? { w: sprite.w, h: sprite.h } : getDefaultSpriteSize(name);
+
+    const sw = size.w;
+    const sh = size.h;
+    const dw = sw * scale;
+    const dh = sh * scale;
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+
+    if (alpha !== 1) {
+      ctx.globalAlpha *= alpha;
+    }
+
+    let drawX = dx;
+    let drawY = dy;
+
+    if (flip) {
+      ctx.translate(dx + dw, dy);
+      ctx.scale(-1, 1);
+      drawX = 0;
+      drawY = 0;
+    }
+
+    if (!sprite || !sprite.img) {
+      this.drawPlaceholder(ctx, name, drawX, drawY, dw, dh);
+    } else if (tint) {
+      const tCanvas = getTintedCanvas(sprite.img, tint, sw, sh, sprite.sx || 0, sprite.sy || 0);
+      if (tCanvas) {
+        ctx.drawImage(tCanvas, 0, 0, sw, sh, drawX, drawY, dw, dh);
+      } else {
+        this.drawPlaceholder(ctx, name, drawX, drawY, dw, dh);
+      }
+    } else if (sprite.sx !== undefined && sprite.sy !== undefined) {
+      ctx.drawImage(sprite.img, sprite.sx, sprite.sy, sw, sh, drawX, drawY, dw, dh);
+    } else {
+      ctx.drawImage(sprite.img, 0, 0, sw, sh, drawX, drawY, dw, dh);
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Deterministic hashed-color placeholder rect when sprite is missing.
+   */
+  drawPlaceholder(ctx, name, x, y, w, h) {
+    const hash = hashString(name);
+    const hue = hash % 360;
+    const sat = 55 + (hash % 25);
+    const light = 40 + (hash % 20);
+
+    ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`;
+    ctx.fillRect(x, y, w, h);
+
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, w - 1), Math.max(1, h - 1));
+
+    if (w >= 12 && h >= 12) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const label = name.startsWith('b_') ? name.slice(2, 4).toUpperCase() : name.charAt(0).toUpperCase();
+      ctx.fillText(label, x + w / 2, y + h / 2);
+    }
+  }
+}
+
+/**
+ * Async sprite loader. Loads assets in parallel using a single base directory.
+ */
+export async function loadSprites() {
+  const { baseDir, manifest } = await discoverAssetBase();
+  const spritesMap = new Map();
+
+  // If manifest contains atlas frames JSON
+  if (manifest && manifest.frames) {
+    const atlasImgName = manifest.meta?.image || 'atlas.png';
+    const atlasImg = await loadImage(`${baseDir}${atlasImgName}`);
+    if (atlasImg) {
+      for (const [key, frameData] of Object.entries(manifest.frames)) {
+        const f = frameData.frame || frameData;
+        spritesMap.set(key, {
+          img: atlasImg,
+          sx: f.x,
+          sy: f.y,
+          w: f.w,
+          h: f.h
+        });
+      }
+      return new Sprites(spritesMap);
+    }
+  }
+
+  // Determine list of sprite names to load as individual PNGs
+  let namesToLoad = KNOWN_SPRITES;
+  if (manifest) {
+    if (Array.isArray(manifest)) {
+      namesToLoad = manifest;
+    } else if (Array.isArray(manifest.sprites)) {
+      namesToLoad = manifest.sprites;
+    } else if (Array.isArray(manifest.files)) {
+      namesToLoad = manifest.files.map((f) => f.replace(/^sprites\//, '').replace(/\.png$/, ''));
+    }
+  }
+
+  // Deduplicate sprite names
+  const uniqueNames = Array.from(new Set(namesToLoad));
+
+  // Fetch all sprite PNGs in parallel relative to the normalized base directory
+  await Promise.all(
+    uniqueNames.map(async (name) => {
+      const img = await loadImage(`${baseDir}sprites/${name}.png`);
+      if (img) {
+        spritesMap.set(name, {
+          img,
+          w: img.width,
+          h: img.height
+        });
+      }
+    })
+  );
+
+  return new Sprites(spritesMap);
+}
+
+/**
+ * Map terrain type and tile coordinates to deterministic sprite variant.
+ */
+export function terrainSprite(type, x, y) {
+  const h = ((x * 374761393 + y * 668265263 + type * 1447923) >>> 0);
+  switch (type) {
+    case T.DEEP:
+      return 'tile_deep';
+    case T.WATER:
+      return `tile_water_${(h % 2) + 1}`;
+    case T.SAND:
+      return `tile_sand_${(h % 2) + 1}`;
+    case T.GRASS:
+      return `tile_grass_${(h % 3) + 1}`;
+    case T.FOREST_FLOOR:
+      return `tile_forest_${(h % 2) + 1}`;
+    case T.ROCK:
+      return 'tile_rock';
+    case T.MOUNTAIN:
+      return 'tile_mountain';
+    case T.SNOW:
+      return 'tile_snow';
+    default:
+      return 'tile_grass';
+  }
+}
+
+/**
+ * Format settler sprite name.
+ */
+export function settlerSprite(role = 'idle', dir = 'd', frame = 0) {
+  return `settler_${role}_${dir}_${frame}`;
+}
+=== END ===

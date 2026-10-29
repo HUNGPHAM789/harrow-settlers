@@ -1,7 +1,7 @@
 {
  "id": "t02_world",
  "worker": "gemini",
- "model": "gemini-3.5-flash",
+ "model": "gemini-3.8-flash",
  "objective": "Implement src/sim/world.js exactly per ARCH.md (generateWorld, idx, inBounds). Also write tests/world.test.mjs (node:test): determinism for same seed, different for other seeds, start area valid (3x3 buildable, >=10 mature trees within 8 tiles, rock within 14, water within 14, mountain within 22) for seeds 1..30, border is deep water, typed array sizes.",
  "outputs": [
   "src/sim/world.js",

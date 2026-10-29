@@ -1,0 +1,16 @@
+{
+ "id": "a02_buildings",
+ "scores": [
+  5,
+  5,
+  4
+ ],
+ "final": "needs-lead-review",
+ "issues": [
+  "Replace flat rect fills in drawStoneBlock, drawTimberWall, and roofs with layered brick/timber/tile textures and top-left specular highlights to meet the 4-6 tone per material requirement.",
+  "Redesign drawPitchedRoof and drawThatchRoof to render actual tile courses and thatched straw texture instead of solid flat-color triangles.",
+  "Rework b_tower banner logic so the flag attaches to a visible flagpole rather than rendering as a floating blue rectangle on the wall.",
+  "Make scaffold sprites distinct for each building by rendering unique partial masonry/framing under construction rather than relying on a uniform generic scaffold grid with minimal prop overlays.",
+  "Add top-left light-source shading and cast shadows on all wall extrusions, doors, and chimneys to remove the flat blocky programmer-art look."
+ ]
+}

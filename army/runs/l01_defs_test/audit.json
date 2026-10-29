@@ -1,0 +1,13 @@
+{
+ "id": "l01_defs_test",
+ "scores": [
+  8
+ ],
+ "best": 8,
+ "final": "pass",
+ "issues": [
+  "Check if GOODS is an array or an object/Set; if GOODS is defined as an array, GOODS.includes() is O(N). If it's a Set or object map, use `key in GOODS` or `GOODS.has(key)`.",
+  "The door bounds check allows `dx === w` or `dy === h` which might be outside a 0-indexed footprint (valid coordinates usually 0 to w-1). Verify if edge-adjacent doors mean `dx >= -1 && dx <= w`.",
+  "Add a check ensuring producer buildings (those with 'in' or 'out') explicitly define a `cycle > 0` rather than just checking `if ('cycle' in def)`."
+ ]
+}

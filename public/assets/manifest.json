@@ -1,0 +1,498 @@
+{
+ "b_bakery": {
+  "w": 32,
+  "h": 48
+ },
+ "b_bakery_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_farm": {
+  "w": 48,
+  "h": 64
+ },
+ "b_farm_scaffold": {
+  "w": 48,
+  "h": 64
+ },
+ "b_fisher": {
+  "w": 32,
+  "h": 48
+ },
+ "b_fisher_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_forester": {
+  "w": 32,
+  "h": 48
+ },
+ "b_forester_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_hq": {
+  "w": 48,
+  "h": 64
+ },
+ "b_hq_scaffold": {
+  "w": 48,
+  "h": 64
+ },
+ "b_hut": {
+  "w": 32,
+  "h": 48
+ },
+ "b_hut_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_market": {
+  "w": 48,
+  "h": 48
+ },
+ "b_market_scaffold": {
+  "w": 48,
+  "h": 48
+ },
+ "b_mill": {
+  "w": 32,
+  "h": 64
+ },
+ "b_mill_scaffold": {
+  "w": 32,
+  "h": 64
+ },
+ "b_mine": {
+  "w": 32,
+  "h": 48
+ },
+ "b_mine_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_monument": {
+  "w": 64,
+  "h": 64
+ },
+ "b_monument_scaffold": {
+  "w": 64,
+  "h": 64
+ },
+ "b_quarry": {
+  "w": 32,
+  "h": 48
+ },
+ "b_quarry_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_sawmill": {
+  "w": 48,
+  "h": 48
+ },
+ "b_sawmill_scaffold": {
+  "w": 48,
+  "h": 48
+ },
+ "b_smelter": {
+  "w": 32,
+  "h": 48
+ },
+ "b_smelter_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_smith": {
+  "w": 48,
+  "h": 48
+ },
+ "b_smith_scaffold": {
+  "w": 48,
+  "h": 48
+ },
+ "b_tower": {
+  "w": 32,
+  "h": 48
+ },
+ "b_tower_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "b_woodcutter": {
+  "w": 32,
+  "h": 48
+ },
+ "b_woodcutter_scaffold": {
+  "w": 32,
+  "h": 48
+ },
+ "carry_bread": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_coal": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_fish": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_flour": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_iron": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_log": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_ore": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_plank": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_stone": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_tool": {
+  "w": 8,
+  "h": 8
+ },
+ "carry_wheat": {
+  "w": 8,
+  "h": 8
+ },
+ "cursor_tile": {
+  "w": 16,
+  "h": 16
+ },
+ "deer_0": {
+  "w": 16,
+  "h": 12
+ },
+ "deer_1": {
+  "w": 16,
+  "h": 12
+ },
+ "particle_smoke": {
+  "w": 6,
+  "h": 6
+ },
+ "rabbit_0": {
+  "w": 8,
+  "h": 8
+ },
+ "rabbit_1": {
+  "w": 8,
+  "h": 8
+ },
+ "settler_builder_d_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_d_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_d_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_l_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_l_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_l_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_r_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_r_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_r_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_u_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_u_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_builder_u_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_d_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_d_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_d_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_l_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_l_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_l_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_r_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_r_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_r_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_u_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_u_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_idle_u_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_d_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_d_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_d_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_l_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_l_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_l_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_r_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_r_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_r_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_u_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_u_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_porter_u_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_d_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_d_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_d_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_l_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_l_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_l_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_r_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_r_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_r_2": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_u_0": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_u_1": {
+  "w": 12,
+  "h": 16
+ },
+ "settler_worker_u_2": {
+  "w": 12,
+  "h": 16
+ },
+ "deco_1": {
+  "w": 16,
+  "h": 16
+ },
+ "deco_2": {
+  "w": 16,
+  "h": 16
+ },
+ "deco_3": {
+  "w": 16,
+  "h": 16
+ },
+ "field_wheat_1": {
+  "w": 16,
+  "h": 16
+ },
+ "field_wheat_2": {
+  "w": 16,
+  "h": 16
+ },
+ "fish_shoal": {
+  "w": 17,
+  "h": 16
+ },
+ "ore_vein": {
+  "w": 16,
+  "h": 16
+ },
+ "rock_1": {
+  "w": 16,
+  "h": 16
+ },
+ "rock_2": {
+  "w": 16,
+  "h": 16
+ },
+ "sapling": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_deep": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_forest": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_grass": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_grass_1": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_grass_2": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_grass_3": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_mountain": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_road": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_rock": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_sand": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_snow": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_water": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_water_1": {
+  "w": 16,
+  "h": 16
+ },
+ "tile_water_2": {
+  "w": 16,
+  "h": 16
+ },
+ "tree_1": {
+  "w": 16,
+  "h": 24
+ },
+ "tree_2": {
+  "w": 16,
+  "h": 24
+ },
+ "tree_3": {
+  "w": 16,
+  "h": 24
+ }
+}

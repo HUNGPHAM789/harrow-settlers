@@ -1,0 +1,245 @@
+=== FILE: src/ui/ui.js ===
+import { GOODS, BUILDINGS, BUILD_ORDER } from '../sim/defs.js';
+
+/**
+ * UI class handles the DOM-based HUD overlay, menus, and notifications.
+ */
+export class UI {
+  constructor(root, game, renderer, { onNewGame, onToggleMute }) {
+    this.root = root;
+    this.game = game;
+    this.renderer = renderer;
+    this.callbacks = { onNewGame, onToggleMute };
+
+    this.tool = null; // null | 'road' | 'demolish' | {build: type}
+    this.selectedBuildingId = null;
+    this.lastStock = { ...game.stock };
+    this.victoryShown = false;
+    this.muted = false;
+
+    this.cats = {
+      Resources: ['woodcutter', 'forester', 'quarry', 'mine'],
+      Food: ['fisher', 'farm', 'mill', 'bakery'],
+      Industry: ['sawmill', 'smelter', 'smith'],
+      Civic: ['hut', 'tower', 'market', 'monument']
+    };
+    this.activeCat = 'Resources';
+
+    this._initDOM();
+    this._setupEvents();
+  }
+
+  _initDOM() {
+    this.root.innerHTML = `
+      <div id="top-bar" class="panel">
+        <div id="resources"></div>
+        <div id="stats">
+          <span id="pop-display"></span>
+          <span id="food-rate"></span>
+          <span id="game-clock"></span>
+        </div>
+        <div id="speed-controls">
+          <button data-speed="0">Pause</button>
+          <button data-speed="1" class="active">1x</button>
+          <button data-speed="2">2x</button>
+          <button data-speed="4">4x</button>
+        </div>
+      </div>
+      <div id="side-bar">
+        <div id="cat-tabs"></div>
+        <div id="build-palette" class="panel"></div>
+        <div id="tool-palette" class="panel">
+          <button id="tool-road" title="Road (R)">Road</button>
+          <button id="tool-demolish" title="Demolish (X)">Demolish</button>
+        </div>
+      </div>
+      <div id="info-panel" class="panel hidden"></div>
+      <div id="objectives" class="panel">
+        <h3>Objectives</h3>
+        <ul id="obj-list"></ul>
+      </div>
+      <div id="toasts"></div>
+      <div id="minimap-container" class="panel">
+        <canvas id="minimap-canvas" width="128" height="128"></canvas>
+      </div>
+      <div id="hover-tooltip" class="hidden"></div>
+      <div id="modal-overlay" class="hidden">
+        <div id="modal-content" class="panel"></div>
+      </div>
+    `;
+
+    this.els = {
+      res: this.root.querySelector('#resources'),
+      pop: this.root.querySelector('#pop-display'),
+      food: this.root.querySelector('#food-rate'),
+      clock: this.root.querySelector('#game-clock'),
+      palette: this.root.querySelector('#build-palette'),
+      tabs: this.root.querySelector('#cat-tabs'),
+      info: this.root.querySelector('#info-panel'),
+      objs: this.root.querySelector('#obj-list'),
+      toasts: this.root.querySelector('#toasts'),
+      minimap: this.root.querySelector('#minimap-canvas'),
+      tooltip: this.root.querySelector('#hover-tooltip'),
+      modal: this.root.querySelector('#modal-overlay'),
+      modalContent: this.root.querySelector('#modal-content'),
+      speedBtns: this.root.querySelectorAll('#speed-controls button')
+    };
+
+    this._renderTabs();
+    this._renderPalette();
+  }
+
+  _setupEvents() {
+    this.els.tabs.addEventListener('click', e => {
+      const cat = e.target.dataset.cat;
+      if (cat) {
+        this.activeCat = cat;
+        this._renderTabs();
+        this._renderPalette();
+      }
+    });
+
+    this.els.palette.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (btn?.dataset.type) {
+        this.tool = { build: btn.dataset.type };
+        this._updateToolHighlights();
+      }
+    });
+
+    this.root.querySelector('#tool-road').onclick = () => {
+      this.tool = this.tool === 'road' ? null : 'road';
+      this._updateToolHighlights();
+    };
+    this.root.querySelector('#tool-demolish').onclick = () => {
+      this.tool = this.tool === 'demolish' ? null : 'demolish';
+      this._updateToolHighlights();
+    };
+
+    this.els.speedBtns.forEach(btn => {
+      btn.onclick = () => {
+        this.game.speed = parseInt(btn.dataset.speed);
+        this.els.speedBtns.forEach(b => b.classList.toggle('active', b === btn));
+      };
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') this.togglePauseMenu();
+      if (e.key === 'r' || e.key === 'R') this.root.querySelector('#tool-road').click();
+      if (e.key === 'x' || e.key === 'X') this.root.querySelector('#tool-demolish').click();
+      if (e.key >= '1' && e.key <= '9') {
+        const btns = this.els.palette.querySelectorAll('button');
+        const idx = parseInt(e.key) - 1;
+        if (btns[idx]) btns[idx].click();
+      }
+    });
+  }
+
+  update() {
+    this._updateResources();
+    this._updateStats();
+    this._updateObjectives();
+    this._updateInfoPanel();
+    this._handleEvents();
+    this._checkVictory();
+    this.renderer.drawMinimap(this.els.minimap);
+  }
+
+  _updateResources() {
+    const stock = this.game.stock;
+    let html = '';
+    for (const good of GOODS) {
+      const count = stock[good] || 0;
+      const last = this.lastStock[good] || 0;
+      let flash = '';
+      if (count > last) flash = 'flash-plus';
+      else if (count < last) flash = 'flash-minus';
+      
+      html += `
+        <div class="res-item ${flash}">
+          <img src="public/assets/sprites/carry_${good}.png" class="pixelated" alt="${good}">
+          <span>${count}</span>
+        </div>
+      `;
+    }
+    this.els.res.innerHTML = html;
+    this.lastStock = { ...stock };
+  }
+
+  _updateStats() {
+    const { pop, housing, foodPerMin } = this.game.stats;
+    this.els.pop.textContent = `Pop: ${pop}/${housing}`;
+    this.els.food.textContent = `Food: ${foodPerMin.toFixed(1)}/m`;
+    
+    const sec = Math.floor(this.game.time);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    this.els.clock.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  _updateObjectives() {
+    const objs = [
+      { t: 'First Hut', ok: this.game.buildings.some(b => b.type === 'hut' && b.state === 'active') },
+      { t: 'Sawmill Running', ok: this.game.buildings.some(b => b.type === 'sawmill' && b.state === 'active') },
+      { t: '10 Population', ok: this.game.stats.pop >= 10 },
+      { t: 'Bread Production', ok: (this.game.stats.produced.bread || 0) > 0 },
+      { t: 'Iron Smelted', ok: (this.game.stats.produced.iron || 0) > 0 },
+      { t: 'Great Hall', ok: this.game.buildings.some(b => b.type === 'monument' && b.state === 'active') }
+    ];
+    this.els.objs.innerHTML = objs.map(o => `<li class="${o.ok ? 'done' : ''}">${o.t}</li>`).join('');
+  }
+
+  _updateInfoPanel() {
+    const b = this.game.buildings.find(b => b.id === this.selectedBuildingId);
+    if (!b) {
+      this.els.info.classList.add('hidden');
+      return;
+    }
+    this.els.info.classList.remove('hidden');
+    const def = BUILDINGS[b.type];
+    
+    let invHtml = '';
+    if (b.inv) {
+      invHtml = '<h4>Inventory</h4><div class="inv-grid">';
+      for (const [g, n] of Object.entries(b.inv)) {
+        if (n > 0) invHtml += `<span>${g}: ${n}</span>`;
+      }
+      invHtml += '</div>';
+    }
+
+    this.els.info.innerHTML = `
+      <h3>${def.name}</h3>
+      <p>Status: ${b.state} ${b.working ? '(Working)' : ''}</p>
+      <div class="progress-bar"><div style="width: ${b.progress * 100}%"></div></div>
+      <p>Workers: ${b.workers.length} / ${def.jobs || 0}</p>
+      ${invHtml}
+      <button id="btn-demolish-sel">Demolish</button>
+      <button id="btn-close-info">Close</button>
+    `;
+
+    this.els.info.querySelector('#btn-demolish-sel').onclick = () => {
+      this.game.demolish(b.id);
+      this.selectedBuildingId = null;
+    };
+    this.els.info.querySelector('#btn-close-info').onclick = () => {
+      this.selectedBuildingId = null;
+    };
+  }
+
+  _handleEvents() {
+    const events = this.game.drainEvents();
+    for (const e of events) {
+      this.showToast(e.text, e.kind);
+    }
+  }
+
+  _checkVictory() {
+    if (this.game.stats.victory && !this.victoryShown) {
+      this.victoryShown = true;
+      this.showVictory();
+    }
+  }
+
+  _renderTabs() {
+    this.els.tabs.innerHTML = Object.keys(this.cats).map(cat => 
+      `<button class="${

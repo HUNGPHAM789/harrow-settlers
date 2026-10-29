@@ -1,0 +1,14 @@
+{
+ "id": "r01_sprites",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash:k2",
+   "wrote": [
+    "src/render/sprites.js"
+   ],
+   "validate_rc": 0
+  }
+ ],
+ "status": "validated"
+}

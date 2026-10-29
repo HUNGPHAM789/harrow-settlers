@@ -1,0 +1,22 @@
+{
+ "id": "t05_gametests",
+ "worker": "gemini",
+ "model": "gemini-3.8-flash",
+ "objective": "Write tests/game.test.mjs (node:test) for src/sim/game.js (already implemented; read it, follow ARCH.md Game API). Headless 600 sim-seconds with an AI that places woodcutter, sawmill, quarry, fisher, hut, farm, mill, bakery near HQ using canPlace to find spots; assert log/plank/stone/fish increase, determinism (two runs same seed identical toJSON), save/load roundtrip, canPlace reasons, demolish refund, starvation. Adjust ONLY the test to match real behaviour; report real bugs by making the failing assertion meaningful, not by weakening it.",
+ "outputs": [
+  "tests/game.test.mjs"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js",
+  "src/sim/game.js"
+ ],
+ "acceptance": [
+  "tests pass",
+  "meaningful assertions"
+ ],
+ "validate": [
+  "node --test tests/game.test.mjs"
+ ],
+ "max_attempts": 3
+}

@@ -1,0 +1,256 @@
+=== FILE: src/ui/style.css ===
+:root {
+  --parchment: #e8d5b5;
+  --parchment-dark: #d4bc91;
+  --ink: #3e2723;
+  --border: #5d4037;
+  --highlight: #fbc02d;
+  --error: #d32f2f;
+  --success: #388e3c;
+}
+
+#ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  color: var(--ink);
+  image-rendering: pixelated;
+  user-select: none;
+}
+
+#ui * { pointer-events: auto; }
+
+.panel {
+  background: var(--parchment);
+  border: 2px solid var(--border);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+  padding: 4px;
+}
+
+/* Top Bar */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  background: var(--parchment-dark);
+  border-bottom: 2px solid var(--border);
+}
+
+.stock-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 45px;
+}
+
+.stock-icon { width: 16px; height: 16px; }
+
+.flash-up { color: var(--success); font-weight: bold; animation: flash 0.5s; }
+.flash-down { color: var(--error); font-weight: bold; animation: flash 0.5s; }
+@keyframes flash { 0% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+.stats-group {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+  font-weight: bold;
+}
+
+.speed-controls { display: flex; gap: 2px; }
+.speed-btn {
+  width: 24px; height: 24px;
+  cursor: pointer;
+  background: var(--parchment);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.speed-btn.active { background: var(--highlight); }
+
+/* Build Palette */
+.build-palette {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.palette-groups { display: flex; gap: 8px; }
+.palette-group { display: flex; flex-direction: column; gap: 2px; }
+.group-label { font-size: 10px; text-align: center; text-transform: uppercase; opacity: 0.7; }
+.palette-row { display: flex; gap: 2px; }
+
+.tool-btn {
+  width: 32px; height: 32px;
+  cursor: pointer;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.tool-btn:hover { background: var(--parchment-dark); }
+.tool-btn.active { border-color: var(--highlight); background: var(--highlight); }
+.tool-btn img { width: 24px; height: 24px; }
+
+.hotkey-hint {
+  position: absolute; bottom: 0; right: 1px;
+  font-size: 9px; opacity: 0.5;
+}
+
+/* Info Panel */
+.info-panel {
+  position: absolute;
+  right: 8px;
+  top: 40px;
+  width: 180px;
+  display: none;
+}
+
+.info-panel.visible { display: block; }
+.progress-bg { width: 100%; height: 8px; background: #0003; margin: 4px 0; }
+.progress-fill { height: 100%; background: var(--success); transition: width 0.1s; }
+
+/* Toasts */
+.toast-container {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.toast {
+  padding: 4px 12px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Objectives */
+.objectives {
+  position: absolute;
+  left: 8px;
+  top: 40px;
+  width: 160px;
+}
+.objective-item { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.objective-item.done { text-decoration: line-through; opacity: 0.5; }
+.check { width: 12px; height: 12px; border: 1px solid var(--border); display: inline-block; }
+.done .check::after { content: '✓'; font-size: 10px; display: block; text-align: center; }
+
+/* Tooltip */
+.tooltip {
+  position: fixed;
+  background: var(--ink);
+  color: white;
+  padding: 4px 8px;
+  pointer-events: none;
+  z-index: 1000;
+  font-size: 12px;
+  white-space: pre;
+}
+.tooltip.error { color: #ff8a80; }
+
+/* Menus */
+.modal-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
+}
+.modal { width: 240px; text-align: center; }
+.modal h2 { margin: 0 0 12px 0; }
+.modal button {
+  width: 100%; padding: 8px; margin-top: 8px;
+  cursor: pointer; background: var(--parchment); border: 2px solid var(--border);
+}
+.modal button:hover { background: var(--parchment-dark); }
+
+.minimap-container {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 128px;
+  height: 128px;
+  background: #000;
+  border: 2px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .top-bar { font-size: 12px; gap: 4px; overflow-x: auto; }
+  .build-palette { bottom: 140px; left: 8px; transform: none; }
+  .palette-groups { flex-direction: column; }
+}
+=== END ===
+=== FILE: src/ui/ui.js ===
+import { GOODS, BUILDINGS, BUILD_ORDER } from '../sim/defs.js';
+
+export class UI {
+  constructor(root, game, renderer, { onNewGame, onToggleMute }) {
+    this.root = root;
+    this.game = game;
+    this.renderer = renderer;
+    this.callbacks = { onNewGame, onToggleMute };
+    this.tool = null; // null | 'road' | 'demolish' | {build: type}
+    this.selectedId = null;
+    this.lastStock = { ...game.stock };
+    this.stockFlash = {};
+    this.toasts = [];
+    this.isPaused = false;
+
+    this._initDOM();
+    this._setupHotkeys();
+  }
+
+  _initDOM() {
+    this.root.innerHTML = `
+      <div class="top-bar">
+        <div id="stock-list" style="display:flex;gap:8px"></div>
+        <div class="stats-group">
+          <span id="stat-pop"></span>
+          <span id="stat-food"></span>
+          <span id="stat-time"></span>
+        </div>
+        <div class="speed-controls">
+          <div class="speed-btn" data-speed="0">⏸</div>
+          <div class="speed-btn" data-speed="1">1x</div>
+          <div class="speed-btn" data-speed="2">2x</div>
+          <div class="speed-btn" data-speed="4">4x</div>
+        </div>
+      </div>
+      <div class="objectives panel">
+        <div style="font-weight:bold;margin-bottom:4px">Objectives</div>
+        <div id="obj-list"></div>
+      </div>
+      <div class="build-palette">
+        <div class="palette-groups">
+          ${this._renderGroup('Resources', ['woodcutter', 'forester', 'quarry', 'sawmill'])}
+          ${this._renderGroup('Food', ['fisher', 'farm', 'mill', 'bakery'])}
+          ${this._renderGroup('Industry', ['mine', 'smelter', 'smith'])}
+          ${this._renderGroup('Civic', ['hut', 'tower', 'market', 'monument'])}
+          <div class="palette-group">
+            <div class="group-label">Tools</div>
+            <div class="palette-row">
+              <div class="tool-btn panel" data-tool="road" title="Road (R)">🛣️<span class="hotkey-hint">R</span></div>
+              <div class="tool-btn panel" data-tool="demolish" title="Demolish (X)">💣<span class="hotkey-hint">X</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="info-panel" class="info-panel panel"></div>
+      <div id="toast-container

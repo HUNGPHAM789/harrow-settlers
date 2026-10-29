@@ -1,11 +1,10 @@
 {
  "id": "t04_game",
  "worker": "gemini",
- "model": "gemini-3.5-flash",
- "objective": "Implement src/sim/game.js (class Game) per ARCH.md Game API and Rules in full: placement, construction by builder settlers, production chains with logistics via HQ stock (settlers physically walk and carry), raw resource consumption, forester replanting, population/housing/birth/starvation, territory, towers, victory, events, stats, toJSON/fromJSON, deterministic. It imports ./world.js (generateWorld, idx), ./pathfind.js (findPath, nearestTile), ./defs.js, ../util/rng.js. Keep it robust: no infinite loops, settlers never stuck (re-path or go idle), buildings with no reachable door are flagged 'warn'. Write tests/game.test.mjs: headless sim 600 sim-seconds with an AI that places woodcutter, sawmill, quarry, fisher, hut, farm, mill, bakery near HQ and asserts log/plank/stone/fish increase, pop grows, no NaN, determinism (two runs same seed => identical toJSON), save/load roundtrip equality of subsequent ticks, canPlace reasons, demolish refund, starvation when food=0. The other modules (world.js/pathfind.js) are being written concurrently by teammates following ARCH.md exactly; import them as specified.",
+ "model": "gemini-3.8-flash",
+ "objective": "Implement src/sim/game.js (class Game) per ARCH.md Game API and Rules in full: placement, construction by builder settlers, production chains with logistics via HQ stock (settlers physically walk and carry), raw resource consumption, forester replanting, population/housing/birth/starvation, territory, towers, victory, events, stats, toJSON/fromJSON, deterministic. It imports ./world.js (generateWorld, idx), ./pathfind.js (findPath, nearestTile), ./defs.js, ../util/rng.js. Keep it robust: no infinite loops, settlers never stuck (re-path or go idle), buildings with no reachable door are flagged 'warn'. (Tests are written by another teammate later.) Ignore tests: headless sim 600 sim-seconds with an AI that places woodcutter, sawmill, quarry, fisher, hut, farm, mill, bakery near HQ and asserts log/plank/stone/fish increase, pop grows, no NaN, determinism (two runs same seed => identical toJSON), save/load roundtrip equality of subsequent ticks, canPlace reasons, demolish refund, starvation when food=0. The other modules (world.js/pathfind.js) are being written concurrently by teammates following ARCH.md exactly; import them as specified.",
  "outputs": [
-  "src/sim/game.js",
-  "tests/game.test.mjs"
+  "src/sim/game.js"
  ],
  "acceptance": [
   "all ARCH.md Game API members exist",
@@ -14,7 +13,7 @@
   "tick(0.25) x 2400 runs < 4s"
  ],
  "validate": [
-  "node --test tests/game.test.mjs"
+  "node --check src/sim/game.js"
  ],
  "context": [
   "ARCH.md",

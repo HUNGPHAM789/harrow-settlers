@@ -1,0 +1,14 @@
+{
+ "id": "u02_audio",
+ "scores": [
+  7
+ ],
+ "best": 7,
+ "final": "needs-lead-review",
+ "issues": [
+  "Use smooth volume transitions (`setTargetAtTime` or `linearRampToValueAtTime`) in `setMuted`, `setMusicVolume`, and `setSfxVolume` instead of instantaneous `setValueAtTime` to prevent audible clicks/pops when controls are toggled during playback.",
+  "Reset `nextBeatTime` to `now + 0.1` inside `_startAmbientMusic` if `nextBeatTime < now` to prevent a massive burst of scheduled notes after tab switching or audio context suspension.",
+  "Cache and reuse the white noise buffer in `_synthChop` and `_startNatureNoise` instead of reallocating and filling buffers via `Math.random()` on every trigger.",
+  "Add a `destroy()` / cleanup method to clear `musicTimer` interval and stop `natureSource` to avoid background leaks when re-instantiating Audio."
+ ]
+}

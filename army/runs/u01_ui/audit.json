@@ -1,0 +1,19 @@
+{
+ "id": "u01_ui",
+ "scores": [
+  6
+ ],
+ "best": 6,
+ "final": "needs-lead-review",
+ "issues": [
+  "Performance/Architecture: _updateInfoPanel and _updateTooltip overwrite innerHTML every single frame. This causes massive layout thrashing and prevents text selection or sub-element interaction.",
+  "Memory Leak: window.addEventListener('keydown') is never removed. UI needs a destroy() method to clean up global listeners.",
+  "Acceptance Criteria: Using innerHTML to inject game strings (e.g., building names, error reasons) violates the 'no innerHTML with untrusted data' rule. Use textContent for dynamic strings.",
+  "Architecture: _updateStock and _updateObjectives lack dirty-checking. They perform DOM operations every frame/interval regardless of whether the underlying data changed.",
+  "Robustness: JSON.stringify(this.tool) is a slow and brittle way to handle tool state comparison in a hot loop.",
+  "Polish: The 'pixel font' requirement is poorly met; 'Courier New' is a standard monospace font, not a pixel-art font. Use a specific webfont or a more curated stack.",
+  "Logic: The speed button sync in togglePause() is inconsistent with the update() loop. Speed state should have a single source of truth and a reactive update.",
+  "UX: The tooltip for placement problems follows the mouse using raw clientX/Y without accounting for scroll or container offsets, leading to 'jumping' on different resolutions.",
+  "Code Quality: _initDOM is a 'mega-string'. Break into smaller functional components or use a template system to improve maintainability."
+ ]
+}

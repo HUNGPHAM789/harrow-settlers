@@ -1,0 +1,19 @@
+{
+ "id": "r02_renderer",
+ "scores": [
+  5,
+  6
+ ],
+ "best": 6,
+ "final": "needs-lead-review",
+ "issues": [
+  "High-frequency allocations: _pushRenderable creates a new closure (arrow function) for every entity, building, and particle every frame. This triggers massive GC pressure.",
+  "Hot loop allocation: renderPool.slice(0, this.renderCount) creates a new array every frame. Use a pre-allocated array of indices or a custom sort that respects renderCount.",
+  "Frame-rate dependent logic: Zoom interpolation (0.15) and smoke spawning (dt * 2) are not properly normalized. Zoom should use 1 - Math.pow(smoothing, dt).",
+  "Minimap performance: drawMinimap iterates over the entire 96x96 grid every call. This should be cached to an offscreen canvas and only updated when terrain/territory/buildings change.",
+  "Inefficient Territory Borders: _drawTerritoryBorders performs O(N) path operations every frame. These should be cached or drawn to the chunk canvases.",
+  "DPR Inconsistency: tileToScreen/screenToTile divide/multiply by DPR, but the main ctx transform already handles scaling via canvas.width/height setting. This will cause coordinate drift on high-DPI screens.",
+  "String Concatenation: rgba() strings in _drawDayNight and _drawProgressBar are reconstructed every frame. Pre-calculate or use constant color values.",
+  "Missing Robustness: sprites.draw() is called without checking if sprites.has(sName) or if size(sName) exists, which will crash the loop if a single asset is missing."
+ ]
+}

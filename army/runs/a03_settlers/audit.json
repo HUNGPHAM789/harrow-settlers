@@ -1,0 +1,16 @@
+{
+ "id": "a03_settlers",
+ "scores": [
+  5,
+  4,
+  6
+ ],
+ "final": "needs-lead-review",
+ "issues": [
+  "Material shading lacks depth: tunics and skin use only 2 color tones instead of the required warm 4-6 tone palette with consistent top-left lighting.",
+  "Hard hat accessory rendered as a flat yellow band without a curved 3D brim or proper highlight/shadow structure.",
+  "Builder hammer sprite component floats behind the body without a defined arm or hands holding it.",
+  "Walk animation leg frames appear detached from the tunic baseline; add cast shadows on legs under the tunic hem for grounded depth.",
+  "Tunic side shading contains isolated single-pixel shadow spots instead of directional rim lighting from the top-left light source."
+ ]
+}

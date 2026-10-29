@@ -1,0 +1,20 @@
+{
+ "id": "l01_defs_test",
+ "worker": "aider-local",
+ "model": "gpt-oss:20b",
+ "objective": "Write tests/defs.test.mjs using node:test and node:assert/strict that validates src/sim/defs.js data consistency: every BUILDINGS entry has size [w,h] positive ints, door inside or adjacent to footprint, cost keys all in GOODS, in/out keys all in GOODS, cycle>0 for producers, T/WALKABLE/BUILDABLE arrays have equal length of Object.keys(T).length, BUILD_ORDER excludes hq and matches BUILDINGS keys, START_STOCK keys in GOODS, and the monument is the only building with wonder:true. Import from ../src/sim/defs.js.",
+ "outputs": [
+  "tests/defs.test.mjs"
+ ],
+ "context": [
+  "src/sim/defs.js"
+ ],
+ "acceptance": [
+  "node --test passes",
+  "assertions meaningful, not trivial"
+ ],
+ "validate": [
+  "node --test tests/defs.test.mjs"
+ ],
+ "max_attempts": 2
+}

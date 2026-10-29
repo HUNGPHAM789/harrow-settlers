@@ -1,0 +1,206 @@
+=== FILE: tests/game.test.mjs ===
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { Game } from '../src/sim/game.js';
+import { BUILDINGS, T } from '../src/sim/defs.js';
+import { idx } from '../src/sim/world.js';
+
+/**
+ * Helper to find a valid placement for a building near a center point.
+ */
+function findSpot(game, type, startX, startY, range = 20) {
+  for (let r = 1; r <= range; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        // Spiral-ish: only check the perimeter of the current radius
+        if (Math.abs(dx) === r || Math.abs(dy) === r) {
+          const res = game.canPlace(type, startX + dx, startY + dy);
+          if (res.ok) return { x: startX + dx, y: startY + dy };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+test('Game simulation: 600s headless run with AI placement', async (t) => {
+  const game = new Game({ seed: 42 });
+  const hq = game.buildings.find(b => b.type === 'hq');
+  const startX = hq.x;
+  const startY = hq.y;
+
+  const buildQueue = ['woodcutter', 'quarry', 'fisher', 'sawmill', 'hut', 'farm', 'mill', 'bakery'];
+  const placed = new Set();
+
+  const initialStock = { ...game.stock };
+
+  // Run 600 seconds in small steps
+  const totalTime = 600;
+  const dt = 0.25;
+  
+  for (let elapsed = 0; elapsed < totalTime; elapsed += dt) {
+    // AI: Try to place the next building in queue if not already placed
+    for (const type of buildQueue) {
+      if (!placed.has(type)) {
+        const spot = findSpot(game, type, startX, startY);
+        if (spot) {
+          const result = game.place(type, spot.x, spot.y);
+          if (result.ok) {
+            placed.add(type);
+          }
+        }
+      }
+    }
+    game.tick(dt);
+  }
+
+  assert.ok(placed.has('woodcutter'), 'Should have placed woodcutter');
+  assert.ok(placed.has('sawmill'), 'Should have placed sawmill');
+  assert.ok(placed.has('quarry'), 'Should have placed quarry');
+  
+  // Check if production happened. 
+  // We started with 12 logs, 16 planks, 8 stone, 6 fish.
+  // Woodcutter produces logs, Sawmill produces planks, Quarry produces stone, Fisher produces fish.
+  // Even with costs deducted, after 600s of active production, we expect some accumulation or at least activity.
+  
+  // Note: We check stats.produced to see if anything was ever made, 
+  // because stock might be low due to building costs.
+  assert.ok(game.stats.produced.log > 0, 'Should have produced logs');
+  assert.ok(game.stats.produced.stone > 0, 'Should have produced stone');
+  assert.ok(game.stats.produced.fish > 0, 'Should have produced fish');
+  
+  // Sawmill needs logs to produce planks.
+  assert.ok(game.stats.produced.plank > 0, 'Should have produced planks');
+});
+
+test('Game determinism: two runs with same seed are identical', async (t) => {
+  const seed = 999;
+  const game1 = new Game({ seed });
+  const game2 = new Game({ seed });
+
+  // Run both for 100s
+  for (let i = 0; i < 400; i++) {
+    game1.tick(0.25);
+    game2.tick(0.25);
+  }
+
+  const state1 = game1.toJSON();
+  const state2 = game2.toJSON();
+
+  assert.deepEqual(state1, state2, 'Game states should be identical for the same seed');
+});
+
+test('Game save/load: roundtrip preserves state exactly', async (t) => {
+  const game = new Game({ seed: 123 });
+  
+  // Advance and do something
+  game.tick(10);
+  const spot = findSpot(game, 'woodcutter', game.buildings[0].x, game.buildings[0].y);
+  if (spot) game.place('woodcutter', spot.x, spot.y);
+  game.tick(10);
+
+  const json1 = game.toJSON();
+  const loadedGame = Game.fromJSON(json1);
+  const json2 = loadedGame.toJSON();
+
+  assert.deepEqual(json1, json2, 'Serialized state should match after load');
+  
+  // Further tick to ensure PRNG state is also preserved
+  game.tick(5);
+  loadedGame.tick(5);
+  assert.deepEqual(game.toJSON(), loadedGame.toJSON(), 'State should remain identical after further ticks');
+});
+
+test('Game canPlace: validation reasons', async (t) => {
+  const game = new Game({ seed: 555 });
+  const hq = game.buildings[0];
+
+  // 1. Out of bounds
+  assert.equal(game.canPlace('woodcutter', -1, 0).ok, false);
+  assert.equal(game.canPlace('woodcutter', -1, 0).reason, 'out_of_bounds');
+
+  // 2. Overlap with HQ
+  assert.equal(game.canPlace('woodcutter', hq.x, hq.y).ok, false);
+  assert.equal(game.canPlace('woodcutter', hq.x, hq.y).reason, 'overlaps_building');
+
+  // 3. Outside territory (far away)
+  assert.equal(game.canPlace('woodcutter', 0, 0).ok, false);
+  assert.equal(game.canPlace('woodcutter', 0, 0).reason, 'outside_territory');
+
+  // 4. Insufficient resources (drain stock first)
+  game.stock.plank = 0;
+  assert.equal(game.canPlace('woodcutter', hq.x + 3, hq.y).ok, false);
+  assert.equal(game.canPlace('woodcutter', hq.x + 3, hq.y).reason, 'insufficient_resources');
+  
+  // 5. Missing resource nearby (e.g. fisher not near water)
+  game.stock.plank = 100; // give resources back
+  // Find a spot that is GRASS and inside territory but far from water
+  let drySpot = null;
+  for (let y = hq.y - 5; y <= hq.y + 5; y++) {
+    for (let x = hq.x - 5; x <= hq.x + 5; x++) {
+      const i = idx(game.world.w, x, y);
+      if (game.world.terrain[i] === T.GRASS && game.territory[i] === 1) {
+        // Check if no water within 4 tiles
+        let waterNear = false;
+        for (let dy = -4; dy <= 4; dy++) {
+          for (let dx = -4; dx <= 4; dx++) {
+            const ni = idx(game.world.w, x + dx, y + dy);
+            if (game.world.terrain[ni] === T.WATER) waterNear = true;
+          }
+        }
+        if (!waterNear && game.canPlace('fisher', x, y).reason === 'missing_resource_nearby') {
+          drySpot = { x, y };
+          break;
+        }
+      }
+    }
+    if (drySpot) break;
+  }
+  if (drySpot) {
+    const res = game.canPlace('fisher', drySpot.x, drySpot.y);
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'missing_resource_nearby');
+  }
+});
+
+test('Game demolish: refund 50%', async (t) => {
+  const game = new Game({ seed: 777 });
+  const type = 'quarry'; // cost: { plank: 2, log: 1 }
+  const spot = findSpot(game, type, game.buildings[0].x, game.buildings[0].y);
+  
+  const prePlank = game.stock.plank;
+  const preLog = game.stock.log;
+  
+  const { id } = game.place(type, spot.x, spot.y);
+  
+  assert.equal(game.stock.plank, prePlank - 2);
+  assert.equal(game.stock.log, preLog - 1);
+  
+  game.demolish(id);
+  
+  // 50% of 2 is 1. 50% of 1 is 0 (floor).
+  assert.equal(game.stock.plank, prePlank - 2 + 1);
+  assert.equal(game.stock.log, preLog - 1 + 0);
+});
+
+test('Game starvation: settlers leave when no food', async (t) => {
+  const game = new Game({ seed: 888 });
+  
+  // Drain all food
+  game.stock.fish = 0;
+  game.stock.bread = 0;
+  
+  const initialPop = game.settlers.length;
+  assert.ok(initialPop >= 4);
+
+  // Run for 30 seconds. Starvation check is every 20s of 0 food.
+  // We need to ensure foodDebt doesn't get satisfied by a birth or something.
+  for (let i = 0; i < 120; i++) {
+    game.tick(0.25);
+  }
+  
+  assert.ok(game.settlers.length < initialPop, 'Population should decrease due to starvation');
+  const starveEvent = game.events.find(e => e.kind === 'starve');
+  assert.ok(starveEvent, 'Should have triggered a starve event');
+});
+=== END ===

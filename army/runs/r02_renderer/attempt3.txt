@@ -1,0 +1,218 @@
+=== FILE: src/render/renderer.js ===
+/**
+ * Harrow Settlers - Renderer
+ * Handles Canvas2D drawing, camera, chunk caching, and Y-sorted entity rendering.
+ */
+
+import { TILE, T, BUILDINGS } from '../sim/defs.js';
+import { terrainSprite, settlerSprite } from './sprites.js';
+
+const CHUNK_SIZE = 8; // tiles per chunk
+const MAX_ZOOM = 4;
+const MIN_ZOOM = 1;
+
+export class Renderer {
+  constructor(canvas, game, sprites) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { alpha: false });
+    this.game = game;
+    this.sprites = sprites;
+
+    this.cam = { x: game.world.start.x * TILE, y: game.world.start.y * TILE, zoom: 2 };
+    this.targetZoom = 2;
+    
+    this.chunks = new Map(); // key -> {canvas, ctx, dirty}
+    this.particles = [];
+    this.ghost = null; // {type, x, y}
+    this.selectedId = null;
+    
+    this.input = {
+      isDragging: false,
+      lastMouse: { x: 0, y: 0 },
+      keys: new Set()
+    };
+
+    this._setupEvents();
+    this.resize();
+  }
+
+  setGhost(type, x = 0, y = 0) {
+    this.ghost = type ? { type, x, y } : null;
+  }
+
+  setSelected(id) {
+    this.selectedId = id;
+  }
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = window.innerWidth * dpr;
+    this.canvas.height = window.innerHeight * dpr;
+    this.ctx.imageSmoothingEnabled = false;
+  }
+
+  screenToTile(sx, sy) {
+    const dpr = window.devicePixelRatio || 1;
+    const worldX = (sx * dpr) / this.cam.zoom + this.cam.x;
+    const worldY = (sy * dpr) / this.cam.zoom + this.cam.y;
+    return { x: Math.floor(worldX / TILE), y: Math.floor(worldY / TILE) };
+  }
+
+  tileToScreen(tx, ty) {
+    const dpr = window.devicePixelRatio || 1;
+    return {
+      x: ((tx * TILE - this.cam.x) * this.cam.zoom) / dpr,
+      y: ((ty * TILE - this.cam.y) * this.cam.zoom) / dpr
+    };
+  }
+
+  update(dt) {
+    // Smooth zoom
+    this.cam.zoom += (this.targetZoom - this.cam.zoom) * 0.1;
+
+    // Keyboard Pan
+    const speed = 400 * dt / this.cam.zoom;
+    if (this.input.keys.has('KeyW') || this.input.keys.has('ArrowUp')) this.cam.y -= speed;
+    if (this.input.keys.has('KeyS') || this.input.keys.has('ArrowDown')) this.cam.y += speed;
+    if (this.input.keys.has('KeyA') || this.input.keys.has('ArrowLeft')) this.cam.x -= speed;
+    if (this.input.keys.has('KeyD') || this.input.keys.has('ArrowRight')) this.cam.x += speed;
+
+    // Clamp camera
+    const margin = 100;
+    this.cam.x = Math.max(-margin, Math.min(this.game.world.w * TILE - this.canvas.width / this.cam.zoom + margin, this.cam.x));
+    this.cam.y = Math.max(-margin, Math.min(this.game.world.h * TILE - this.canvas.height / this.cam.zoom + margin, this.cam.y));
+
+    // Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+
+    // Spawn smoke for working buildings
+    if (this.game.time % 0.5 < 0.05) {
+      for (const b of this.game.buildings) {
+        if (b.working && b.state === 'active') {
+          const def = BUILDINGS[b.type];
+          this.particles.push({
+            x: (b.x + def.size[0] / 2) * TILE,
+            y: b.y * TILE,
+            vx: (Math.random() - 0.5) * 10,
+            vy: -20 - Math.random() * 20,
+            life: 1.5 + Math.random()
+          });
+        }
+      }
+    }
+  }
+
+  render() {
+    const { ctx, canvas, cam, game } = this;
+    ctx.save();
+    ctx.scale(cam.zoom, cam.zoom);
+    ctx.translate(-cam.x, -cam.y);
+
+    this._drawTerrain();
+    this._drawEntities();
+    this._drawTerritory();
+    this._drawOverlay();
+
+    ctx.restore();
+    this._drawDayNight();
+  }
+
+  _drawTerrain() {
+    const { world, roads } = this.game;
+    const viewW = this.canvas.width / this.cam.zoom;
+    const viewH = this.canvas.height / this.cam.zoom;
+    
+    const startX = Math.floor(this.cam.x / (CHUNK_SIZE * TILE));
+    const startY = Math.floor(this.cam.y / (CHUNK_SIZE * TILE));
+    const endX = Math.ceil((this.cam.x + viewW) / (CHUNK_SIZE * TILE));
+    const endY = Math.ceil((this.cam.y + viewH) / (CHUNK_SIZE * TILE));
+
+    for (let cy = startY; cy < endY; cy++) {
+      for (let cx = startX; cx < endX; cx++) {
+        if (cx < 0 || cy < 0 || cx >= world.w / CHUNK_SIZE || cy >= world.h / CHUNK_SIZE) continue;
+        const key = `${cx},${cy}`;
+        let chunk = this.chunks.get(key);
+        
+        if (!chunk) {
+          const c = document.createElement('canvas');
+          c.width = c.height = CHUNK_SIZE * TILE;
+          chunk = { canvas: c, ctx: c.getContext('2d'), dirty: true };
+          this.chunks.set(key, chunk);
+        }
+
+        if (chunk.dirty) {
+          this._renderChunk(chunk, cx, cy);
+          chunk.dirty = false;
+        }
+        this.ctx.drawImage(chunk.canvas, cx * CHUNK_SIZE * TILE, cy * CHUNK_SIZE * TILE);
+      }
+    }
+  }
+
+  _renderChunk(chunk, cx, cy) {
+    const { ctx } = chunk;
+    const { world, roads, time } = this.game;
+    ctx.clearRect(0, 0, chunk.canvas.width, chunk.canvas.height);
+
+    for (let ty = 0; ty < CHUNK_SIZE; ty++) {
+      for (let tx = 0; tx < CHUNK_SIZE; tx++) {
+        const x = cx * CHUNK_SIZE + tx;
+        const y = cy * CHUNK_SIZE + ty;
+        const i = y * world.w + x;
+        const type = world.terrain[i];
+        
+        let sName = terrainSprite(type, x, y);
+        if (type === T.WATER || type === T.DEEP) {
+          const frame = Math.floor(time * 1.5) % 3 + 1;
+          sName = `tile_water_${frame}`;
+        }
+        this.sprites.draw(ctx, sName, tx * TILE, ty * TILE);
+
+        if (world.deco[i] > 0) {
+          this.sprites.draw(ctx, `deco_${world.deco[i]}`, tx * TILE, ty * TILE);
+        }
+        if (roads[i]) {
+          this.sprites.draw(ctx, 'road', tx * TILE, ty * TILE);
+        }
+      }
+    }
+  }
+
+  _drawEntities() {
+    const { world, buildings, settlers } = this.game;
+    const entities = [];
+
+    // Viewport bounds for culling
+    const x0 = this.cam.x - 64;
+    const y0 = this.cam.y - 64;
+    const x1 = this.cam.x + this.canvas.width / this.cam.zoom + 64;
+    const y1 = this.cam.y + this.canvas.height / this.cam.zoom + 64;
+
+    // Trees & Rocks
+    for (let y = Math.floor(y0 / TILE); y < Math.ceil(y1 / TILE); y++) {
+      for (let x = Math.floor(x0 / TILE); x < Math.ceil(x1 / TILE); x++) {
+        if (x < 0 || y < 0 || x >= world.w || y >= world.h) continue;
+        const i = y * world.w + x;
+        if (world.tree[i] === 2) entities.push({ y: (y + 0.8) * TILE, type: 'tree', x, ty: y });
+        else if (world.tree[i] === 1) entities.push({ y: (y + 0.8) * TILE, type: 'sapling', x, ty: y });
+        if (world.rock[i] > 0) entities.push({ y: (y + 0.7) * TILE, type: 'rock', x, ty: y });
+      }
+    }
+
+    // Buildings
+    for (const b of buildings) {
+      const def = BUILDINGS[b.type];
+      if ((b.x + def.size[0]) * TILE > x0 && b.x * TILE < x1 && (b.y + def.size[1]) * TILE > y0 && b.y * TILE < y1) {
+        entities.push({ y: (b.y + def.size[1]) * TILE, type: 'building', b });
+      }
+    }
+
+    // Settlers
+    for (const s of settlers) {
+      

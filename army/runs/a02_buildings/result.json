@@ -4,6 +4,21 @@
   {
    "n": 1,
    "worker": "gemini:gemini-3.5-flash:k2",
+   "wrote": [],
+   "error": "no allowed files in output"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3.5-flash:k9",
+   "wrote": [
+    "art/buildings.px.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "sprite b_hq_scaffold 48x64 @12x\nsprite b_hut 32x48 @16x\nsprite b_hut_scaffold 32x48 @16x\nsprite b_woodcutter 32x48 @16x\nsprite b_woodcutter_scaffold 32x48 @16x\nsprite b_forester 32x48 @16x\nsprite b_forester_scaffold 32x48 @16x\nsprite b_quarry 32x48 @16x\nsprite b_quarry_scaffold 32x48 @16x\nsprite b_sawmill 48x48 @16x\nsprite b_sawmill_scaffold 48x48 @16x\nsprite b_fisher 32x48 @16x\nsprite b_fisher_scaffold 32x48 @16x\nsprite b_farm 48x64 @12x\nsprite b_farm_scaffold 48x64 @12x\nsprite b_mill 32x64 @12x\nsprite b_mill_scaffold 32x64 @12x\nsprite b_bakery 32x48 @16x\nsprite b_bakery_scaffold 32x48 @16x\nsprite b_mine 32x48 @16x\nsprite b_mine_scaffold 32x48 @16x\nsprite b_smelter 32x48 @16x\nsprite b_smelter_scaffold 32x48 @16x\nsprite b_smith 48x48 @16x\nsprite b_smith_scaffold 48x48 @16x\nsprite b_tower 32x48 @16x\nsprite b_tower_scaffold 32x48 @16x\nsprite b_market 48x48 @16x\nsprite b_market_scaffold 48x48 @16x\nsprite b_monument 64x64 @12x\nsprite b_monument_scaffold 64x64 @12x\n-> /Users/hungpham/projects/harrow-settlers/art/out/buildings (1 error)\nerror: buildings.px.js:175:5: sprite 'b_hq' > function: color must be a palette key or \"#hex\", got undefined\n\n"
+  },
+  {
+   "n": 3,
+   "worker": "gemini:gemini-3.5-flash:k2",
    "wrote": [
     "art/buildings.px.js"
    ],

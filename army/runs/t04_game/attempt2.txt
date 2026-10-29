@@ -1,0 +1,482 @@
+=== FILE: src/sim/game.js ===
+/**
+ * src/sim/game.js
+ *
+ * Core Headless Game Simulation Engine for Harrow Settlers.
+ * Manages deterministic simulation ticks, territory, population, pathfinding
+ * logistics, physical settler walking/carrying, resource harvesting, production,
+ * save/load serialization, and win/loss conditions.
+ */
+
+import { generateWorld, idx, inBounds } from './world.js';
+import { findPath, nearestTile } from './pathfind.js';
+import { TILE, T, WALKABLE, BUILDABLE, GOODS, BUILDINGS, START_STOCK, SETTLER_FOOD_PER_MIN, BUILD_ORDER } from './defs.js';
+import { mulberry32, rngInt, rngPick, shuffle } from '../util/rng.js';
+
+export class Game {
+  /**
+   * Constructs a new Game instance.
+   * @param {Object} [opts]
+   * @param {number} [opts.seed=12345] Seed for PRNG and world generation
+   * @param {Object} [opts.world] Pre-generated World instance
+   */
+  constructor(opts = {}) {
+    this.seed = opts.seed !== undefined ? opts.seed : 12345;
+    this.rngStep = 0;
+    const rawRng = mulberry32(this.seed);
+    this.rng = () => {
+      this.rngStep++;
+      return rawRng();
+    };
+
+    this.world = opts.world || generateWorld(this.seed);
+    this.time = 0;
+    this.speed = 1;
+    this.nextBuildingId = 1;
+    this.nextSettlerId = 1;
+
+    // Stock tracking
+    this.stock = {};
+    for (const g of GOODS) {
+      this.stock[g] = START_STOCK[g] !== undefined ? START_STOCK[g] : 0;
+    }
+
+    // Grid overlays
+    this.roads = new Uint8Array(this.world.w * this.world.h);
+    this.territory = new Uint8Array(this.world.w * this.world.h);
+
+    this.buildings = [];
+    this.settlers = [];
+    this.events = [];
+    this.saplings = [];
+
+    // Timers & Food tracking
+    this.birthTimer = 0;
+    this.starveTimer = 0;
+    this.foodAcc = 0;
+
+    // Game stats
+    this.stats = {
+      pop: 0,
+      housing: 0,
+      foodPerMin: 0,
+      produced: {},
+      victory: false,
+      victoryTime: null
+    };
+    for (const g of GOODS) {
+      this.stats.produced[g] = 0;
+    }
+
+    // Place HQ at start location
+    const hqX = this.world.start.x;
+    const hqY = this.world.start.y;
+    const hqBuilding = {
+      id: this.nextBuildingId++,
+      type: 'hq',
+      x: hqX,
+      y: hqY,
+      state: 'active',
+      progress: 1,
+      inv: {},
+      out: {},
+      workers: [],
+      cycleT: 0,
+      working: true
+    };
+    this.buildings.push(hqBuilding);
+
+    this.recomputeTerritory();
+
+    // Spawn initial 4 settlers near HQ door
+    const hqDoor = this.getHQDoor();
+    for (let i = 0; i < 4; i++) {
+      this.settlers.push({
+        id: this.nextSettlerId++,
+        x: hqDoor.x,
+        y: hqDoor.y,
+        role: 'idle',
+        state: 'idle',
+        path: [],
+        carry: null,
+        home: null,
+        job: null,
+        dir: 'd'
+      });
+    }
+
+    this.updateStats();
+  }
+
+  /**
+   * Emits an event message to be consumed by UI.
+   * @param {string} kind 'info'|'built'|'warn'|'starve'|'born'|'victory'
+   * @param {string} text
+   * @param {number} [x]
+   * @param {number} [y]
+   */
+  addEvent(kind, text, x, y) {
+    this.events.push({ t: this.time, kind, text, x, y });
+  }
+
+  /**
+   * Drains and returns all queued events.
+   * @returns {Array<{t:number, kind:string, text:string, x?:number, y?:number}>}
+   */
+  drainEvents() {
+    return this.events.splice(0);
+  }
+
+  /**
+   * Recomputes territory ownership mask across the world.
+   */
+  recomputeTerritory() {
+    this.territory.fill(0);
+    const w = this.world.w;
+    const h = this.world.h;
+
+    for (const b of this.buildings) {
+      if (b.state !== 'active') continue;
+      const spec = BUILDINGS[b.type];
+      if (!spec || !spec.radius) continue;
+
+      const cx = b.x + Math.floor(spec.size[0] / 2);
+      const cy = b.y + Math.floor(spec.size[1] / 2);
+      const r = spec.radius;
+      const rSq = r * r;
+
+      const minX = Math.max(0, cx - r);
+      const maxX = Math.min(w - 1, cx + r);
+      const minY = Math.max(0, cy - r);
+      const maxY = Math.min(h - 1, cy + r);
+
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          if (dx * dx + dy * dy <= rSq) {
+            this.territory[idx(w, x, y)] = 1;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns HQ building reference.
+   * @returns {Object|null}
+   */
+  getHQ() {
+    return this.buildings.find(b => b.type === 'hq') || null;
+  }
+
+  /**
+   * Returns closest walkable tile to HQ door.
+   * @returns {{x:number, y:number}}
+   */
+  getHQDoor() {
+    const hq = this.getHQ();
+    if (!hq) return { x: 0, y: 0 };
+    return this.getWalkableTarget(hq.x + 1, hq.y + 3);
+  }
+
+  /**
+   * Returns closest walkable tile to building door.
+   * @param {Object} b Building
+   * @returns {{x:number, y:number}}
+   */
+  getBuildingDoor(b) {
+    const spec = BUILDINGS[b.type];
+    const dx = spec && spec.door ? spec.door[0] : 0;
+    const dy = spec && spec.door ? spec.door[1] : (spec ? spec.size[1] : 0);
+    return this.getWalkableTarget(b.x + dx, b.y + dy);
+  }
+
+  /**
+   * Finds a walkable tile on or adjacent to (tx, ty).
+   * @param {number} tx
+   * @param {number} ty
+   * @returns {{x:number, y:number}}
+   */
+  getWalkableTarget(tx, ty) {
+    const w = this.world.w;
+    const h = this.world.h;
+    if (inBounds(this.world, tx, ty) && WALKABLE[this.world.terrain[idx(w, tx, ty)]]) {
+      return { x: tx, y: ty };
+    }
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = tx + dx;
+        const ny = ty + dy;
+        if (inBounds(this.world, nx, ny) && WALKABLE[this.world.terrain[idx(w, nx, ny)]]) {
+          return { x: nx, y: ny };
+        }
+      }
+    }
+    return { x: Math.max(0, Math.min(w - 1, tx)), y: Math.max(0, Math.min(h - 1, ty)) };
+  }
+
+  /**
+   * Checks if a building of given type can be placed at (x, y).
+   * @param {string} type
+   * @param {number} x
+   * @param {number} y
+   * @returns {{ok:boolean, reason?:string}}
+   */
+  canPlace(type, x, y) {
+    const spec = BUILDINGS[type];
+    if (!spec) return { ok: false, reason: 'Unknown building type' };
+
+    const [bw, bh] = spec.size;
+    const w = this.world.w;
+    const h = this.world.h;
+
+    if (x < 0 || y < 0 || x + bw > w || y + bh > h) {
+      return { ok: false, reason: 'Out of bounds' };
+    }
+
+    // Footprint check for buildability and territory ownership
+    for (let ty = y; ty < y + bh; ty++) {
+      for (let tx = x; tx < x + bw; tx++) {
+        const tileIdx = idx(w, tx, ty);
+        if (!BUILDABLE[this.world.terrain[tileIdx]]) {
+          return { ok: false, reason: 'Unbuildable terrain' };
+        }
+        if (this.territory[tileIdx] !== 1) {
+          return { ok: false, reason: 'Outside territory' };
+        }
+      }
+    }
+
+    // Overlap check with existing buildings
+    for (const b of this.buildings) {
+      const bSpec = BUILDINGS[b.type];
+      if (!bSpec) continue;
+      const [bW, bH] = bSpec.size;
+      if (!(x + bw <= b.x || x >= b.x + bW || y + bh <= b.y || y >= b.y + bH)) {
+        return { ok: false, reason: 'Overlaps existing building' };
+      }
+    }
+
+    // Cost check
+    if (spec.cost) {
+      for (const [good, amount] of Object.entries(spec.cost)) {
+        if ((this.stock[good] || 0) < amount) {
+          return { ok: false, reason: `Insufficient ${good}` };
+        }
+      }
+    }
+
+    // Resource proximity requirement check
+    if (spec.needs) {
+      const req = spec.needs;
+      let found = false;
+      const r = (req === 'tree' || req === 'rock') ? 6 : 4;
+      const rSq = r * r;
+
+      const minX = Math.max(0, x - r);
+      const maxX = Math.min(w - 1, x + bw - 1 + r);
+      const minY = Math.max(0, y - r);
+      const maxY = Math.min(h - 1, y + bh - 1 + r);
+
+      for (let ty = minY; ty <= maxY && !found; ty++) {
+        for (let tx = minX; tx <= maxX && !found; tx++) {
+          const dx = tx < x ? x - tx : (tx >= x + bw ? tx - (x + bw - 1) : 0);
+          const dy = ty < y ? y - ty : (ty >= y + bh ? ty - (y + bh - 1) : 0);
+          if (dx * dx + dy * dy > rSq) continue;
+
+          const tileIdx = idx(w, tx, ty);
+          if (req === 'tree') {
+            if (this.world.tree[tileIdx] === 2) found = true;
+          } else if (req === 'rock') {
+            if (this.world.rock[tileIdx] > 0 || this.world.terrain[tileIdx] === T.ROCK) found = true;
+          } else if (req === 'water') {
+            if (this.world.terrain[tileIdx] === T.WATER || this.world.terrain[tileIdx] === T.DEEP) found = true;
+          } else if (req === 'mountain') {
+            if (this.world.terrain[tileIdx] === T.MOUNTAIN) found = true;
+          }
+        }
+      }
+
+      if (!found) {
+        return { ok: false, reason: `No ${req} nearby` };
+      }
+    }
+
+    return { ok: true };
+  }
+
+  /**
+   * Places a building of type at (x, y). Deducts costs immediately.
+   * @param {string} type
+   * @param {number} x
+   * @param {number} y
+   * @returns {{ok:boolean, reason?:string, id?:number}}
+   */
+  place(type, x, y) {
+    const can = this.canPlace(type, x, y);
+    if (!can.ok) return can;
+
+    const spec = BUILDINGS[type];
+    if (spec.cost) {
+      for (const [good, amount] of Object.entries(spec.cost)) {
+        this.stock[good] = (this.stock[good] || 0) - amount;
+      }
+    }
+
+    const building = {
+      id: this.nextBuildingId++,
+      type,
+      x,
+      y,
+      state: 'queued',
+      progress: 0,
+      inv: {},
+      out: {},
+      workers: [],
+      cycleT: 0,
+      working: false
+    };
+    this.buildings.push(building);
+
+    // Door reachability check
+    const hqDoor = this.getHQDoor();
+    const bDoor = this.getBuildingDoor(building);
+    const path = findPath(this.world, hqDoor.x, hqDoor.y, bDoor.x, bDoor.y);
+    if (!path) {
+      building.warn = true;
+      this.addEvent('warn', `Unreachable door for ${spec.name}`, x, y);
+    }
+
+    this.updateStats();
+    return { ok: true, id: building.id };
+  }
+
+  /**
+   * Demolishes a building by id. Refunds 50% (floor) of cost and frees workers.
+   * @param {number} id
+   * @returns {boolean}
+   */
+  demolish(id) {
+    const bIndex = this.buildings.findIndex(b => b.id === id);
+    if (bIndex === -1) return false;
+
+    const b = this.buildings[bIndex];
+    const spec = BUILDINGS[b.type];
+
+    if (spec && spec.cost) {
+      for (const [good, amount] of Object.entries(spec.cost)) {
+        const refund = Math.floor(amount * 0.5);
+        if (refund > 0) {
+          this.stock[good] = (this.stock[good] || 0) + refund;
+        }
+      }
+    }
+
+    // Refund items inside building
+    for (const [g, count] of Object.entries(b.inv || {})) {
+      if (count > 0) this.stock[g] = (this.stock[g] || 0) + count;
+    }
+    for (const [g, count] of Object.entries(b.out || {})) {
+      if (count > 0) this.stock[g] = (this.stock[g] || 0) + count;
+    }
+
+    // Free assigned settlers
+    for (const s of this.settlers) {
+      if (s.job === id || s.home === id) {
+        if (s.carry) {
+          this.stock[s.carry] = (this.stock[s.carry] || 0) + 1;
+          s.carry = null;
+        }
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        s.home = null;
+        s.path = [];
+      }
+    }
+
+    this.buildings.splice(bIndex, 1);
+    this.recomputeTerritory();
+    this.updateStats();
+    return true;
+  }
+
+  /**
+   * Paints or erases a road tile.
+   * @param {number} x
+   * @param {number} y
+   * @param {boolean} [on=true]
+   * @returns {boolean}
+   */
+  paintRoad(x, y, on = true) {
+    if (!inBounds(this.world, x, y)) return false;
+    const tileIdx = idx(this.world.w, x, y);
+    if (!WALKABLE[this.world.terrain[tileIdx]]) return false;
+    if (this.territory[tileIdx] !== 1) return false;
+    this.roads[tileIdx] = on ? 1 : 0;
+    return true;
+  }
+
+  /**
+   * Recalculates stats.
+   */
+  updateStats() {
+    let housing = 0;
+    for (const b of this.buildings) {
+      if (b.state === 'active') {
+        const spec = BUILDINGS[b.type];
+        if (spec && spec.pop) {
+          housing += spec.pop;
+        }
+      }
+    }
+    this.stats.pop = this.settlers.length;
+    this.stats.housing = housing;
+    this.stats.foodPerMin = SETTLER_FOOD_PER_MIN * this.settlers.length;
+  }
+
+  /**
+   * Advances simulation by dt seconds.
+   * @param {number} dt Sim seconds (dt <= 0.25)
+   */
+  tick(dt) {
+    if (dt <= 0) return;
+    this.time += dt;
+
+    // 1. Sapling Maturation (90s)
+    for (let i = this.saplings.length - 1; i >= 0; i--) {
+      const sap = this.saplings[i];
+      sap.age += dt;
+      if (sap.age >= 90) {
+        const tIdx = idx(this.world.w, sap.x, sap.y);
+        if (this.world.tree[tIdx] === 1) {
+          this.world.tree[tIdx] = 2; // mature tree
+        }
+        this.saplings.splice(i, 1);
+      }
+    }
+
+    // 2. Population Birth
+    this.updateStats();
+    this.birthTimer += dt;
+    if (this.birthTimer >= 25) {
+      this.birthTimer -= 25;
+      if (this.stats.pop < this.stats.housing) {
+        const foodStock = (this.stock.bread || 0) + (this.stock.fish || 0);
+        if (foodStock >= Math.max(1, Math.floor(this.stats.pop * 0.5))) {
+          const hqDoor = this.getHQDoor();
+          this.settlers.push({
+            id: this.nextSettlerId++,
+            x: hqDoor.x,
+            y: hqDoor.y,
+            role: 'idle',
+            state: 'idle',
+            path: [],
+            carry: null,
+            home: null,
+            job: null,
+            dir: 'd'
+          });
+          this.addEvent('born', 'A new settler has arrived

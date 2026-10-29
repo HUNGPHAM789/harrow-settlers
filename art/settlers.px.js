@@ -1,1021 +1,639 @@
-/* Settlers pixel art definitions (pxl format) */
-
 pal({
-  ".": "transparent",
-  "0": "#120e18", // Darkest outline
-  "1": "#181e28", // Smoke outline
-  "2": "#323c4c", // Smoke dark slate
-  "3": "#56647a", // Smoke mid slate
-  "4": "#8496b0", // Smoke light slate
-  "5": "#b8c8dc", // Smoke pale
-  "6": "#edf4fc", // Smoke highlight
-
-  // Skin tones (5 tones)
-  "S": "#48241c", // Skin deep shadow
-  "s": "#8a4838", // Skin shadow
-  "c": "#c87858", // Skin base
-  "C": "#f0a880", // Skin light
-  "f": "#fcd0b0", // Skin highlight / blush
-
-  // Eyes
-  "e": "#16101c", // Eye pupil
-  "E": "#f0e8f8", // Eye catchlight
-
-  // Hair (4 tones)
-  "H": "#281810", // Hair dark outline
-  "h": "#503020", // Hair dark
-  "j": "#805030", // Hair base
-  "J": "#b47848", // Hair light
-
-  // Blue tunic (idle - 6 tones)
-  "B": "#0f1a2e",
-  "b": "#1a3052",
-  "u": "#2c5080",
-  "U": "#3e74b8",
-  "v": "#649ae4",
-  "V": "#96c2fa",
-
-  // Orange tunic & Hard hat (builder - 6 tones)
-  "O": "#261006",
-  "o": "#501d08",
-  "a": "#843410",
-  "A": "#c45418",
-  "x": "#ee7e28",
-  "X": "#fcae54",
-
-  // Green tunic (worker - 6 tones)
-  "G": "#0a1c0d",
-  "g": "#163618",
-  "k": "#26582c",
-  "z": "#3b8642",
-  "Z": "#5cb064",
-  "L": "#8ee094",
-
-  // Brown tunic & Boots (porter / leather - 6 tones)
-  "N": "#1a1008",
-  "n": "#341f10",
-  "m": "#54331a",
-  "M": "#7b4c28",
-  "q": "#a46c3c",
-  "Q": "#cc945a",
-
-  // Yellow / Straw hat (6 tones)
-  "Y": "#281c04",
-  "y": "#523a08",
-  "i": "#886210",
-  "I": "#c08c18",
-  "p": "#ebb628",
-  "P": "#fce068",
-
-  // Metals & Steel (6 tones)
-  "T": "#121620",
-  "t": "#242d3c",
-  "r": "#404f66",
-  "R": "#647694",
-  "d": "#92a4c0",
-  "D": "#c8d8f0",
-
-  // Wood / Planks / Logs (6 tones)
-  "W": "#1f1208",
-  "w": "#3e2410",
-  "7": "#663e1c",
-  "8": "#945f2d",
-  "9": "#bf8342",
-  "+": "#e4ac68",
-
-  // Stone & Ore (6 tones)
-  "K": "#14141a",
-  "l": "#2c2c36",
-  "m_": "#4a4a58",
-  "~": "#727284",
-  "@": "#a0a0b4",
-  "#": "#d0d0e2",
-
-  // Wheat / Grain (5 tones)
-  "F": "#241a04",
-  "&": "#68500c",
-  "%": "#b49018",
-  "$": "#e8c230",
-  "!": "#fcf0a0",
-
-  // Fish (6 tones)
-  "(": "#0d1f28",
-  ")": "#1a3b4c",
-  "<": "#2e5c74",
-  ">": "#4a88a6",
-  "?": "#74b4d0",
-  "/": "#b8e6fa",
-
-  // Animal Fur / Deer & Rabbit (6 tones)
-  "^": "#1c0e08",
-  "*": "#402010",
-  "-": "#70381c",
-  "=": "#a2582b",
-  "[": "#d28246",
-  "]": "#f4b278"
+  k: "#181425",
+  w: "#ffffff",
+  s: "#f8d8b8",
+  S: "#e0a080",
+  K: "#4a2810",
+  b: "#3b82f6",
+  B: "#1d4ed8",
+  o: "#f97316",
+  O: "#c2410c",
+  g: "#22c55e",
+  G: "#15803d",
+  n: "#a16207",
+  N: "#713f12",
+  y: "#facc15",
+  Y: "#ca8a04",
+  L: "#eab308",
+  d: "#854d0e",
+  D: "#543310",
+  q: "#94a3b8",
+  c: "#64748b",
+  C: "#334155",
+  r: "#ef4444",
+  e: "#b91c1c",
+  f: "#38bdf8",
+  F: "#0284c7"
 });
 
-ramps("BbuUvV", "OoaAxX", "GgkzZL", "NnmMqQ", "YyiIpH", "TtrRdD", "Ww789+");
+// --- SETTLER IDLE BASE SPRITES (12x16) ---
 
-/* ========================================================================== */
-/* 1. IDLE SETTLER (Blue tunic, 12x16)                                      */
-/* ========================================================================== */
-
-// --- DOWN (FRONT) ---
-sprite("settler_idle_d_0", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
-
-sprite("settler_idle_d_1", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
-
-sprite("settler_idle_d_2", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
-
-// --- RIGHT (SIDE) ---
+// Facing Right (r)
 sprite("settler_idle_r_0", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...BBuuuuB..
-..BuUUUUuB..
-..BuUUUUuB..
-...uuUUUu...
-...bbUUUb...
-....NNNN....
-....mmmm....
-...NMmMm....
-...NNNNN....
-............`);
+............
+....kkkk....
+...kKKKKk...
+..kKKSSSSk..
+..kKSSkSk...
+..kKSSSSk...
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+...kSk.kSk..
+...kkk.kkk..
+............
+`);
 
 sprite("settler_idle_r_1", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...BBuuuuB..
-..BuUUUUuB..
-..BuUUUUuB..
-...uuUUUu...
-...bbUUUb...
-.....NN.NN..
-....NMm.mm..
-...NNNN.NMm.
-........NNN.
-............`);
+............
+....kkkk....
+...kKKKKk...
+..kKKSSSSk..
+..kKSSkSk...
+..kKSSSSk...
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+..kSk...kSk.
+..kSk...kSk.
+.kkk.....kkk
+............
+`);
 
 sprite("settler_idle_r_2", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...BBuuuuB..
-..BuUUUUuB..
-..BuUUUUuB..
-...uuUUUu...
-...bbUUUb...
-....NN.NN...
-....mm.NMm..
-...NMm.NNNN.
-...NNN......
-............`);
+............
+....kkkk....
+...kKKKKk...
+..kKKSSSSk..
+..kKSSkSk...
+..kKSSSSk...
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+....kSk.kSk.
+....kkk..kkk
+............
+`);
 
-// --- LEFT (MIRROR OF RIGHT) ---
+// Facing Down (d)
+sprite("settler_idle_d_0", `
+............
+....kkkk....
+...kKKKKk...
+..kKSSSSKk..
+..kSkSSkSk..
+..kSSSSSSk..
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+...kSk.kSk..
+...kkk.kkk..
+............
+`);
+
+sprite("settler_idle_d_1", `
+............
+....kkkk....
+...kKKKKk...
+..kKSSSSKk..
+..kSkSSkSk..
+..kSSSSSSk..
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+..kSk...kSk.
+..kSk...kSk.
+.kkk.....kkk
+............
+`);
+
+sprite("settler_idle_d_2", `
+............
+....kkkk....
+...kKKKKk...
+..kKSSSSKk..
+..kSkSSkSk..
+..kSSSSSSk..
+...kSSSSk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+....kSk.kSk.
+....kkk..kkk
+............
+`);
+
+// Facing Up (u)
+sprite("settler_idle_u_0", `
+............
+....kkkk....
+...kKKKKk...
+..kKKKKKKk..
+..kKKKKKKk..
+..kKKKKKKk..
+...kKKKKk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+...kSk.kSk..
+...kkk.kkk..
+............
+`);
+
+sprite("settler_idle_u_1", `
+............
+....kkkk....
+...kKKKKk...
+..kKKKKKKk..
+..kKKKKKKk..
+..kKKKKKKk..
+...kKKKKk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+..kSk...kSk.
+..kSk...kSk.
+.kkk.....kkk
+............
+`);
+
+sprite("settler_idle_u_2", `
+............
+....kkkk....
+...kKKKKk...
+..kKKKKKKk..
+..kKKKKKKk..
+..kKKKKKKk..
+...kKKKKk...
+..kbbbbbbk..
+.kbbbbbbbbk.
+.kbbbbbbbbk.
+.kBbbbbBBbk.
+..kBBBBBBk..
+...kSk.kSk..
+....kSk.kSk.
+....kkk..kkk
+............
+`);
+
+// Facing Left (l) - Mirror of Right
 sprite("settler_idle_l_0", { base: "settler_idle_r_0", flip: "x" });
 sprite("settler_idle_l_1", { base: "settler_idle_r_1", flip: "x" });
 sprite("settler_idle_l_2", { base: "settler_idle_r_2", flip: "x" });
 
-// --- UP (BACK) ---
-sprite("settler_idle_u_0", `
-....HHHH....
-..HHhjjhHH..
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-.HHhjjhhHH..
-..HHhhhhHH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
+// --- ROLE ACCESSORY PARTS ---
 
-sprite("settler_idle_u_1", `
-....HHHH....
-..HHhjjhHH..
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-.HHhjjhhHH..
-..HHhhhhHH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
+sprite("_builder_acc_r", `
+............
+...kyyyyyk..
+..kyYYYYYyk.
+..kyyyyyyyk.
+............
+............
+............
+............
+.........kkk
+........kCc.
+.......kDk..
+............
+............
+............
+............
+............
+`);
 
-sprite("settler_idle_u_2", `
-....HHHH....
-..HHhjjhHH..
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-.HHhjjhhHH..
-..HHhhhhHH..
-.BBuuuuuuBB.
-.BuUUUUUUuB.
-.BuUUUUUUuB.
-..uuUUUUuu..
-..bbUUUUbb..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
+sprite("_builder_acc_d", `
+............
+...kyyyyyk..
+..kyYYYYYyk.
+..kyyyyyyyk.
+............
+............
+............
+............
+.kkk........
+.cCK........
+..kDk.......
+............
+............
+............
+............
+............
+`);
 
-/* ========================================================================== */
-/* 2. BUILDER SETTLER (Orange tunic + Hard hat, 12x16)                      */
-/* ========================================================================== */
+sprite("_builder_acc_u", `
+............
+...kyyyyyk..
+..kyYYYYYyk.
+..kyyyyyyyk.
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+`);
 
-// --- DOWN ---
-sprite("settler_builder_d_0", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhCEeCCEeHY
-.HcShfCfShC.
-..HSSccSSH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
+sprite("_worker_acc_r", `
+............
+..kyyyyyyyk.
+.kyLLLLLLLyk
+..kkkkkkkkk.
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+`);
 
-sprite("settler_builder_d_1", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhCEeCCEeHY
-.HcShfCfShC.
-..HSSccSSH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
+sprite("_worker_acc_d", `
+............
+.kyyyyyyyyyk
+kyLLLLLLLLLy
+.kkkkkkkkkkk
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+`);
 
-sprite("settler_builder_d_2", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhCEeCCEeHY
-.HcShfCfShC.
-..HSSccSSH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
+sprite("_worker_acc_u", `
+............
+.kyyyyyyyyyk
+kyLLLLLLLLLy
+.kkkkkkkkkkk
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+............
+`);
 
-// --- RIGHT ---
-sprite("settler_builder_r_0", `
-...pIIP.....
-..pIIPPPp...
-.YIIIIIIIIY.
-..YcEeeCCH..
-...HcSfCCH..
-....HSSCH...
-...OOaaaaO..
-..OoAAAAAoO.
-..OoAAAAAoO.
-...aaAAAAa..
-...ooAAoo...
-....NNNN....
-....mmmm....
-...NMmMm....
-...NNNNN....
-............`);
+sprite("_porter_acc_r", `
+............
+............
+............
+............
+............
+............
+............
+.kDk........
+kDdDk.......
+kDdDk.......
+kDdDk.......
+.kDk........
+............
+............
+............
+............
+`);
 
-sprite("settler_builder_r_1", `
-...pIIP.....
-..pIIPPPp...
-.YIIIIIIIIY.
-..YcEeeCCH..
-...HcSfCCH..
-....HSSCH...
-...OOaaaaO..
-..OoAAAAAoO.
-..OoAAAAAoO.
-...aaAAAAa..
-...ooAAoo...
-.....NN.NN..
-....NMm.mm..
-...NNNN.NMm.
-........NNN.
-............`);
+sprite("_porter_acc_d", `
+............
+............
+............
+............
+............
+............
+............
+...kD..Dk...
+...kD..Dk...
+...kD..Dk...
+............
+............
+............
+............
+............
+............
+`);
 
-sprite("settler_builder_r_2", `
-...pIIP.....
-..pIIPPPp...
-.YIIIIIIIIY.
-..YcEeeCCH..
-...HcSfCCH..
-....HSSCH...
-...OOaaaaO..
-..OoAAAAAoO.
-..OoAAAAAoO.
-...aaAAAAa..
-...ooAAoo...
-....NN.NN...
-....mm.NMm..
-...NMm.NNNN.
-...NNN......
-............`);
+sprite("_porter_acc_u", `
+............
+............
+............
+............
+............
+............
+............
+..kDddddDk..
+..kDddddDk..
+..kDddddDk..
+..kDddddDk..
+...kDkkDk...
+............
+............
+............
+............
+`);
 
-// --- LEFT ---
+// --- BUILDER ROLE SPRITES ---
+sprite("settler_builder_r_0", { base: "settler_idle_r_0", swap: { b: "o", B: "O" } }, stamp("_builder_acc_r", 0, 0));
+sprite("settler_builder_r_1", { base: "settler_idle_r_1", swap: { b: "o", B: "O" } }, stamp("_builder_acc_r", 0, 0));
+sprite("settler_builder_r_2", { base: "settler_idle_r_2", swap: { b: "o", B: "O" } }, stamp("_builder_acc_r", 0, 0));
+
+sprite("settler_builder_d_0", { base: "settler_idle_d_0", swap: { b: "o", B: "O" } }, stamp("_builder_acc_d", 0, 0));
+sprite("settler_builder_d_1", { base: "settler_idle_d_1", swap: { b: "o", B: "O" } }, stamp("_builder_acc_d", 0, 0));
+sprite("settler_builder_d_2", { base: "settler_idle_d_2", swap: { b: "o", B: "O" } }, stamp("_builder_acc_d", 0, 0));
+
+sprite("settler_builder_u_0", { base: "settler_idle_u_0", swap: { b: "o", B: "O" } }, stamp("_builder_acc_u", 0, 0));
+sprite("settler_builder_u_1", { base: "settler_idle_u_1", swap: { b: "o", B: "O" } }, stamp("_builder_acc_u", 0, 0));
+sprite("settler_builder_u_2", { base: "settler_idle_u_2", swap: { b: "o", B: "O" } }, stamp("_builder_acc_u", 0, 0));
+
 sprite("settler_builder_l_0", { base: "settler_builder_r_0", flip: "x" });
 sprite("settler_builder_l_1", { base: "settler_builder_r_1", flip: "x" });
 sprite("settler_builder_l_2", { base: "settler_builder_r_2", flip: "x" });
 
-// --- UP ---
-sprite("settler_builder_u_0", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhIIPPIIHY.
-.YHIIIIIIHY.
-..HHhhhhHH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
+// --- WORKER ROLE SPRITES ---
+sprite("settler_worker_r_0", { base: "settler_idle_r_0", swap: { b: "g", B: "G" } }, stamp("_worker_acc_r", 0, 0));
+sprite("settler_worker_r_1", { base: "settler_idle_r_1", swap: { b: "g", B: "G" } }, stamp("_worker_acc_r", 0, 0));
+sprite("settler_worker_r_2", { base: "settler_idle_r_2", swap: { b: "g", B: "G" } }, stamp("_worker_acc_r", 0, 0));
 
-sprite("settler_builder_u_1", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhIIPPIIHY.
-.YHIIIIIIHY.
-..HHhhhhHH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
+sprite("settler_worker_d_0", { base: "settler_idle_d_0", swap: { b: "g", B: "G" } }, stamp("_worker_acc_d", 0, 0));
+sprite("settler_worker_d_1", { base: "settler_idle_d_1", swap: { b: "g", B: "G" } }, stamp("_worker_acc_d", 0, 0));
+sprite("settler_worker_d_2", { base: "settler_idle_d_2", swap: { b: "g", B: "G" } }, stamp("_worker_acc_d", 0, 0));
 
-sprite("settler_builder_u_2", `
-....pIIP....
-..pIIPPPp...
-.YIIIIIIIIY.
-.YhIIPPIIHY.
-.YHIIIIIIHY.
-..HHhhhhHH..
-.OOaaaaaaOO.
-.OoAAAAAAoO.
-.OoAAAAAAoO.
-..aaAAAAaa..
-..ooAAoo....
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
+sprite("settler_worker_u_0", { base: "settler_idle_u_0", swap: { b: "g", B: "G" } }, stamp("_worker_acc_u", 0, 0));
+sprite("settler_worker_u_1", { base: "settler_idle_u_1", swap: { b: "g", B: "G" } }, stamp("_worker_acc_u", 0, 0));
+sprite("settler_worker_u_2", { base: "settler_idle_u_2", swap: { b: "g", B: "G" } }, stamp("_worker_acc_u", 0, 0));
 
-/* ========================================================================== */
-/* 3. WORKER SETTLER (Green tunic + Straw hat, 12x16)                       */
-/* ========================================================================== */
-
-// --- DOWN ---
-sprite("settler_worker_d_0", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HhCEeCCEeHH
-.HcShfCfShC.
-..HSSccSSH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
-
-sprite("settler_worker_d_1", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HhCEeCCEeHH
-.HcShfCfShC.
-..HSSccSSH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
-
-sprite("settler_worker_d_2", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HhCEeCCEeHH
-.HcShfCfShC.
-..HSSccSSH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
-
-// --- RIGHT ---
-sprite("settler_worker_r_0", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIY
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...GGzzzzG..
-..GzZZZZZzG.
-..GzZZZZZzG.
-...zzZZZZz..
-...ggZZZZg..
-....NNNN....
-....mmmm....
-...NMmMm....
-...NNNNN....
-............`);
-
-sprite("settler_worker_r_1", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIY
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...GGzzzzG..
-..GzZZZZZzG.
-..GzZZZZZzG.
-...zzZZZZz..
-...ggZZZZg..
-.....NN.NN..
-....NMm.mm..
-...NNNN.NMm.
-........NNN.
-............`);
-
-sprite("settler_worker_r_2", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIY
-...HcEeeCCH.
-...HcSfCCH..
-....HSSCH...
-...GGzzzzG..
-..GzZZZZZzG.
-..GzZZZZZzG.
-...zzZZZZz..
-...ggZZZZg..
-....NN.NN...
-....mm.NMm..
-...NMm.NNNN.
-...NNN......
-............`);
-
-// --- LEFT ---
 sprite("settler_worker_l_0", { base: "settler_worker_r_0", flip: "x" });
 sprite("settler_worker_l_1", { base: "settler_worker_r_1", flip: "x" });
 sprite("settler_worker_l_2", { base: "settler_worker_r_2", flip: "x" });
 
-// --- UP ---
-sprite("settler_worker_u_0", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-..HHhhhhHH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
+// --- PORTER ROLE SPRITES ---
+sprite("settler_porter_r_0", { base: "settler_idle_r_0", swap: { b: "n", B: "N" } }, stamp("_porter_acc_r", 0, 0));
+sprite("settler_porter_r_1", { base: "settler_idle_r_1", swap: { b: "n", B: "N" } }, stamp("_porter_acc_r", 0, 0));
+sprite("settler_porter_r_2", { base: "settler_idle_r_2", swap: { b: "n", B: "N" } }, stamp("_porter_acc_r", 0, 0));
 
-sprite("settler_worker_u_1", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-..HHhhhhHH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
+sprite("settler_porter_d_0", { base: "settler_idle_d_0", swap: { b: "n", B: "N" } }, stamp("_porter_acc_d", 0, 0));
+sprite("settler_porter_d_1", { base: "settler_idle_d_1", swap: { b: "n", B: "N" } }, stamp("_porter_acc_d", 0, 0));
+sprite("settler_porter_d_2", { base: "settler_idle_d_2", swap: { b: "n", B: "N" } }, stamp("_porter_acc_d", 0, 0));
 
-sprite("settler_worker_u_2", `
-.....pp.....
-....pIIP....
-..pIIPPPPIp.
-.YIIIIIIIIIIY
-.HHhjhhjhHH.
-.HHhjhhjhHH.
-..HHhhhhHH..
-.GGzzzzzzGG.
-.GzZZZZZZzG.
-.GzZZZZZZzG.
-..zzZZZZzz..
-..ggZZZZgg..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
+sprite("settler_porter_u_0", { base: "settler_idle_u_0", swap: { b: "n", B: "N" } }, stamp("_porter_acc_u", 0, 0));
+sprite("settler_porter_u_1", { base: "settler_idle_u_1", swap: { b: "n", B: "N" } }, stamp("_porter_acc_u", 0, 0));
+sprite("settler_porter_u_2", { base: "settler_idle_u_2", swap: { b: "n", B: "N" } }, stamp("_porter_acc_u", 0, 0));
 
-/* ========================================================================== */
-/* 4. PORTER SETTLER (Brown tunic + Wooden Backpack, 12x16)                 */
-/* ========================================================================== */
-
-// --- DOWN ---
-sprite("settler_porter_d_0", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.NN3qqqq3NN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
-
-sprite("settler_porter_d_1", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.NN3qqqq3NN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
-
-sprite("settler_porter_d_2", `
-....HHHH....
-..HHhjjhHH..
-.HhCCCCcCH..
-.HCeeCCeeCH.
-.HcShfCfShC.
-..HSSccSSH..
-.NN3qqqq3NN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
-
-// --- RIGHT ---
-sprite("settler_porter_r_0", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-.W78HcSfCCH.
-.W89.HSSCH..
-.W78NNqqqqN.
-.W89mQQQQmN.
-.W78mQQQQmN.
-..W.qqQQQq..
-....mmQQQm..
-....NNNN....
-....mmmm....
-...NMmMm....
-...NNNNN....
-............`);
-
-sprite("settler_porter_r_1", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-.W78HcSfCCH.
-.W89.HSSCH..
-.W78NNqqqqN.
-.W89mQQQQmN.
-.W78mQQQQmN.
-..W.qqQQQq..
-....mmQQQm..
-.....NN.NN..
-....NMm.mm..
-...NNNN.NMm.
-........NNN.
-............`);
-
-sprite("settler_porter_r_2", `
-....HHHH....
-...HHhjjhH..
-...HhCCCCCH.
-...HcEeeCCH.
-.W78HcSfCCH.
-.W89.HSSCH..
-.W78NNqqqqN.
-.W89mQQQQmN.
-.W78mQQQQmN.
-..W.qqQQQq..
-....mmQQQm..
-....NN.NN...
-....mm.NMm..
-...NMm.NNNN.
-...NNN......
-............`);
-
-// --- LEFT ---
 sprite("settler_porter_l_0", { base: "settler_porter_r_0", flip: "x" });
 sprite("settler_porter_l_1", { base: "settler_porter_r_1", flip: "x" });
 sprite("settler_porter_l_2", { base: "settler_porter_r_2", flip: "x" });
 
-// --- UP ---
-sprite("settler_porter_u_0", `
-....HHHH....
-..HHhjjhHH..
-.W78999987W.
-.W89++++98W.
-.W89++++98W.
-.W78999987W.
-.NNqqqqqqNN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-...NN..NN...
-...mm..mm...
-..NMm..NMm..
-..NNN..NNN..
-............`);
-
-sprite("settler_porter_u_1", `
-....HHHH....
-..HHhjjhHH..
-.W78999987W.
-.W89++++98W.
-.W89++++98W.
-.W78999987W.
-.NNqqqqqqNN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-..NN...NN...
-.NMm...mm...
-.NNN...NMm..
-.......NNN..
-............`);
-
-sprite("settler_porter_u_2", `
-....HHHH....
-..HHhjjhHH..
-.W78999987W.
-.W89++++98W.
-.W89++++98W.
-.W78999987W.
-.NNqqqqqqNN.
-.NmQQQQQQmN.
-.NmQQQQQQmN.
-..qqQQQQqq..
-..mmQQQQmm..
-...NN...NN..
-...mm...NMm.
-..NMm...NNN.
-..NNN.......
-............`);
-
-/* ========================================================================== */
-/* 5. CARRY GOODS ICONS (8x8)                                               */
-/* ========================================================================== */
+// --- CARRY GOODS ICONS (8x8) ---
 
 sprite("carry_log", `
-.WW77WW.
-W789987W
-W899998W
-78999987
-78999987
-W899998W
-W789987W
-.WW77WW.`);
+........
+..kkkk..
+.kLLLLk.
+.kLDDLk.
+.kLLLLk.
+.kLDDLk.
+..kkkk..
+........
+`);
 
 sprite("carry_plank", `
-WWWWWWWW
-78999987
-w788887w
-WWWWWWWW
-78999987
-w788887w
-WWWWWWWW
-wwwww7ww`);
+........
+.kkkkkk.
+.kLLLLk.
+.kyyyyk.
+.kLLLLk.
+.kyyyyk.
+.kkkkkk.
+........
+`);
 
 sprite("carry_stone", `
-..KlK...
-.Kl~@#l.
-Kl~@##~l
-K~@##~#~l
-K~@##~#~l
-Kl~@##~l
-.Kl~@#l.
-..KlK...`);
+........
+..kkkk..
+.kqqqqk.
+.kqccck.
+.kcccCk.
+.kCCCCk.
+..kkkk..
+........
+`);
 
 sprite("carry_fish", `
-..)))...
-.(>??/..
-(<>>/?/.
-)>>??/..
-.(>??//.
-..)))(..
-...(...
-........`);
+........
+..kk....
+.kffkk..
+kffffFk.
+.kFffFk.
+..kFFk..
+...kk...
+........
+`);
 
 sprite("carry_wheat", `
-.F.%%$..
-F&&%%$!
-.&%&$!
-.F&&%%$.
-..F&&%%$
-...F&&%$
-....F&&.
-.....F..`);
+...k....
+..kyk...
+.kyyyk..
+.kyLyk..
+..kYk...
+...kYk..
+....kk..
+........
+`);
 
 sprite("carry_flour", `
-...00...
-..0KK0..
-.0K@#0..
-0K@#E#0.
-0K@##0..
-0K@##0..
-.0K@#0..
-..0000..`);
+...kk...
+..krrk..
+.kwwwwk.
+.kwqqwk.
+.kwwwwk.
+.kwwwwk.
+..kkkk..
+........
+`);
 
 sprite("carry_bread", `
-..NnNn..
-.NmMMqN.
-NmMQQQqN
-NmQcCcQN
-NmQcCcQN
-NmQQQqN.
-.NmMMqN.
-..NnNn..`);
+........
+..kkkk..
+.kyLLyk.
+.kLddLk.
+.kyLLyk.
+.kddddk.
+..kkkk..
+........
+`);
 
 sprite("carry_coal", `
-..0K0...
-.0Kl~0..
-0Kl~~@~0
-0l~~@~l0
-0Kl~~@l0
-.0Kl~l0.
-..0KK0..
-........`);
+........
+..kkk...
+.kCCCk..
+kCCCCCk.
+kCqCCCk.
+.kCCCk..
+..kkk...
+........
+`);
 
 sprite("carry_ore", `
-..0KK0..
-.0KrRdT0
-0KlRrDDT
-0lRrRdT0
-0KlRdT0.
-.0KlRdT0
-..0KK0..
-........`);
+........
+..kkkk..
+.kcccCkk
+.kcereCk
+.kreeeCk
+.kCCCCk.
+..kkkk..
+........
+`);
 
 sprite("carry_iron", `
-.TTTTTT.
-TtrRRdDT
-TtrRRdDT
-TtrRRdDT
-TtrRRdDT
-TtrRRdDT
-.TTTTTT.
-........`);
+........
+.kkkkkk.
+.kwqqqk.
+.kqccck.
+.kcccCk.
+.kCCCCk.
+.kkkkkk.
+........
+`);
 
 sprite("carry_tool", `
-.TTTTTT.
-TddDDd8T
-.TtRt89T
-..T899T.
-..T899T.
-..T899T.
-..T899T.
-...TT...`);
+.kk...kk
+kCCk.kCC
+.kCDkDk.
+..kDDD..
+..kDDk..
+.kDDDk..
+kDk.kDk.
+kk...kk.
+`);
 
-/* ========================================================================== */
-/* 6. ANIMALS (Deer 16x12, Rabbit 8x8)                                      */
-/* ========================================================================== */
+// --- ANIMALS ---
 
 sprite("deer_0", `
-.....89...89....
-....-*-=.-*-=...
-....-*-=-*-=....
-...^*--==-^*....
-..^*--=[[]-=....
-..**-[[]]=--....
-.^*--=[[]=-*-...
-.^*----=-*-*....
-..^*--..^*--....
-..^*--..^*--....
-..^*--..^*--....
-..^*--..^*--....`);
+....kk..........
+...kLdDk........
+....kddk........
+....kddkkkkk....
+...kddddddddk...
+..kddDDdddddk...
+...kddddddddk...
+...kddk.kddk....
+...kDDk.kDDk....
+...kdk...kdk....
+...kk....kk.....
+................
+`);
 
 sprite("deer_1", `
 ................
-........-*-=....
-...^*--==-^*....
-..^*--=[[]-=....
-..**-[[]]=--....
-.^*--=[[]=-*-...
-.^*----=-*-*....
-.^*--...89......
-.^*--..-*-==-...
-.^*--..**--==...
-.^*--...^*--....
-.^*--...^*--....`);
+...kk...........
+..kLdDkk........
+...kddddkkkk....
+...kddddddddk...
+..kddDDdddddk...
+...kddddddddk...
+....kddk.kddk...
+....kDDk.kDDk...
+.....kk...kk....
+................
+................
+`);
 
 sprite("rabbit_0", `
-..*..*..
-..-..-..
-..-=-...
-.*-=[...
-*-=[[]..
-*-=[[]..
-.*-=-...
-..^*....`);
+..k.k...
+.kw.wk..
+.kwwwk..
+kwwwwwk.
+kwwwqwk.
+kwwwwwk.
+.kkkkk..
+........
+`);
 
 sprite("rabbit_1", `
-...*..*.
-...-..-.
-..-=-...
-.*-=[...
-*-=[[]..
-.*-=-...
-*-^*.*-*
-........`);
+.k.k....
+kw.wk...
+kwwwk...
+.kwwwk..
+kwwwwwk.
+.kwwwk..
+..kkk...
+........
+`);
 
-/* ========================================================================== */
-/* 7. FX & UI CURSOR                                                         */
-/* ========================================================================== */
+// --- PARTICLES & CURSOR ---
 
-// Smoke particle (6x6) with dark border and soft slate shading
 sprite("particle_smoke", `
-..11..
-.14561
-134561
-123451
-.12341
-..11..`);
+..kk..
+.kqqk.
+kqqqqk
+kqqqqk
+.kqqk.
+..kk..
+`);
 
-// Tile selection cursor (16x16) with shadowed corners
 sprite("cursor_tile", `
-00000......00000
-0EED0......0DEE0
-0ED0........0DE0
-0D0..........0D0
-00............00
+kkkkkk....kkkkkk
+kwwwwwk..kwwwwwk
+kwwkkkk..kkkkwwk
+kwwk........kwwk
+kwwk........kwwk
+kkkk........kkkk
 ................
 ................
 ................
 ................
-................
-00............00
-0D0..........0D0
-0ED0........0DE0
-0EED0......0DEE0
-00000......00000
-................`);
+kkkk........kkkk
+kwwk........kwwk
+kwwk........kwwk
+kwwkkkk..kkkkwwk
+kwwwwwk..kwwwwwk
+kkkkkk....kkkkkk
+`);

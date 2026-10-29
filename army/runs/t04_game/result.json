@@ -1,0 +1,30 @@
+{
+ "id": "t04_game",
+ "attempts": [
+  {
+   "n": 1,
+   "worker": "gemini:gemini-3.5-flash:k2",
+   "wrote": [
+    "src/sim/game.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "Could not find 'tests/game.test.mjs'\n"
+  },
+  {
+   "n": 2,
+   "worker": "gemini:gemini-3.5-flash:k2",
+   "wrote": [],
+   "error": "no allowed files in output"
+  },
+  {
+   "n": 3,
+   "worker": "gemini:gemini-3.5-flash:k9",
+   "wrote": [
+    "src/sim/game.js"
+   ],
+   "validate_rc": 1,
+   "validate_out": "Could not find 'tests/game.test.mjs'\n"
+  }
+ ],
+ "status": "failed"
+}

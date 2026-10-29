@@ -1,0 +1,210 @@
+=== FILE: src/render/renderer.js ===
+import { TILE, T, BUILDINGS } from '../sim/defs.js';
+import { terrainSprite, settlerSprite } from './sprites.js';
+
+/**
+ * Harrow Settlers - Renderer
+ * Handles high-performance Canvas2D rendering, camera, and input.
+ */
+export class Renderer {
+  constructor(canvas, game, sprites) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { alpha: false });
+    this.game = game;
+    this.sprites = sprites;
+
+    this.camX = game.world.start.x * TILE - 100;
+    this.camY = game.world.start.y * TILE - 100;
+    this.zoom = 2;
+    this.targetZoom = 2;
+    this.dpr = window.devicePixelRatio || 1;
+
+    this.ghost = null; // { type, x, y }
+    this.selectedId = null;
+    this.particles = [];
+    this.chunkSize = 16; // tiles per chunk
+    this.chunks = []; // { canvas, ctx, dirty }
+    this.initChunks();
+
+    this.keys = new Set();
+    this.mouse = { x: 0, y: 0, down: false, lastX: 0, lastY: 0, moved: false };
+    this.setupInput();
+    this.resize();
+  }
+
+  initChunks() {
+    const cw = Math.ceil(this.game.world.w / this.chunkSize);
+    const ch = Math.ceil(this.game.world.h / this.chunkSize);
+    for (let cy = 0; cy < ch; cy++) {
+      for (let cx = 0; cx < cw; cx++) {
+        const can = document.createElement('canvas');
+        can.width = can.height = this.chunkSize * TILE;
+        this.chunks.push({ canvas: can, ctx: can.getContext('2d'), dirty: true });
+      }
+    }
+  }
+
+  setupInput() {
+    window.addEventListener('resize', () => this.resize());
+    window.addEventListener('keydown', (e) => this.keys.add(e.code));
+    window.addEventListener('keyup', (e) => this.keys.delete(e.code));
+    this.canvas.addEventListener('mousedown', (e) => {
+      this.mouse.down = true;
+      this.mouse.lastX = e.clientX;
+      this.mouse.lastY = e.clientY;
+      this.mouse.moved = false;
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (this.mouse.down) {
+        this.camX -= (e.clientX - this.mouse.lastX) / (this.zoom * this.dpr);
+        this.camY -= (e.clientY - this.mouse.lastY) / (this.zoom * this.dpr);
+        this.mouse.moved = true;
+      }
+      this.mouse.x = e.clientX;
+      this.mouse.y = e.clientY;
+      this.mouse.lastX = e.clientX;
+      this.mouse.lastY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => (this.mouse.down = false));
+    this.canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.targetZoom = Math.max(1, Math.min(4, this.targetZoom + (e.deltaY < 0 ? 1 : -1)));
+    }, { passive: false });
+  }
+
+  resize() {
+    this.canvas.width = window.innerWidth * this.dpr;
+    this.canvas.height = window.innerHeight * this.dpr;
+    this.ctx.imageSmoothingEnabled = false;
+  }
+
+  setGhost(type) {
+    this.ghost = type ? { type, x: 0, y: 0 } : null;
+  }
+
+  setSelected(id) {
+    this.selectedId = id;
+  }
+
+  screenToTile(sx, sy) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = (sx - rect.left) * this.dpr;
+    const y = (sy - rect.top) * this.dpr;
+    return {
+      x: Math.floor((x / (this.zoom * this.dpr) + this.camX) / TILE),
+      y: Math.floor((y / (this.zoom * this.dpr) + this.camY) / TILE)
+    };
+  }
+
+  tileToScreen(tx, ty) {
+    return {
+      x: (tx * TILE - this.camX) * this.zoom * this.dpr,
+      y: (ty * TILE - this.camY) * this.zoom * this.dpr
+    };
+  }
+
+  update(dt) {
+    // Camera keyboard movement
+    const speed = 300 * dt / this.zoom;
+    if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) this.camY -= speed;
+    if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) this.camY += speed;
+    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) this.camX -= speed;
+    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) this.camX += speed;
+
+    // Smooth zoom
+    this.zoom += (this.targetZoom - this.zoom) * 0.15;
+
+    // Clamp camera
+    const margin = 100;
+    this.camX = Math.max(-margin, Math.min(this.game.world.w * TILE - (this.canvas.width / this.dpr / this.zoom) + margin, this.camX));
+    this.camY = Math.max(-margin, Math.min(this.game.world.h * TILE - (this.canvas.height / this.dpr / this.zoom) + margin, this.camY));
+
+    // Update ghost position
+    if (this.ghost) {
+      const t = this.screenToTile(this.mouse.x, this.mouse.y);
+      this.ghost.x = t.x;
+      this.ghost.y = t.y;
+    }
+
+    // Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.y -= p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+
+    // Spawn smoke
+    this.game.buildings.forEach(b => {
+      if (b.working && Math.random() < 0.05) {
+        const def = BUILDINGS[b.type];
+        this.particles.push({
+          x: (b.x + def.size[0] / 2) * TILE + (Math.random() - 0.5) * 8,
+          y: b.y * TILE,
+          vy: 15 + Math.random() * 10,
+          life: 1.5 + Math.random(),
+          size: 2 + Math.random() * 3
+        });
+      }
+    });
+  }
+
+  render() {
+    const { ctx, canvas, dpr, zoom, game } = this;
+    ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, -this.camX * dpr * zoom, -this.camY * dpr * zoom);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(this.camX, this.camY, canvas.width / (dpr * zoom), canvas.height / (dpr * zoom));
+
+    this.drawTerrain();
+    this.drawRoads();
+    this.drawTerritory();
+    this.drawYSorted();
+    this.drawParticles();
+    if (this.ghost) this.drawGhost();
+    this.drawDayNight();
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  drawTerrain() {
+    const { game, chunkSize, chunks, camX, camY, canvas, dpr, zoom } = this;
+    const cw = Math.ceil(game.world.w / chunkSize);
+    const viewW = canvas.width / (dpr * zoom);
+    const viewH = canvas.height / (dpr * zoom);
+
+    const startX = Math.floor(Math.max(0, camX) / (chunkSize * TILE));
+    const endX = Math.floor(Math.min(game.world.w * TILE, camX + viewW) / (chunkSize * TILE));
+    const startY = Math.floor(Math.max(0, camY) / (chunkSize * TILE));
+    const endY = Math.floor(Math.min(game.world.h * TILE, camY + viewH) / (chunkSize * TILE));
+
+    const waterFrame = Math.floor(game.time * 1.5) % 2 + 1;
+
+    for (let cy = startY; cy <= endY; cy++) {
+      for (let cx = startX; cx <= endX; cx++) {
+        const chunk = chunks[cy * cw + cx];
+        // Redraw chunk if dirty or if it contains water (animated)
+        let needsRedraw = chunk.dirty;
+        if (!needsRedraw) {
+          // Check for water in chunk - simplified: always redraw if water exists in world
+          needsRedraw = true; 
+        }
+
+        if (needsRedraw) {
+          const cctx = chunk.ctx;
+          cctx.clearRect(0, 0, chunkSize * TILE, chunkSize * TILE);
+          for (let ty = 0; ty < chunkSize; ty++) {
+            for (let tx = 0; tx < chunkSize; tx++) {
+              const wx = cx * chunkSize + tx;
+              const wy = cy * chunkSize + ty;
+              if (wx >= game.world.w || wy >= game.world.h) continue;
+              const idx = wy * game.world.w + wx;
+              const type = game.world.terrain[idx];
+              let name = terrainSprite(type, wx, wy);
+              if (type === T.WATER || type === T.DEEP) name = `tile_water_${waterFrame}`;
+              this.sprites.draw(cctx, name, tx * TILE, ty * TILE);
+              
+              const d = game.world.deco[idx];
+              if (d > 0) this.sprites.draw(cctx, `deco_${d}`, tx * TILE, ty * TILE);
+            }
+          }
+          chunk.dirty = false

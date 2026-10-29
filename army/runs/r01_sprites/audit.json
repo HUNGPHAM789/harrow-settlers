@@ -1,0 +1,15 @@
+{
+ "id": "r01_sprites",
+ "scores": [
+  7,
+  7,
+  6
+ ],
+ "best": 7,
+ "final": "needs-lead-review",
+ "issues": [
+  "Fix canvas tinting in Sprites.draw: using globalCompositeOperation = 'source-atop' directly on the main rendering context tints background pixels already rendered on the canvas. Perform tinting on an offscreen canvas or temp buffer before compositing onto ctx.",
+  "Fix memory leak in loadImageFile: call URL.revokeObjectURL(src) inside Image.onload and Image.onerror when falling back to HTMLImageElement creation.",
+  "Normalize asset loading paths in loadSprites to cleanly handle root-relative web paths (e.g., '/assets/sprites/...') as public/ is usually stripped by web servers/bundlers at runtime."
+ ]
+}

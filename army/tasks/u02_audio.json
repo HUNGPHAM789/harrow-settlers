@@ -1,0 +1,21 @@
+{
+ "id": "u02_audio",
+ "worker": "gemini",
+ "model": "gemini-3.8-flash",
+ "objective": "Implement src/audio/audio.js (class Audio) per ARCH.md: WebAudio synthesized sfx (place, build_done, click, error, chop, mine, victory, born, warn) - make them pleasant (envelopes, filtered noise, small chords), plus gentle generative ambient music loop (pentatonic pads + soft pluck arpeggios, slowly evolving, low volume) and ambient nature noise. Methods: unlockOnGesture(), play(name,{volume?,pan?}), setMuted(b), isMuted(), setMusicVolume, setSfxVolume, persist mute in localStorage. Never throw if AudioContext unavailable. Rate-limit repeated sfx.",
+ "outputs": [
+  "src/audio/audio.js"
+ ],
+ "acceptance": [
+  "pleasant, not harsh",
+  "no clicks/pops"
+ ],
+ "validate": [
+  "node --check src/audio/audio.js"
+ ],
+ "context": [
+  "ARCH.md",
+  "src/sim/defs.js"
+ ],
+ "max_attempts": 3
+}

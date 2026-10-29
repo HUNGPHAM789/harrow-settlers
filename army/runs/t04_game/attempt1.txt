@@ -1,0 +1,1132 @@
+=== FILE: src/sim/game.js ===
+import { generateWorld, idx, inBounds } from './world.js';
+import { findPath } from './pathfind.js';
+import { TILE, T, WALKABLE, BUILDABLE, GOODS, BUILDINGS, START_STOCK, SETTLER_FOOD_PER_MIN } from './defs.js';
+import { mulberry32 } from '../util/rng.js';
+
+/**
+ * Creates a stateful PRNG wrapper that supports query/restore of call count and state.
+ * @param {number} seed
+ * @returns {Function & { getCalls: () => number, getState: () => number, setState: (s: number, c: number) => void }}
+ */
+function createRNG(seed) {
+  let s = (seed >>> 0) || 12345;
+  let calls = 0;
+  function rng() {
+    calls++;
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  rng.getCalls = () => calls;
+  rng.getState = () => s;
+  rng.setState = (st, c) => {
+    s = st >>> 0;
+    calls = c;
+  };
+  return rng;
+}
+
+/**
+ * Headless simulation logic engine for Harrow Settlers.
+ */
+export class Game {
+  /**
+   * @param {{ seed?: number, world?: any }} [opts={}]
+   */
+  constructor(opts = {}) {
+    this.seed = opts.seed ?? 12345;
+    this.rng = createRNG(this.seed);
+    this.world = opts.world ?? generateWorld(this.seed);
+
+    this.time = 0;
+    this.speed = 1;
+    this.nextBuildingId = 0;
+    this.nextSettlerId = 0;
+
+    this.stock = {};
+    for (const g of GOODS) {
+      this.stock[g] = 0;
+    }
+    Object.assign(this.stock, START_STOCK);
+
+    const mapSize = this.world.w * this.world.h;
+    this.roads = new Uint8Array(mapSize);
+    this.territory = new Uint8Array(mapSize);
+
+    this.buildings = [];
+    this.settlers = [];
+    this.saplings = [];
+    this.events = [];
+
+    this.stats = {
+      pop: 0,
+      housing: 0,
+      foodPerMin: 0,
+      produced: {},
+      victory: false,
+      victoryTime: null
+    };
+    for (const g of GOODS) {
+      this.stats.produced[g] = 0;
+    }
+
+    this.foodAccumulator = 0;
+    this.starveTimer = 0;
+    this.birthTimer = 0;
+
+    // Spawn HQ
+    const hqX = this.world.start.x;
+    const hqY = this.world.start.y;
+    const hqDef = BUILDINGS.hq;
+
+    const hq = {
+      id: ++this.nextBuildingId,
+      type: 'hq',
+      x: hqX,
+      y: hqY,
+      state: 'active',
+      progress: 1,
+      inv: {},
+      out: {},
+      workers: [],
+      cycleT: 0,
+      working: false
+    };
+    this.buildings.push(hq);
+
+    this.recomputeTerritory();
+
+    // Spawn starting settlers at HQ door
+    const doorX = hqX + hqDef.door[0];
+    const doorY = hqY + hqDef.door[1];
+    for (let i = 0; i < 4; i++) {
+      this.settlers.push({
+        id: ++this.nextSettlerId,
+        x: doorX,
+        y: doorY,
+        role: 'idle',
+        state: 'idle',
+        path: [],
+        carry: null,
+        home: hq.id,
+        job: null,
+        dir: 'd',
+        stuckTimer: 0,
+        targetGood: null,
+        targetTile: null
+      });
+    }
+
+    this.updateStats();
+  }
+
+  /**
+   * Recomputes owned territory based on HQ and active watchtowers.
+   */
+  recomputeTerritory() {
+    const w = this.world.w;
+    const h = this.world.h;
+    this.territory.fill(0);
+
+    for (const b of this.buildings) {
+      const def = BUILDINGS[b.type];
+      if (!def || !def.radius) continue;
+      if (b.type !== 'hq' && b.state !== 'active') continue;
+
+      const r = def.radius;
+      const cx = b.x + def.size[0] / 2;
+      const cy = b.y + def.size[1] / 2;
+
+      const minX = Math.max(0, Math.floor(cx - r));
+      const maxX = Math.min(w - 1, Math.ceil(cx + r));
+      const minY = Math.max(0, Math.floor(cy - r));
+      const maxY = Math.min(h - 1, Math.ceil(cy + r));
+
+      for (let ty = minY; ty <= maxY; ty++) {
+        for (let tx = minX; tx <= maxX; tx++) {
+          const dx = tx + 0.5 - cx;
+          const dy = ty + 0.5 - cy;
+          if (dx * dx + dy * dy <= r * r) {
+            this.territory[idx(w, tx, ty)] = 1;
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates housing, population, and food rates.
+   */
+  updateStats() {
+    let housing = 0;
+    for (const b of this.buildings) {
+      if (b.state === 'active') {
+        const def = BUILDINGS[b.type];
+        if (def && typeof def.pop === 'number') {
+          housing += def.pop;
+        }
+      }
+    }
+    this.stats.housing = housing;
+    this.stats.pop = this.settlers.length;
+    this.stats.foodPerMin = this.stats.pop * SETTLER_FOOD_PER_MIN;
+  }
+
+  /**
+   * Checks if a tile is inside any building's footprint.
+   */
+  isTileOccupied(tx, ty, ignoreId = null) {
+    for (const b of this.buildings) {
+      if (ignoreId !== null && b.id === ignoreId) continue;
+      const def = BUILDINGS[b.type];
+      if (!def) continue;
+      const [bw, bh] = def.size;
+      if (tx >= b.x && tx < b.x + bw && ty >= b.y && ty < b.y + bh) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Pathfind helper from integer coords (sx, sy) to (tx, ty).
+   */
+  findSettlerPath(sx, sy, tx, ty) {
+    const startX = Math.round(sx);
+    const startY = Math.round(sy);
+    const targetX = Math.round(tx);
+    const targetY = Math.round(ty);
+
+    if (startX === targetX && startY === targetY) return [];
+
+    return findPath(this.world, startX, startY, targetX, targetY, {
+      blocked: (x, y) => {
+        if (x === targetX && y === targetY) return false;
+        if (!inBounds(this.world, x, y)) return true;
+        if (!WALKABLE[this.world.terrain[idx(this.world.w, x, y)]]) return true;
+        return this.isTileOccupied(x, y);
+      }
+    });
+  }
+
+  /**
+   * Validates whether a building can be placed at (x, y).
+   * @param {string} type
+   * @param {number} x
+   * @param {number} y
+   * @returns {{ ok: boolean, reason?: string }}
+   */
+  canPlace(type, x, y) {
+    const def = BUILDINGS[type];
+    if (!def) return { ok: false, reason: 'Unknown building type' };
+
+    if (def.cost) {
+      for (const [g, qty] of Object.entries(def.cost)) {
+        if ((this.stock[g] || 0) < qty) {
+          return { ok: false, reason: `Not enough ${g}` };
+        }
+      }
+    }
+
+    const [bw, bh] = def.size;
+    for (let dy = 0; dy < bh; dy++) {
+      for (let dx = 0; dx < bw; dx++) {
+        const tx = x + dx;
+        const ty = y + dy;
+        if (!inBounds(this.world, tx, ty)) {
+          return { ok: false, reason: 'Outside map bounds' };
+        }
+        const i = idx(this.world.w, tx, ty);
+        if (!BUILDABLE[this.world.terrain[i]]) {
+          return { ok: false, reason: 'Terrain not buildable' };
+        }
+        if (this.territory[i] !== 1) {
+          return { ok: false, reason: 'Outside owned territory' };
+        }
+        if (this.isTileOccupied(tx, ty)) {
+          return { ok: false, reason: 'Tile occupied' };
+        }
+      }
+    }
+
+    if (def.needs === 'tree') {
+      if (!this.findNearestMatureTree(x, y, bw, bh, 6)) {
+        return { ok: false, reason: 'No mature tree nearby' };
+      }
+    } else if (def.needs === 'rock') {
+      if (!this.findNearestRock(x, y, bw, bh, 6)) {
+        return { ok: false, reason: 'No rock nearby' };
+      }
+    } else if (def.needs === 'water') {
+      if (!this.findNearestWater(x, y, bw, bh, 4)) {
+        return { ok: false, reason: 'No water nearby' };
+      }
+    } else if (def.needs === 'mountain') {
+      if (!this.findNearestMountain(x, y, bw, bh, 4)) {
+        return { ok: false, reason: 'No mountain nearby' };
+      }
+    }
+
+    return { ok: true };
+  }
+
+  /**
+   * Places a building of type at (x, y).
+   * @param {string} type
+   * @param {number} x
+   * @param {number} y
+   * @returns {{ ok: boolean, reason?: string, id?: number }}
+   */
+  place(type, x, y) {
+    const res = this.canPlace(type, x, y);
+    if (!res.ok) return res;
+
+    const def = BUILDINGS[type];
+    for (const [g, qty] of Object.entries(def.cost || {})) {
+      this.stock[g] -= qty;
+    }
+
+    const id = ++this.nextBuildingId;
+    const b = {
+      id,
+      type,
+      x,
+      y,
+      state: 'queued',
+      progress: 0,
+      inv: {},
+      out: {},
+      workers: [],
+      cycleT: 0,
+      working: false
+    };
+    this.buildings.push(b);
+
+    const hq = this.buildings.find(item => item.type === 'hq');
+    if (hq) {
+      const hqDef = BUILDINGS.hq;
+      const hqDoor = [hq.x + hqDef.door[0], hq.y + hqDef.door[1]];
+      const bDoor = [x + def.door[0], y + def.door[1]];
+      const p = this.findSettlerPath(hqDoor[0], hqDoor[1], bDoor[0], bDoor[1]);
+      if (!p) {
+        this.events.push({
+          t: this.time,
+          kind: 'warn',
+          text: `Building ${def.name} door is unreachable!`,
+          x: bDoor[0],
+          y: bDoor[1]
+        });
+      }
+    }
+
+    return { ok: true, id };
+  }
+
+  /**
+   * Demolishes building with given ID. Refunds 50% (floor) of cost.
+   * @param {number} id
+   * @returns {{ ok: boolean, reason?: string }}
+   */
+  demolish(id) {
+    const bIdx = this.buildings.findIndex(b => b.id === id);
+    if (bIdx === -1) return { ok: false, reason: 'Building not found' };
+
+    const b = this.buildings[bIdx];
+    if (b.type === 'hq') return { ok: false, reason: 'Cannot demolish Castle' };
+
+    const def = BUILDINGS[b.type];
+    if (def && def.cost) {
+      for (const [g, qty] of Object.entries(def.cost)) {
+        const refund = Math.floor(qty * 0.5);
+        this.stock[g] = (this.stock[g] || 0) + refund;
+      }
+    }
+
+    for (const s of this.settlers) {
+      if (s.job === id || s.home === id) {
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        s.path = [];
+        s.carry = null;
+      }
+    }
+
+    this.buildings.splice(bIdx, 1);
+
+    if (b.type === 'tower') {
+      this.recomputeTerritory();
+    }
+
+    this.updateStats();
+    return { ok: true };
+  }
+
+  /**
+   * Paints or removes a road tile at (x, y).
+   * @param {number} x
+   * @param {number} y
+   * @param {boolean} [on=true]
+   * @returns {boolean}
+   */
+  paintRoad(x, y, on = true) {
+    if (!inBounds(this.world, x, y)) return false;
+    const i = idx(this.world.w, x, y);
+    if (!WALKABLE[this.world.terrain[i]]) return false;
+    if (this.territory[i] !== 1) return false;
+    this.roads[i] = on ? 1 : 0;
+    return true;
+  }
+
+  /**
+   * Drains and returns all pending events.
+   * @returns {Array<{t: number, kind: string, text: string, x?: number, y?: number}>}
+   */
+  drainEvents() {
+    const evs = this.events;
+    this.events = [];
+    return evs;
+  }
+
+  // --- Resource Search Helpers ---
+
+  findNearestMatureTree(bx, by, bw, bh, maxR = 6) {
+    let best = null;
+    let minD = Infinity;
+    const cx = bx + bw / 2;
+    const cy = by + bh / 2;
+    for (let dy = -maxR; dy <= bh + maxR; dy++) {
+      for (let dx = -maxR; dx <= bw + maxR; dx++) {
+        const tx = bx + dx;
+        const ty = by + dy;
+        if (inBounds(this.world, tx, ty)) {
+          const i = idx(this.world.w, tx, ty);
+          if (this.world.tree[i] === 2) {
+            const d = Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy);
+            if (d <= maxR && d < minD) {
+              minD = d;
+              best = { x: tx, y: ty };
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  findNearestRock(bx, by, bw, bh, maxR = 6) {
+    let best = null;
+    let minD = Infinity;
+    const cx = bx + bw / 2;
+    const cy = by + bh / 2;
+    for (let dy = -maxR; dy <= bh + maxR; dy++) {
+      for (let dx = -maxR; dx <= bw + maxR; dx++) {
+        const tx = bx + dx;
+        const ty = by + dy;
+        if (inBounds(this.world, tx, ty)) {
+          const i = idx(this.world.w, tx, ty);
+          if (this.world.rock[i] > 0 || this.world.terrain[i] === T.ROCK) {
+            const d = Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy);
+            if (d <= maxR && d < minD) {
+              minD = d;
+              best = { x: tx, y: ty };
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  findNearestWater(bx, by, bw, bh, maxR = 4) {
+    let best = null;
+    let minD = Infinity;
+    const cx = bx + bw / 2;
+    const cy = by + bh / 2;
+    for (let dy = -maxR; dy <= bh + maxR; dy++) {
+      for (let dx = -maxR; dx <= bw + maxR; dx++) {
+        const tx = bx + dx;
+        const ty = by + dy;
+        if (inBounds(this.world, tx, ty)) {
+          const i = idx(this.world.w, tx, ty);
+          const ter = this.world.terrain[i];
+          if (ter === T.WATER || ter === T.DEEP || this.world.fish[i] > 0) {
+            const d = Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy);
+            if (d <= maxR && d < minD) {
+              minD = d;
+              best = { x: tx, y: ty };
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  findNearestMountain(bx, by, bw, bh, maxR = 4) {
+    let best = null;
+    let minD = Infinity;
+    const cx = bx + bw / 2;
+    const cy = by + bh / 2;
+    for (let dy = -maxR; dy <= bh + maxR; dy++) {
+      for (let dx = -maxR; dx <= bw + maxR; dx++) {
+        const tx = bx + dx;
+        const ty = by + dy;
+        if (inBounds(this.world, tx, ty)) {
+          const i = idx(this.world.w, tx, ty);
+          const ter = this.world.terrain[i];
+          if (ter === T.MOUNTAIN || this.world.ore[i] > 0) {
+            const d = Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy);
+            if (d <= maxR && d < minD) {
+              minD = d;
+              best = { x: tx, y: ty };
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  findPlantingTile(bx, by, bw, bh, maxR = 6) {
+    let best = null;
+    let minD = Infinity;
+    const cx = bx + bw / 2;
+    const cy = by + bh / 2;
+    for (let dy = -maxR; dy <= bh + maxR; dy++) {
+      for (let dx = -maxR; dx <= bw + maxR; dx++) {
+        const tx = bx + dx;
+        const ty = by + dy;
+        if (inBounds(this.world, tx, ty)) {
+          const i = idx(this.world.w, tx, ty);
+          const ter = this.world.terrain[i];
+          if ((ter === T.GRASS || ter === T.FOREST_FLOOR) && this.world.tree[i] === 0) {
+            if (!this.isTileOccupied(tx, ty) && this.roads[i] === 0) {
+              const d = Math.hypot(tx + 0.5 - cx, ty + 0.5 - cy);
+              if (d <= maxR && d < minD) {
+                minD = d;
+                best = { x: tx, y: ty };
+              }
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  // --- Main Tick Logic ---
+
+  /**
+   * Advances simulation by `dt` seconds.
+   * @param {number} dt Sim seconds (dt <= 0.25 recommended)
+   */
+  tick(dt) {
+    if (dt <= 0) return;
+    const effectiveDt = dt * (this.speed || 1);
+    this.time += effectiveDt;
+
+    const w = this.world.w;
+    const hq = this.buildings.find(b => b.type === 'hq');
+    const hqDef = BUILDINGS.hq;
+    const hqDoor = hq ? [hq.x + hqDef.door[0], hq.y + hqDef.door[1]] : [0, 0];
+
+    // Sapling maturation
+    for (let i = this.saplings.length - 1; i >= 0; i--) {
+      const sap = this.saplings[i];
+      sap.timer += effectiveDt;
+      if (sap.timer >= 90) {
+        this.world.tree[idx(w, sap.x, sap.y)] = 2; // mature
+        this.saplings.splice(i, 1);
+      }
+    }
+
+    // Housing & Stats
+    this.updateStats();
+
+    // Food consumption
+    this.foodAccumulator += effectiveDt * (this.stats.pop * SETTLER_FOOD_PER_MIN / 60);
+    while (this.foodAccumulator >= 1) {
+      if (this.stock.bread > 0) {
+        this.stock.bread--;
+        this.foodAccumulator--;
+      } else if (this.stock.fish > 0) {
+        this.stock.fish--;
+        this.foodAccumulator--;
+      } else {
+        break;
+      }
+    }
+
+    // Starvation
+    if ((this.stock.bread || 0) <= 0 && (this.stock.fish || 0) <= 0) {
+      this.starveTimer += effectiveDt;
+      if (this.starveTimer >= 20) {
+        this.starveTimer -= 20;
+        if (this.settlers.length > 2) {
+          const removed = this.settlers.pop();
+          this.events.push({
+            t: this.time,
+            kind: 'starve',
+            text: 'A settler starved to death!',
+            x: Math.floor(removed.x),
+            y: Math.floor(removed.y)
+          });
+          this.updateStats();
+        }
+      }
+    } else {
+      this.starveTimer = 0;
+    }
+
+    // Births
+    this.birthTimer += effectiveDt;
+    if (this.birthTimer >= 25) {
+      this.birthTimer -= 25;
+      const foodTotal = (this.stock.fish || 0) + (this.stock.bread || 0);
+      if (this.stats.pop < this.stats.housing && foodTotal >= 2) {
+        if (hq) {
+          this.settlers.push({
+            id: ++this.nextSettlerId,
+            x: hqDoor[0],
+            y: hqDoor[1],
+            role: 'idle',
+            state: 'idle',
+            path: [],
+            carry: null,
+            home: hq.id,
+            job: null,
+            dir: 'd',
+            stuckTimer: 0,
+            targetGood: null,
+            targetTile: null
+          });
+          this.events.push({
+            t: this.time,
+            kind: 'born',
+            text: 'A new settler was born!',
+            x: hqDoor[0],
+            y: hqDoor[1]
+          });
+          this.updateStats();
+        }
+      }
+    }
+
+    // Job Assignment for Queued & Active Buildings
+    for (const b of this.buildings) {
+      const def = BUILDINGS[b.type];
+      if (!def) continue;
+
+      if (b.state === 'queued') {
+        const builder = this.settlers.find(s => s.job === b.id);
+        if (!builder) {
+          const idle = this.findNearestIdleSettler(b.x, b.y);
+          if (idle) {
+            idle.role = 'builder';
+            idle.job = b.id;
+            idle.state = 'walking_to_site';
+            const door = [b.x + def.door[0], b.y + def.door[1]];
+            idle.path = this.findSettlerPath(idle.x, idle.y, door[0], door[1]) || [];
+          }
+        }
+      } else if (b.state === 'active' && def.jobs) {
+        const assigned = this.settlers.filter(s => s.job === b.id);
+        while (assigned.length < def.jobs) {
+          const idle = this.findNearestIdleSettler(b.x, b.y);
+          if (!idle) break;
+          idle.role = 'worker';
+          idle.job = b.id;
+          idle.state = 'walking_to_job';
+          const door = [b.x + def.door[0], b.y + def.door[1]];
+          idle.path = this.findSettlerPath(idle.x, idle.y, door[0], door[1]) || [];
+          assigned.push(idle);
+        }
+      }
+    }
+
+    // Settler Updates
+    for (const s of this.settlers) {
+      this.updateSettler(s, effectiveDt, hqDoor);
+    }
+  }
+
+  findNearestIdleSettler(x, y) {
+    let best = null;
+    let minD = Infinity;
+    for (const s of this.settlers) {
+      if (s.role === 'idle') {
+        const d = Math.hypot(s.x - x, s.y - y);
+        if (d < minD) {
+          minD = d;
+          best = s;
+        }
+      }
+    }
+    return best;
+  }
+
+  updateSettler(s, dt, hqDoor) {
+    if (s.role !== 'idle' && s.path.length === 0 && s.state.startsWith('walking')) {
+      s.stuckTimer = (s.stuckTimer || 0) + dt;
+      if (s.stuckTimer > 10) {
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        s.path = [];
+        s.stuckTimer = 0;
+        return;
+      }
+    } else {
+      s.stuckTimer = 0;
+    }
+
+    // Move along path
+    if (s.path.length > 0) {
+      const target = s.path[0];
+      const dx = target.x - s.x;
+      const dy = target.y - s.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        s.dir = dx > 0 ? 'r' : 'l';
+      } else if (Math.abs(dy) > 0.001) {
+        s.dir = dy > 0 ? 'd' : 'u';
+      }
+
+      const isRoad = this.roads[idx(this.world.w, Math.floor(s.x), Math.floor(s.y))] === 1;
+      const speed = 2.0 * (isRoad ? 1.6 : 1.0);
+      const stepDist = speed * dt;
+
+      if (stepDist >= dist) {
+        s.x = target.x;
+        s.y = target.y;
+        s.path.shift();
+      } else {
+        s.x += (dx / dist) * stepDist;
+        s.y += (dy / dist) * stepDist;
+      }
+      return;
+    }
+
+    // Reached destination / Path empty
+    if (s.role === 'builder') {
+      const b = this.buildings.find(item => item.id === s.job);
+      if (!b || b.state === 'active') {
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        return;
+      }
+
+      const def = BUILDINGS[b.type];
+      const footprintArea = def.size[0] * def.size[1];
+      const totalBuildTime = Math.max(3, 6 * footprintArea / 4);
+
+      b.state = 'building';
+      b.progress += dt / totalBuildTime;
+      s.state = 'building';
+
+      if (b.progress >= 1) {
+        b.progress = 1;
+        b.state = 'active';
+        this.events.push({
+          t: this.time,
+          kind: 'built',
+          text: `${def.name} constructed!`,
+          x: b.x,
+          y: b.y
+        });
+
+        if (def.wonder) {
+          this.stats.victory = true;
+          this.stats.victoryTime = this.time;
+          this.events.push({
+            t: this.time,
+            kind: 'victory',
+            text: 'The Great Hall has been raised! Victory!'
+          });
+        }
+
+        if (b.type === 'tower') {
+          this.recomputeTerritory();
+        }
+
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        this.updateStats();
+      }
+    } else if (s.role === 'worker') {
+      const b = this.buildings.find(item => item.id === s.job);
+      if (!b || b.state !== 'active') {
+        s.role = 'idle';
+        s.state = 'idle';
+        s.job = null;
+        return;
+      }
+
+      const def = BUILDINGS[b.type];
+      const door = [b.x + def.door[0], b.y + def.door[1]];
+
+      // Raw gatherers
+      if (def.needs || def.plants || b.type === 'farm') {
+        if (s.state === 'walking_to_job') {
+          s.state = 'at_work';
+        }
+
+        if (s.state === 'at_work') {
+          if (b.type === 'woodcutter') {
+            const treeTile = this.findNearestMatureTree(b.x, b.y, def.size[0], def.size[1], 6);
+            if (treeTile) {
+              s.targetTile = treeTile;
+              s.state = 'walking_to_resource';
+              s.path = this.findSettlerPath(s.x, s.y, treeTile.x, treeTile.y) || [];
+            }
+          } else if (b.type === 'forester') {
+            const plantTile = this.findPlantingTile(b.x, b.y, def.size[0], def.size[1], 6);
+            if (plantTile) {
+              s.targetTile = plantTile;
+              s.state = 'walking_to_plant';
+              s.path = this.findSettlerPath(s.x, s.y, plantTile.x, plantTile.y) || [];
+            }
+          } else if (b.type === 'quarry') {
+            const rockTile = this.findNearestRock(b.x, b.y, def.size[0], def.size[1], 6);
+            if (rockTile) {
+              s.targetTile = rockTile;
+              s.state = 'walking_to_resource';
+              s.path = this.findSettlerPath(s.x, s.y, rockTile.x, rockTile.y) || [];
+            }
+          } else if (b.type === 'fisher') {
+            const waterTile = this.findNearestWater(b.x, b.y, def.size[0], def.size[1], 4);
+            if (waterTile) {
+              s.targetTile = waterTile;
+              s.state = 'walking_to_resource';
+              s.path = this.findSettlerPath(s.x, s.y, waterTile.x, waterTile.y) || [];
+            }
+          } else if (b.type === 'mine') {
+            const mtnTile = this.findNearestMountain(b.x, b.y, def.size[0], def.size[1], 4);
+            if (mtnTile) {
+              s.targetTile = mtnTile;
+              s.state = 'walking_to_resource';
+              s.path = this.findSettlerPath(s.x, s.y, mtnTile.x, mtnTile.y) || [];
+            }
+          } else if (b.type === 'farm') {
+            b.cycleT += dt;
+            b.working = true;
+            if (b.cycleT >= def.cycle) {
+              b.cycleT = 0;
+              b.working = false;
+              s.carry = 'wheat';
+              s.state = 'carrying_to_hq';
+              s.path = this.findSettlerPath(s.x, s.y, hqDoor[0], hqDoor[1]) || [];
+            }
+          }
+        } else if (s.state === 'walking_to_resource') {
+          if (b.type === 'woodcutter' && s.targetTile) {
+            this.world.tree[idx(this.world.w, s.targetTile.x, s.targetTile.y)] = 0;
+            s.carry = 'log';
+          } else if (b.type === 'quarry' && s.targetTile) {
+            const i = idx(this.world.w, s.targetTile.x, s.targetTile.y);
+            if (this.world.rock[i] > 0) this.world.rock[i]--;
+            s.carry = 'stone';
+          } else if (b.type === 'fisher' && s.targetTile) {
+            const i = idx(this.world.w, s.targetTile.x, s.targetTile.y);
+            if (this.world.fish[i] > 0) this.world.fish[i]--;
+            s.carry = 'fish';
+          } else if (b.type === 'mine' && s.targetTile) {
+            const i = idx(this.world.w, s.targetTile.x, s.targetTile.y);
+            if (this.world.ore[i] > 0) this.world.ore[i]--;
+            s.carry = 'ore';
+          }
+          s.targetTile = null;
+          s.state = 'carrying_to_hq';
+          s.path = this.findSettlerPath(s.x, s.y, hqDoor[0], hqDoor[1]) || [];
+        } else if (s.state === 'walking_to_plant') {
+          if (s.targetTile) {
+            this.world.tree[idx(this.world.w, s.targetTile.x, s.targetTile.y)] = 1; // sapling
+            this.saplings.push({ x: s.targetTile.x, y: s.targetTile.y, timer: 0 });
+          }
+          s.targetTile = null;
+          s.state = 'walking_to_job';
+          s.path = this.findSettlerPath(s.x, s.y, door[0], door[1]) || [];
+        } else if (s.state === 'carrying_to_hq') {
+          if (s.carry) {
+            this.stock[s.carry] = (this.stock[s.carry] || 0) + 1;
+            this.stats.produced[s.carry] = (this.stats.produced[s.carry] || 0) + 1;
+            s.carry = null;
+          }
+          s.state = 'walking_to_job';
+          s.path = this.findSettlerPath(s.x, s.y, door[0], door[1]) || [];
+        }
+      } else if (def.in) {
+        // Processing buildings
+        let missingInput = null;
+        for (const [inGood, qty] of Object.entries(def.in)) {
+          if ((b.inv[inGood] || 0) < qty) {
+            missingInput = inGood;
+            break;
+          }
+        }
+
+        if (s.state === 'walking_to_job') {
+          s.state = 'at_work';
+        }
+
+        if (s.state === 'at_work') {
+          if (missingInput) {
+            if ((this.stock[missingInput] || 0) > 0) {
+              this.stock[missingInput]--;
+              s.targetGood = missingInput;
+              s.state = 'walking_to_hq_for_input';
+              s.path = this.findSettlerPath(s.x, s.y, hqDoor[0], hqDoor[1]) || [];
+            }
+          } else {
+            // All inputs present, produce cycle
+            for (const [inGood, qty] of Object.entries(def.in)) {
+              b.inv[inGood] -= qty;
+            }
+            s.state = 'producing';
+            b.cycleT = 0;
+            b.working = true;
+          }
+        } else if (s.state === 'walking_to_hq_for_input') {
+          s.carry = s.targetGood;
+          s.targetGood = null;
+          s.state = 'carrying_input_to_job';
+          s.path = this.findSettlerPath(s.x, s.y, door[0], door[1]) || [];
+        } else if (s.state === 'carrying_input_to_job') {
+          if (s.carry) {
+            b.inv[s.carry] = (b.inv[s.carry] || 0) + 1;
+            s.carry = null;
+          }
+          s.state = 'at_work';
+        } else if (s.state === 'producing') {
+          b.cycleT += dt;
+          b.working = true;
+          if (b.cycleT >= def.cycle) {
+            b.cycleT = 0;
+            b.working = false;
+            let outGood = null;
+            if (def.out) {
+              for (const [g, qty] of Object.entries(def.out)) {
+                b.out[g] = (b.out[g] || 0) + qty;
+                outGood = g;
+              }
+            }
+            if (outGood && b.out[outGood] > 0) {
+              b.out[outGood]--;
+              s.carry = outGood;
+              s.state = 'carrying_to_hq';
+              s.path = this.findSettlerPath(s.x, s.y, hqDoor[0], hqDoor[1]) || [];
+            } else {
+              s.state = 'at_work';
+            }
+          }
+        } else if (s.state === 'carrying_to_hq') {
+          if (s.carry) {
+            this.stock[s.carry] = (this.stock[s.carry] || 0) + 1;
+            this.stats.produced[s.carry] = (this.stats.produced[s.carry] || 0) + 1;
+            s.carry = null;
+          }
+          s.state = 'walking_to_job';
+          s.path = this.findSettlerPath(s.x, s.y, door[0], door[1]) || [];
+        }
+      }
+    }
+  }
+
+  /**
+   * Serializes full game state to JSON object.
+   */
+  toJSON() {
+    return {
+      seed: this.seed,
+      rngState: this.rng.getState(),
+      rngCalls: this.rng.getCalls(),
+      time: this.time,
+      speed: this.speed,
+      nextBuildingId: this.nextBuildingId,
+      nextSettlerId: this.nextSettlerId,
+      world: {
+        w: this.world.w,
+        h: this.world.h,
+        seed: this.world.seed,
+        start: this.world.start,
+        terrain: Array.from(this.world.terrain),
+        tree: Array.from(this.world.tree),
+        rock: Array.from(this.world.rock),
+        ore: Array.from(this.world.ore),
+        fish: Array.from(this.world.fish),
+        deco: Array.from(this.world.deco)
+      },
+      roads: Array.from(this.roads),
+      territory: Array.from(this.territory),
+      stock: { ...this.stock },
+      buildings: JSON.parse(JSON.stringify(this.buildings)),
+      settlers: JSON.parse(JSON.stringify(this.settlers)),
+      saplings: JSON.parse(JSON.stringify(this.saplings)),
+      events: JSON.parse(JSON.stringify(this.events)),
+      stats: JSON.parse(JSON.stringify(this.stats)),
+      foodAccumulator: this.foodAccumulator,
+      starveTimer: this.starveTimer,
+      birthTimer: this.birthTimer
+    };
+  }
+
+  /**
+   * Deserializes a Game instance from JSON object.
+   * @param {object} obj
+   * @returns {Game}
+   */
+  static fromJSON(obj) {
+    const game = Object.create(Game.prototype);
+    game.seed = obj.seed;
+    game.rng = createRNG(obj.seed);
+    game.rng.setState(obj.rngState, obj.rngCalls);
+    game.time = obj.time;
+    game.speed = obj.speed;
+    game.nextBuildingId = obj.nextBuildingId;
+    game.nextSettlerId = obj.nextSettlerId;
+
+    game.world = {
+      w: obj.world.w,
+      h: obj.world.h,
+      seed: obj.world.seed,
+      start: obj.world.start,
+      terrain: new Uint8Array(obj.world.terrain),
+      tree: new Uint8Array(obj.world.tree),
+      rock: new Uint8Array(obj.world.rock),
+      ore: new Uint8Array(obj.world.ore),
+      fish: new Uint8Array(obj.world.fish),
+      deco: new Uint8Array(obj.world.deco)
+    };
+
+    game.roads = new Uint8Array(obj.roads);
+    game.territory = new Uint8Array(obj.territory);
+    game.stock = { ...obj.stock };
+    game.buildings = JSON.parse(JSON.stringify(obj.buildings));
+    game.settlers = JSON.parse(JSON.stringify(obj.settlers));
+    game.saplings = JSON.parse(JSON.stringify(obj.saplings));
+    game.events = JSON.parse(JSON.stringify(obj.events));
+    game.stats = JSON.parse(JSON.stringify(obj.stats));
+    game.foodAccumulator = obj.foodAccumulator;
+    game.starveTimer = obj.starveTimer;
+    game.birthTimer = obj.birthTimer;
+
+    return game;
+  }
+}
+=== END ===
+=== FILE: tests/game.test.mjs ===
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { Game } from '../src/sim/game.js';
+
+function findPlacement(game, type) {
+  const hq = game.buildings.find(b => b.type === 'hq');
+  for (let r = 1; r <= 10; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        const x = hq.x + dx;
+        const y = hq.y + dy;
+        const res = game.canPlace(type, x, y);
+        if (res.ok) return { x, y };
+      }
+    }
+  }
+  return null;
+}
+
+test('Game API initialization', () => {
+  const game = new Game({ seed: 12345 });
+  assert.ok(game.world, 'world exists');
+  assert.equal(game.buildings.length, 1, 'HQ placed');
+  assert.equal(game.settlers.length, 4, '4 starting settlers');
+  assert.equal(game.stock.log, 12);
+  assert.equal(game.stock.plank, 16);
+  assert.equal(game.stock.stone, 8);
+  assert.equal(game.stock.fish, 6);
+  assert.equal(game.stock.bread, 6);
+});
+
+test('canPlace reasons and demolish refund', () => {
+  const game = new Game({ seed: 12345 });
+  
+  // Invalid building
+  const invalid = game.canPlace('non_existent', 10, 10);
+  assert.equal(invalid.ok, false);
+  assert.ok(invalid.reason);
+
+  // Outside territory
+  const outside = game.canPlace('hut', 0, 0);
+  assert.equal(outside.ok, false);
+  assert.equal(outside.reason, 'Outside owned territory');
+
+  // Place a hut and test demolish refund
+  const spot = findPlacement(game, 'hut');
+  assert.ok(spot, 'found spot for hut');
+
+  const plankBefore = game.stock.plank;
+  const logBefore = game.stock.log;
+
+  const placed = game.place('hut', spot.x, spot.y);
+  assert.ok(placed.ok);
+  assert.equal(game.stock.plank, plankBefore - 2);
+  assert.equal(game.stock.log, logBefore - 1);
+
+  const demo = game.demolish(placed.id);
+  assert.ok(demo.ok);
+  assert.equal(game.stock.plank, plankBefore - 2 + Math.floor(2 * 0.5));
+  assert.equal(game.stock.log, logBefore - 1 + Math.floor(1 * 0.5));
+});
+
+test('Headless sim 600s: placement, production, pop growth, stability', () => {
+  const game = new Game({ seed: 999 });
+
+  const buildTypes = ['woodcutter', 'sawmill', 'quarry', 'fisher', 'hut', 'farm', 'mill', 'bakery'];
+  const placedIds = [];
+
+  for (const type of buildTypes) {
+    const spot = findPlacement(game, type);
+    assert.ok(spot, `Spot found for ${type}`);
+    const res = game.place(type, spot.x, spot.y);
+    assert.ok(res.ok, `Placed ${type}`);
+    placedIds.push(res.id);
+  }
+
+  const startTime = Date.now();
+  const dt = 0.25;
+  const totalSteps = 2400; // 600 sim seconds
+
+  for (let i = 0; i < totalSteps; i++) {
+    game.tick(dt);
+
+    // Verify no NaNs in state
+    for (const s of game.settlers) {
+      assert.ok(!Number.isNaN(s.x) && !Number.isNaN(s.y), 'Settler coords not NaN');
+    }
+    for (const b of game.buildings) {
+      assert.ok(!Number.isNaN(b.progress), 'Building progress not NaN');
+    }
+  }
+
+  const elapsedSec = (Date.now() - startTime) / 1000;
+  assert.ok(elapsedSec < 4.0, `Tick execution took ${elapsedSec}s, required < 4s`);
+
+  // Assert production / stats increase
+  assert.ok(game.stats.produced.log > 0, 'Produced logs');
+  assert.ok(game.stats.produced.plank > 0, 'Produced planks');
+  assert.ok(game.stats.produced.stone > 0, 'Produced stones');
+  assert.ok(game.stats.produced.fish > 0, 'Produced fish');
+  assert.ok(game.stats.pop > 4, 'Population grew due to hut');
+
+  // Verify settlers are not permanently stuck
+  for (const s of game.settlers) {
+    assert.ok(s.role === 'idle' || s.path.length > 0 || s.state !== 'walking_to_job', 'Settler not stuck');
+  }
+});
+
+test('Determinism (two
