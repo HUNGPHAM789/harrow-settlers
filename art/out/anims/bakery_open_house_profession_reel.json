@@ -1,0 +1,2374 @@
+{
+ "frames": {
+  "bakery_open_house_profession_reel_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_1": {
+   "frame": {
+    "x": 420,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_2": {
+   "frame": {
+    "x": 840,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_3": {
+   "frame": {
+    "x": 1260,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_4": {
+   "frame": {
+    "x": 1680,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_5": {
+   "frame": {
+    "x": 2100,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_6": {
+   "frame": {
+    "x": 2520,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_7": {
+   "frame": {
+    "x": 2940,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_8": {
+   "frame": {
+    "x": 3360,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_9": {
+   "frame": {
+    "x": 3780,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_10": {
+   "frame": {
+    "x": 4200,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_11": {
+   "frame": {
+    "x": 4620,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_12": {
+   "frame": {
+    "x": 5040,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_13": {
+   "frame": {
+    "x": 5460,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_14": {
+   "frame": {
+    "x": 5880,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_15": {
+   "frame": {
+    "x": 6300,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_16": {
+   "frame": {
+    "x": 6720,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_17": {
+   "frame": {
+    "x": 7140,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_18": {
+   "frame": {
+    "x": 7560,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_19": {
+   "frame": {
+    "x": 7980,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_20": {
+   "frame": {
+    "x": 8400,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_21": {
+   "frame": {
+    "x": 8820,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_22": {
+   "frame": {
+    "x": 9240,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_23": {
+   "frame": {
+    "x": 9660,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_24": {
+   "frame": {
+    "x": 10080,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_25": {
+   "frame": {
+    "x": 10500,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_26": {
+   "frame": {
+    "x": 10920,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_27": {
+   "frame": {
+    "x": 11340,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_28": {
+   "frame": {
+    "x": 11760,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_29": {
+   "frame": {
+    "x": 12180,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_30": {
+   "frame": {
+    "x": 12600,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_31": {
+   "frame": {
+    "x": 13020,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_32": {
+   "frame": {
+    "x": 13440,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_33": {
+   "frame": {
+    "x": 13860,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_34": {
+   "frame": {
+    "x": 14280,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_35": {
+   "frame": {
+    "x": 14700,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_36": {
+   "frame": {
+    "x": 15120,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_37": {
+   "frame": {
+    "x": 15540,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_38": {
+   "frame": {
+    "x": 15960,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_39": {
+   "frame": {
+    "x": 16380,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_40": {
+   "frame": {
+    "x": 16800,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_41": {
+   "frame": {
+    "x": 17220,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_42": {
+   "frame": {
+    "x": 17640,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_43": {
+   "frame": {
+    "x": 18060,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_44": {
+   "frame": {
+    "x": 18480,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_45": {
+   "frame": {
+    "x": 18900,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_46": {
+   "frame": {
+    "x": 19320,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_47": {
+   "frame": {
+    "x": 19740,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_48": {
+   "frame": {
+    "x": 20160,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_49": {
+   "frame": {
+    "x": 20580,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_50": {
+   "frame": {
+    "x": 21000,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_51": {
+   "frame": {
+    "x": 21420,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_52": {
+   "frame": {
+    "x": 21840,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_53": {
+   "frame": {
+    "x": 22260,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_54": {
+   "frame": {
+    "x": 22680,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_55": {
+   "frame": {
+    "x": 23100,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_56": {
+   "frame": {
+    "x": 23520,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_57": {
+   "frame": {
+    "x": 23940,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_58": {
+   "frame": {
+    "x": 24360,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_59": {
+   "frame": {
+    "x": 24780,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_60": {
+   "frame": {
+    "x": 25200,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_61": {
+   "frame": {
+    "x": 25620,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_62": {
+   "frame": {
+    "x": 26040,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_63": {
+   "frame": {
+    "x": 26460,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_64": {
+   "frame": {
+    "x": 26880,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_65": {
+   "frame": {
+    "x": 27300,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_66": {
+   "frame": {
+    "x": 27720,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_67": {
+   "frame": {
+    "x": 28140,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_68": {
+   "frame": {
+    "x": 28560,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_69": {
+   "frame": {
+    "x": 28980,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_70": {
+   "frame": {
+    "x": 29400,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_71": {
+   "frame": {
+    "x": 29820,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_72": {
+   "frame": {
+    "x": 30240,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_73": {
+   "frame": {
+    "x": 30660,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_74": {
+   "frame": {
+    "x": 31080,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_75": {
+   "frame": {
+    "x": 31500,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_76": {
+   "frame": {
+    "x": 31920,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_77": {
+   "frame": {
+    "x": 32340,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_78": {
+   "frame": {
+    "x": 32760,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_79": {
+   "frame": {
+    "x": 33180,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_80": {
+   "frame": {
+    "x": 33600,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_81": {
+   "frame": {
+    "x": 34020,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_82": {
+   "frame": {
+    "x": 34440,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_83": {
+   "frame": {
+    "x": 34860,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_84": {
+   "frame": {
+    "x": 35280,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_85": {
+   "frame": {
+    "x": 35700,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_86": {
+   "frame": {
+    "x": 36120,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_87": {
+   "frame": {
+    "x": 36540,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_88": {
+   "frame": {
+    "x": 36960,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_89": {
+   "frame": {
+    "x": 37380,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_90": {
+   "frame": {
+    "x": 37800,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_91": {
+   "frame": {
+    "x": 38220,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_92": {
+   "frame": {
+    "x": 38640,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_93": {
+   "frame": {
+    "x": 39060,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_94": {
+   "frame": {
+    "x": 39480,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_95": {
+   "frame": {
+    "x": 39900,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_96": {
+   "frame": {
+    "x": 40320,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_97": {
+   "frame": {
+    "x": 40740,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_98": {
+   "frame": {
+    "x": 41160,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_99": {
+   "frame": {
+    "x": 41580,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_100": {
+   "frame": {
+    "x": 42000,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_101": {
+   "frame": {
+    "x": 42420,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_102": {
+   "frame": {
+    "x": 42840,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_103": {
+   "frame": {
+    "x": 43260,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_104": {
+   "frame": {
+    "x": 43680,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_105": {
+   "frame": {
+    "x": 44100,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_106": {
+   "frame": {
+    "x": 44520,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_107": {
+   "frame": {
+    "x": 44940,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_108": {
+   "frame": {
+    "x": 45360,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_109": {
+   "frame": {
+    "x": 45780,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_110": {
+   "frame": {
+    "x": 46200,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  },
+  "bakery_open_house_profession_reel_111": {
+   "frame": {
+    "x": 46620,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 420,
+    "h": 240
+   },
+   "sourceSize": {
+    "w": 420,
+    "h": 240
+   },
+   "duration": 83
+  }
+ },
+ "meta": {
+  "app": "pxl",
+  "image": "bakery_open_house_profession_reel.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 47040,
+   "h": 240
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "bakery_open_house_profession_reel",
+    "from": 0,
+    "to": 111,
+    "direction": "forward"
+   }
+  ]
+ }
+}

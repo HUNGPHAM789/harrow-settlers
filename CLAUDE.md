@@ -1,0 +1,1 @@
+/Users/hungpham/projects/harrow-settlers/GEMINI.md

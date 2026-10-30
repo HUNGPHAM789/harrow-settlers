@@ -20,6 +20,9 @@ $$\text{Scale Ratio} = \frac{65\text{ px}}{1.80\text{ m}} \approx \mathbf{36\tex
 | **Single Storey Ceiling** | $3.00\text{ m}$ | **$108\text{ px}$** | Ample headroom with exposed rafters |
 | **Carried Resource Goods** | $0.50\text{ m}$ | **$18 - 22\text{ px}$** | Oak log, flour sack, iron ingot, bread |
 
+### 1.2. Approved Character Benchmark — Chibi Baker
+The baker in `delivery-evidence/chibi_baker_full_showcase.png` is the approved visual benchmark for the game's profession characters. Redraw the other professions to match this character's readable silhouette, expressive face, warm pixel shading, clean dark outline, grounded feet, and articulated pose quality. The current baker art uses a 66×78 px chibi canvas; preserve consistent head/body/limb proportions across professions while changing workwear, colors, tools, and gestures to communicate each job. Do not use the legacy 14×20 runtime settlers as the quality target. Keep the old sprites until each replacement has been reviewed and integrated.
+
 ---
 
 ## 2. ISOMETRIC TILE & GROUND PLANE GRID
