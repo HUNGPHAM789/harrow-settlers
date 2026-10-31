@@ -196,6 +196,86 @@ sprite("prop_bakery_sparrow_3q", { w: 34, h: 28 }, c => {
   c.px(7,22,P.flourL); c.px(5,23,P.oakHi); c.px(9,24,P.cream); c.px(11,22,P.gold)
 })
 
+// 6. Flour Barrel & Wheat Sack Prop (3/4 perspective with white flour & carved scoop)
+sprite("prop_bakery_flour_barrel_3q", { w: 56, h: 54 }, c => {
+  c.ellipse(28, 48, 24, 4, P.ink)
+  // Oak staved barrel on left
+  c.poly([8, 18, 26, 10, 38, 18, 20, 26], P.ink)
+  c.poly([8, 18, 20, 26, 20, 48, 8, 40], P.oak)
+  c.poly([20, 26, 38, 18, 38, 40, 20, 48], P.oakD)
+  // Iron hoops on barrel
+  c.line(8, 24, 20, 31, P.ironD, 2); c.line(20, 31, 38, 24, P.iron, 2)
+  c.line(8, 36, 20, 43, P.ironD, 2); c.line(20, 43, 38, 36, P.iron, 2)
+  // White flour heaping inside barrel
+  c.ellipse(22, 18, 13, 7, P.ink)
+  c.ellipse(22, 17, 12, 6, "#ffffff")
+  c.ellipse(22, 16, 9, 4, "#f8fafc")
+  // Carved wooden scoop resting in flour
+  c.poly([24, 15, 29, 13, 31, 16, 26, 18], P.oakL)
+  c.line(29, 13, 35, 10, P.oakHi, 2) // handle
+  
+  // Burlap wheat sack on right, bulging with flour and tied with rope
+  c.poly([34, 28, 44, 24, 52, 30, 42, 36], P.ink)
+  c.poly([34, 28, 42, 36, 40, 49, 32, 43], P.flour)
+  c.poly([42, 36, 52, 30, 50, 43, 40, 49], P.flourD)
+  // Tied neck & rope
+  c.ellipse(43, 27, 4, 3, P.oakD)
+  c.line(40, 28, 46, 28, P.gold, 1.5)
+  // Stenciled wheat ear emblem on sack
+  c.line(38, 38, 44, 34, P.oakD)
+  c.px(40, 36, P.gold); c.px(42, 35, P.gold)
+})
+
+// 7. Tiered Bread Cooling Rack Prop (3-tier slatted rack holding golden bread with steam)
+sprite("prop_bakery_cooling_rack_3q", { w: 54, h: 72 }, c => {
+  c.ellipse(27, 66, 23, 4, P.ink)
+  // Four sturdy oak corner posts
+  c.line(10, 18, 10, 64, P.oakD, 3); c.line(26, 10, 26, 56, P.oakD, 3)
+  c.line(44, 18, 44, 64, P.oak, 3); c.line(27, 26, 27, 68, P.oak, 3)
+  
+  // Tier 1 (Top slatted shelf at Y=24)
+  c.poly([10, 24, 26, 16, 44, 24, 27, 32], P.ink)
+  c.poly([11, 23, 26, 16, 43, 23, 27, 30], P.oakL)
+  // Slats
+  c.line(14, 23, 30, 30, P.oakD); c.line(20, 20, 36, 27, P.oakD)
+  // Fresh golden loaves on top shelf
+  c.ellipse(22, 21, 5, 3.5, "#d97706"); c.ellipse(32, 23, 6, 3, "#b45309")
+  c.px(21, 20, "#fef3c7"); c.px(31, 22, "#fef3c7")
+  
+  // Tier 2 (Middle slatted shelf at Y=42)
+  c.poly([10, 42, 26, 34, 44, 42, 27, 50], P.ink)
+  c.poly([11, 41, 26, 34, 43, 41, 27, 48], P.oakL)
+  c.line(14, 41, 30, 48, P.oakD); c.line(20, 38, 36, 45, P.oakD)
+  // Steaming hot baguettes & pretzels on middle shelf
+  c.ellipse(19, 39, 6, 3, "#ea580c"); c.ellipse(28, 40, 5, 3.5, "#d97706")
+  c.ellipse(37, 41, 4, 3, "#ca8a04") // pretzel
+  c.px(18, 38, "#fef08a"); c.px(27, 39, "#fef08a")
+  
+  // Tier 3 (Bottom slatted shelf at Y=60)
+  c.poly([10, 60, 26, 52, 44, 60, 27, 68], P.ink)
+  c.poly([11, 59, 26, 52, 43, 59, 27, 66], P.oak)
+  // Rising steam wisps (~ ~)
+  c.px(23, 14, "#ffffff"); c.px(33, 16, "#f8fafc")
+  c.px(24, 11, "#f1f5f9"); c.px(32, 13, "#f8fafc")
+})
+
+// 8. Baker's Stick / Peel Wall Rack Prop (The iconic long wooden peel)
+sprite("prop_bakery_peel_rack_3q", { w: 32, h: 56 }, c => {
+  // Wall peg rack
+  c.rect(6, 12, 18, 6, P.oakD)
+  c.hline(6, 12, 18, P.oakL)
+  c.px(10, 15, P.ironHi); c.px(20, 15, P.ironHi) // iron hooks
+  
+  // Long Baker's Peel Stick resting vertically against the wall
+  // Shaft from top to bottom
+  c.line(14, 4, 14, 48, P.oakM, 2)
+  c.line(13, 4, 13, 48, P.oakHi, 1) // highlight edge
+  // Broad paddle head at bottom
+  c.rect(9, 44, 12, 8, P.oakL)
+  c.hline(9, 44, 12, P.oakHi)
+  c.rect(10, 46, 10, 5, P.oakM)
+})
+
 // A scale-aware product shot: props share the Chibi Baker's ground plane and lighting direction.
 scene("bakery_living_props_3q_review", { w: 432, h: 232, bg: "#18202d" },
   layer("floor", c => {

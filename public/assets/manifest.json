@@ -766,5 +766,241 @@
  "tree_3": {
   "w": 16,
   "h": 24
+ },
+ "pxl_demo_symmetry": {
+  "w": 42,
+  "h": 38
+ },
+ "prop_sparrow": {
+  "w": 18,
+  "h": 16
+ },
+ "rook_part_boot": {
+  "w": 15,
+  "h": 9
+ },
+ "settler_baker_rig_65": {
+  "w": 50,
+  "h": 74
+ },
+ "rook_spec32": {
+  "w": 24,
+  "h": 32
+ },
+ "prop_copper_lantern": {
+  "w": 24,
+  "h": 38
+ },
+ "rook_part_shin": {
+  "w": 11,
+  "h": 16
+ },
+ "rook_part_torso": {
+  "w": 24,
+  "h": 25
+ },
+ "prop_stone_hearth": {
+  "w": 48,
+  "h": 52
+ },
+ "prop_bakery_peel_rack_3q": {
+  "w": 32,
+  "h": 56
+ },
+ "bakery_open_house_stage": {
+  "w": 420,
+  "h": 240
+ },
+ "settler_baker_semi_chibi": {
+  "w": 72,
+  "h": 92
+ },
+ "prop_bread_basket": {
+  "w": 28,
+  "h": 24
+ },
+ "prop_bakery_pretzel_sign_3q": {
+  "w": 48,
+  "h": 62
+ },
+ "prop_dough_table": {
+  "w": 40,
+  "h": 28
+ },
+ "rook_part_head": {
+  "w": 20,
+  "h": 23
+ },
+ "settler_baker_128_v2": {
+  "w": 74,
+  "h": 138
+ },
+ "pxl_demo_crate": {
+  "w": 40,
+  "h": 34
+ },
+ "pxl_demo_tree": {
+  "w": 44,
+  "h": 54
+ },
+ "prop_bread_crate_3q": {
+  "w": 50,
+  "h": 38
+ },
+ "prop_bakery_dough_table_3q": {
+  "w": 78,
+  "h": 58
+ },
+ "prop_bakery_hearth_3q": {
+  "w": 70,
+  "h": 72
+ },
+ "rook_spec64": {
+  "w": 48,
+  "h": 64
+ },
+ "prop_iron_lockbox": {
+  "w": 42,
+  "h": 32
+ },
+ "pxl_demo_crate_berry": {
+  "w": 40,
+  "h": 34
+ },
+ "rook_part_hand": {
+  "w": 9,
+  "h": 8
+ },
+ "settler_baker_chibi": {
+  "w": 68,
+  "h": 80
+ },
+ "rook_spec48": {
+  "w": 36,
+  "h": 48
+ },
+ "prop_bakery_flour_barrel_3q": {
+  "w": 56,
+  "h": 54
+ },
+ "b_hd128_bakery_complete": {
+  "w": 382,
+  "h": 422
+ },
+ "prop_bakery_cooling_rack_3q": {
+  "w": 54,
+  "h": 72
+ },
+ "prop_pretzel_sign": {
+  "w": 26,
+  "h": 30
+ },
+ "prop_bakery_sparrow_3q": {
+  "w": 34,
+  "h": 28
+ },
+ "t": {
+  "w": 16,
+  "h": 16
+ },
+ "rook_part_arm_upper": {
+  "w": 14,
+  "h": 15
+ },
+ "settler_baker_rig_128": {
+  "w": 86,
+  "h": 144
+ },
+ "rook_part_thigh": {
+  "w": 13,
+  "h": 17
+ },
+ "rook_part_forearm": {
+  "w": 13,
+  "h": 13
+ },
+ "prop_bakery_bread_basket_3q": {
+  "w": 50,
+  "h": 42
+ },
+ "anim_chibi_baker_aroma": {
+  "w": 624,
+  "h": 80
+ },
+ "bakery_open_house_profession_reel": {
+  "w": 40320,
+  "h": 240
+ },
+ "pxl_demo_fire": {
+  "w": 256,
+  "h": 38
+ },
+ "rook_kneel_reach_12": {
+  "w": 576,
+  "h": 64
+ },
+ "anim_chibi_baker_idle": {
+  "w": 544,
+  "h": 80
+ },
+ "anim_chibi_baker_pour": {
+  "w": 592,
+  "h": 80
+ },
+ "anim_chibi_baker_carry": {
+  "w": 544,
+  "h": 80
+ },
+ "rook_walk_16": {
+  "w": 768,
+  "h": 64
+ },
+ "prop_mini_forge_ember_12": {
+  "w": 432,
+  "h": 42
+ },
+ "anim_chibi_baker_oven": {
+  "w": 720,
+  "h": 80
+ },
+ "prop_lockbox_open_8": {
+  "w": 320,
+  "h": 34
+ },
+ "anim_chibi_baker_sneeze": {
+  "w": 760,
+  "h": 80
+ },
+ "anim_chibi_baker_scoop": {
+  "w": 592,
+  "h": 80
+ },
+ "anim_chibi_baker_peel_retrieve": {
+  "w": 736,
+  "h": 80
+ },
+ "rook_idle_12": {
+  "w": 576,
+  "h": 64
+ },
+ "anim_chibi_baker_knead": {
+  "w": 840,
+  "h": 80
+ },
+ "rook_hammer_attack_12": {
+  "w": 576,
+  "h": 64
+ },
+ "anim_chibi_baker_serve": {
+  "w": 592,
+  "h": 80
+ },
+ "anim_chibi_baker_shape": {
+  "w": 576,
+  "h": 80
+ },
+ "anim_chibi_baker_walk": {
+  "w": 544,
+  "h": 80
  }
 }

@@ -493,6 +493,63 @@ function chibiPose(kind, f, n) {
     P.handF = [-4.0, -16 - Math.sin(ph * 2) * 0.6]
     P.head = [0, -0.3 * Math.sin(ph * 2)]
   }
+
+  if (kind === "scoop") {
+    // 8-frame bending over flour barrel & scooping
+    const t = f / n
+    const dip = Math.sin(t * Math.PI)
+    P.lean = 0.6 + dip * 1.0
+    P.tilt = 0.12 + dip * 0.14
+    P.bob = dip * 1.5
+    P.head = [1.0, 1.2 + dip * 1.0]
+    P.handN = [5.0 + dip * 3.0, -15 + dip * 6.0]
+    P.handF = [-2.5 + dip * 2.0, -15 + dip * 6.0]
+  }
+
+  if (kind === "pour") {
+    // 8-frame holding pitcher and pouring water into mixing trough
+    const t = f / n
+    const tiltJug = Math.sin(t * Math.PI)
+    P.lean = 0.3
+    P.tilt = 0.08
+    P.head = [0.8, 1.0]
+    P.handN = [5.0, -18 + tiltJug * 2.5]
+    P.handF = [-1.5, -18 - tiltJug * 1.5]
+  }
+
+  if (kind === "shape") {
+    // 8-frame shaping dough & scoring diagonal baker marks
+    const t = f / n
+    const slash = Math.sin(t * Math.PI * 2)
+    P.lean = 0.35
+    P.tilt = 0.12
+    P.head = [0.9, 1.1]
+    P.handN = [5.5 + slash * 2.8, -16 + Math.abs(slash) * 1.8]
+    P.handF = [-2.5, -16]
+  }
+
+  if (kind === "peel_retrieve") {
+    // 8-frame sliding peel deep into oven and pulling out golden steaming bread
+    const t = f / n
+    const pull = 1.0 - Math.sin((t * 0.5 + 0.25) * Math.PI)
+    P.lean = pull * 1.5
+    P.bob = pull > 0.4 ? 1 : 0
+    P.footN = [3.2, 0]
+    P.footF = [-2.8, 0]
+    P.handN = [9.0 + pull * 8.0, -16]
+    P.handF = [-1.0 + pull * 8.0, -16]
+    P.head = [pull * 1.0, pull * 0.3]
+  }
+
+  if (kind === "serve") {
+    // 8-frame placing basket at front counter & ringing the brass shop bell
+    const ring = (f >= 2 && f <= 4)
+    P.bob = 0
+    P.lean = 0
+    P.head = [0, ring ? -1.0 : 0]
+    P.handN = [ring ? 6.5 : 4.5, ring ? -25 : -16]
+    P.handF = [-4.0, -16]
+  }
   
   return P
 }
@@ -776,6 +833,219 @@ anim("anim_chibi_baker_carry", { w: 66, h: 78, frames: 8, fps: 8, outline: "k" }
   // Crust slashes
   c.px(bX - 4, bY - 3, "#fef3c7")
   c.px(bX + 2, bY - 3, "#fef3c7")
+})
+
+// 8. Chibi Baker Scooping Flour from Barrel (8-frame dipping and lifting)
+anim("anim_chibi_baker_scoop", { w: 72, h: 78, frames: 8, fps: 6, outline: "k" }, (c) => {
+  const f = c.frame
+  const rScoop = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  drawSettlerBody(c, rScoop, chibiPose("scoop", f, 8), 34, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // Flour barrel on left
+  c.rect(10, 52, 18, 16, "#704825")
+  c.hline(9, 52, 20, "#2d3748") // iron hoop
+  c.hline(9, 64, 20, "#2d3748")
+  // Piled white flour inside
+  c.ellipse(19, 51, 8, 3.5, "#ffffff")
+  c.ellipse(19, 51, 6, 2.5, "#f1f5f9")
+  
+  // Wooden scoop dipping and lifting
+  const t = f / 8
+  const dip = Math.sin(t * Math.PI)
+  const scX = 18 + (1 - dip) * 8
+  const scY = 51 - (1 - dip) * 6
+  // Scoop paddle
+  c.rect(scX - 3, scY - 2, 7, 5, "#a36e3c")
+  c.hline(scX - 3, scY - 2, 7, "#d4a373")
+  // Flour in scoop
+  if (f >= 3) {
+    c.ellipse(scX, scY - 2, 3, 2, "#ffffff")
+    // Flour specks floating
+    c.px(scX - 2, scY - 4, "#ffffff")
+    c.px(scX + 3, scY - 3, "#ffffff")
+  }
+  // Scoop handle
+  c.line(scX + 3, scY + 1, scX + 9, scY + 3, "#704825", 2)
+  
+  // Arms holding scoop handle
+  const gx = scX + 8, gy = scY + 3
+  // Far arm
+  c.line(26, 38, gx - 3, gy - 2, "#dfd9eb", 3)
+  c.ellipse(gx - 3, gy - 2, 2.5, 2.2, "#e09367")
+  // Near arm
+  c.line(40, 38, gx, gy, "#f5f0fc", 3)
+  c.ellipse(gx, gy, 2.8, 2.4, "#e09367")
+})
+
+// 9. Chibi Baker Pouring Water & Salt (8-frame pitcher tilting)
+anim("anim_chibi_baker_pour", { w: 72, h: 78, frames: 8, fps: 6, outline: "k" }, (c) => {
+  const f = c.frame
+  const rPour = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  drawSettlerBody(c, rPour, chibiPose("pour", f, 8), 34, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // Oak Prep Table with mixing trough
+  c.rect(18, 56, 32, 14, "#704825")
+  c.hline(16, 56, 36, "#a36e3c")
+  // Clay mixing trough on table
+  c.rect(26, 52, 16, 6, "#9a3412")
+  c.ellipse(34, 52, 8, 3, "#ea580c")
+  c.ellipse(34, 52, 6, 2, "#ffffff") // flour well
+  
+  // Terracotta water pitcher held in hands
+  const t = f / 8
+  const tilt = Math.sin(t * Math.PI)
+  const jugX = 42 - tilt * 4
+  const jugY = 46 - tilt * 2
+  // Jug body
+  c.ellipse(jugX, jugY, 5, 6, "#c2410c")
+  c.ellipse(jugX, jugY - 2, 4, 3, "#ea580c")
+  c.rect(jugX - 2, jugY - 6, 4, 3, "#7c2d12") // neck
+  // Jug handle
+  c.line(jugX + 4, jugY - 4, jugX + 6, jugY + 2, "#7c2d12", 2)
+  
+  // Streaming water into dough well
+  if (f >= 2 && f <= 6) {
+    c.line(jugX - 2, jugY - 5, 34, 52, "#38bdf8", 1.5)
+    c.px(34, 51, "#7dd3fc"); c.px(35, 52, "#0284c7")
+  }
+  
+  // Baker arms gripping jug
+  c.line(28, 38, jugX - 3, jugY, "#dfd9eb", 3)
+  c.ellipse(jugX - 3, jugY, 2.5, 2.2, "#e09367")
+  c.line(40, 38, jugX + 3, jugY + 1, "#f5f0fc", 3)
+  c.ellipse(jugX + 3, jugY + 1, 2.8, 2.4, "#e09367")
+})
+
+// 10. Chibi Baker Shaping & Scoring Bread (8-frame blade slashing)
+anim("anim_chibi_baker_shape", { w: 70, h: 78, frames: 8, fps: 6, outline: "k" }, (c) => {
+  const f = c.frame
+  const rShape = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  drawSettlerBody(c, rShape, chibiPose("shape", f, 8), 34, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // Kneading table with formed boules
+  c.rect(18, 54, 32, 14, "#704825")
+  c.hline(16, 54, 36, "#a36e3c")
+  // Loaf 1: round boule
+  c.ellipse(26, 52, 6, 3.5, "#fef3c7")
+  c.ellipse(26, 51.5, 4.5, 2.2, "#fffbeb")
+  // Loaf 2: shaped baguette
+  c.ellipse(40, 52, 8, 3, "#fef3c7")
+  c.ellipse(40, 51.5, 6.5, 1.8, "#fffbeb")
+  
+  // Diagonal score marks on loaf 2
+  c.line(36, 51, 38, 53, "#d97706")
+  if (f >= 4) c.line(39, 51, 41, 53, "#d97706")
+  if (f >= 6) c.line(42, 51, 44, 53, "#d97706")
+  
+  // Left hand steadying the bread
+  c.line(26, 38, 26, 50, "#dfd9eb", 3)
+  c.ellipse(26, 50, 2.6, 2.2, "#e09367")
+  
+  // Right hand holding baker's lame (scoring blade)
+  const slash = Math.sin((f / 8) * Math.PI * 2)
+  const hx = 38 + slash * 4, hy = 48 + Math.abs(slash) * 2
+  c.line(41, 38, hx, hy - 3, "#f5f0fc", 3)
+  c.ellipse(hx, hy - 3, 2.8, 2.4, "#e09367")
+  // Shiny steel blade cutting dough
+  c.line(hx - 1, hy - 2, hx - 3, hy + 2, "#e2e8f0", 1.5)
+  c.px(hx - 2, hy, "#ffffff") // metallic flash
+})
+
+// 11. Chibi Baker Stone Oven Retrieve with Stick (8-frame pulling out hot loaves!)
+anim("anim_chibi_baker_peel_retrieve", { w: 90, h: 78, frames: 8, fps: 6, outline: "k" }, (c) => {
+  const rOven = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  const f = c.frame
+  // Pull stroke: thrust starts deep (f=0) and pulls out backwards (f=7)
+  const pull = 1.0 - (f / 7)
+  const thrust = Math.sin((pull * 0.5 + 0.25) * Math.PI)
+  
+  // Stone Hearth Oven on the right
+  c.rect(58, 30, 30, 44, "#4b5563")
+  c.rect(60, 28, 26, 4, "#6b7280")
+  c.rect(64, 18, 12, 12, "#374151") // chimney
+  c.ellipse(70 - (f % 4), 14 - f, 3 + (f % 3), 3 + (f % 3), "#e2e8f0")
+  
+  // Arched Oven Opening
+  c.rect(58, 46, 24, 26, "#1f2937")
+  c.ellipse(70, 46, 12, 12, "#1f2937")
+  // Glowing Hot Embers
+  const emberCol = f % 2 === 0 ? "#ea580c" : "#f97316"
+  const fireCol = f % 2 === 0 ? "#fbbf24" : "#f59e0b"
+  c.ellipse(70, 62, 9, 6, emberCol)
+  c.ellipse(70, 60, 6, 4, fireCol)
+  
+  // 1. Baker Body gripping the peel stick
+  drawSettlerBody(c, rOven, chibiPose("peel_retrieve", f, 8), 26, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // 2. Far Arm & Back Hand
+  const gx1 = 12 + thrust * 18
+  const gy1 = 54
+  c.line(20, 36, gx1, gy1 - 3, "#dfd9eb", 3)
+  c.rect(gx1 - 2, gy1 - 4, 4, 3, "#ffffff")
+  c.ellipse(gx1, gy1, 2.6, 2.2, "#e09367")
+  
+  // 3. Wooden Peel Stick (drawn with hot baked bread on the paddle!)
+  const paddleX = 42 + thrust * 18
+  c.line(gx1 - 6, 54, paddleX + 2, 54, "#85542a", 2)
+  c.hline(gx1 - 6, 53, (paddleX - gx1 + 8), "#a36e3c")
+  c.rect(paddleX, 51, 14, 6, "#d49959")
+  c.hline(paddleX, 53, 14, "#a36e3c")
+  
+  // Golden Hot Baked Loaves on Paddle!
+  c.ellipse(paddleX + 7, 49, 5.0, 3.0, "#d97706")
+  c.ellipse(paddleX + 7, 48.5, 3.5, 2.0, "#f59e0b")
+  c.line(paddleX + 5, 48, paddleX + 9, 48, "#78350f") // score marks
+  // Rising Steam Wisps from hot bread
+  const sY = 44 - (f % 4) * 2
+  c.px(paddleX + 6, sY, "#ffffff"); c.px(paddleX + 8, sY - 2, "#f1f5f9")
+  
+  // 4. Near Arm & Front Hand firmly gripping stick
+  const gx2 = 25 + thrust * 18
+  const gy2 = 54
+  c.line(30, 36, gx2, gy2 - 3, "#f5f0fc", 3)
+  c.rect(gx2 - 2, gy2 - 4, 4, 3, "#ffffff")
+  c.ellipse(gx2, gy2, 2.8, 2.4, "#e09367")
+  // Curled fingers wrapped over stick
+  c.rect(gx1 - 1, gy1 - 2, 4, 2, "#e09367")
+  c.rect(gx2 - 1, gy2 - 2, 4, 2, "#e09367")
+})
+
+// 12. Chibi Baker Serving at Front Counter & Ringing Bell (8-frame greeting)
+anim("anim_chibi_baker_serve", { w: 72, h: 78, frames: 8, fps: 6, outline: "k" }, (c) => {
+  const f = c.frame
+  const rServe = { ...R_CHIBI, prop: null, breadAtWaist: false }
+  drawSettlerBody(c, rServe, chibiPose("serve", f, 8), 34, 72, 1.15, { noNearArm: true, noFarArm: true })
+  
+  // Front Shop Service Counter
+  c.rect(14, 54, 44, 16, "#854d0e")
+  c.hline(12, 54, 48, "#a16207") // polished counter top
+  // Wicker bread basket overflowing with baguettes & pretzels
+  c.rect(18, 48, 18, 8, "#78350f")
+  c.ellipse(22, 46, 4, 3, "#d97706") // boule 1
+  c.ellipse(27, 45, 4, 3, "#b45309") // boule 2
+  c.ellipse(32, 46, 3, 4, "#ca8a04") // golden pretzel
+  
+  // Hanging Brass Service Bell on right post
+  c.vline(52, 24, 16, "#334155")
+  c.ellipse(52, 40, 5, 4, "#eab308")
+  c.px(52, 43, "#ca8a04") // clapper
+  
+  // Ring effect (*DING!*) on frames 2..4
+  if (f >= 2 && f <= 4) {
+    c.px(48, 38, "#fef08a"); c.px(56, 38, "#fef08a")
+    c.px(52, 34, "#ffffff")
+  }
+  
+  // Left arm resting comfortably on counter
+  c.line(26, 38, 20, 54, "#dfd9eb", 3)
+  c.ellipse(20, 54, 2.8, 2.2, "#e09367")
+  
+  // Right arm reaching up to tap bell (frames 2..4) or gesturing warmly (frames 5..7)
+  const isRing = (f >= 2 && f <= 4)
+  const rx = isRing ? 50 : 44
+  const ry = isRing ? 41 : 48
+  c.line(40, 38, rx, ry, "#f5f0fc", 3)
+  c.ellipse(rx, ry, 2.8, 2.4, "#e09367")
 })
 
 // =========================================================================

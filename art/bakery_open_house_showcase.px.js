@@ -121,44 +121,67 @@ sprite("bakery_open_house_stage", { w: 420, h: 240 }, c => {
 scene("bakery_open_house_review", { w: 420, h: 240, bg: "#9bb8ac" },
   layer("stage", stamp("bakery_open_house_stage",0,0)),
   layer("props",
+    stamp("prop_bakery_flour_barrel_3q",38,124),
     stamp("prop_bakery_hearth_3q",70,107),
     stamp("prop_bakery_dough_table_3q",128,126),
+    stamp("prop_bakery_peel_rack_3q",186,85),
+    stamp("prop_bakery_cooling_rack_3q",232,108),
     stamp("prop_bakery_bread_basket_3q",290,147),
     stamp("prop_bakery_pretzel_sign_3q",345,82),
     stamp("prop_bakery_sparrow_3q",259,178),
     stamp("settler_baker_chibi",205,121)
   ),
   layer("title", c => {
-    c.rect(0,0,420,31,"#241724"); c.text(12,7,"HARROW BAKERY · OPEN HOUSE","#fff0c6",{scale:2,gap:1})
-    c.text(12,21,"A COVERED WORK BAY BUILT FOR THE BAKER, THE PROPS AND THE STORY","#c9d0bd",{scale:1,gap:0})
+    c.rect(0,0,420,31,"#241724"); c.text(12,7,"HARROW BAKERY · LIVING WORKSHOP STAGE","#fff0c6",{scale:2,gap:1})
+    c.text(12,21,"PURPOSEFUL ARCHITECTURE · INTERACTIVE PROPS · CONTINUOUS WORKING LOOP","#c9d0bd",{scale:1,gap:0})
   })
 )
 
-// Nine-second guest-facing reel. Each beat uses the authored PXL character cycle in the same bay.
-anim("bakery_open_house_profession_reel", { w: 420, h: 240, frames: 112, fps: 12 }, c => {
+// Master 12-Beat Guest-Facing Reel: Continuous Loop Chain of Working (12 distinct animations)
+anim("bakery_open_house_profession_reel", { w: 420, h: 240, frames: 96, fps: 8 }, c => {
   c.stamp("bakery_open_house_stage",0,0)
+  c.stamp("prop_bakery_flour_barrel_3q",38,124)
   c.stamp("prop_bakery_hearth_3q",70,107)
   c.stamp("prop_bakery_dough_table_3q",128,126)
+  c.stamp("prop_bakery_peel_rack_3q",186,85)
+  c.stamp("prop_bakery_cooling_rack_3q",232,108)
   c.stamp("prop_bakery_bread_basket_3q",290,147)
   c.stamp("prop_bakery_pretzel_sign_3q",345,82)
   c.stamp("prop_bakery_sparrow_3q",259,178,{frame:0})
+  
+  // 12 distinct sequential animation beats around and inside the bakery house
   const beats = [
-    ["anim_chibi_baker_knead",12,156,94],
-    ["anim_chibi_baker_oven",8,136,94],
-    ["anim_chibi_baker_aroma",8,156,94],
-    ["anim_chibi_baker_sneeze",10,156,94],
-    ["anim_chibi_baker_carry",8,156,94],
-    ["anim_chibi_baker_walk",8,156,94],
-    ["anim_chibi_baker_idle",8,156,94],
+    ["anim_chibi_baker_scoop",8,46,96,"01  SCOOP PURE WHEAT FLOUR"],
+    ["anim_chibi_baker_pour",8,136,94,"02  POUR SPRING WATER & MIX"],
+    ["anim_chibi_baker_knead",12,136,94,"03  KNEAD THE DOUGH (2-HANDED)"],
+    ["anim_chibi_baker_shape",8,136,94,"04  SHAPE & SCORE ARTISAN LOAVES"],
+    ["anim_chibi_baker_oven",8,84,94,"05  PEEL STICK: LOAD INTO HEARTH"],
+    ["anim_chibi_baker_sneeze",10,136,94,"06  FLOUR-CLOUD SNEEZE (ACHOO!)"],
+    ["anim_chibi_baker_peel_retrieve",8,84,94,"07  PEEL STICK: RETRIEVE HOT BREAD"],
+    ["anim_chibi_baker_aroma",8,218,94,"08  BREATHE IN FRESH BREAD AROMA"],
+    ["anim_chibi_baker_carry",8,238,106,"09  CARRY BASKET TO STOREFRONT"],
+    ["anim_chibi_baker_serve",8,272,112,"10  SERVE AT COUNTER & RING BELL"],
+    ["anim_chibi_baker_walk",8,156,94,"11  RETURN TO WORKSHOP LANE"],
+    ["anim_chibi_baker_idle",8,136,94,"12  READY FOR THE NEXT BATCH"]
   ]
-  const framesPerBeat=16, beat=Math.min(beats.length-1,Math.floor(c.frame/framesPerBeat))
-  const [name,count,x,y]=beats[beat], local=c.frame%framesPerBeat
-  const f=Math.min(count-1,Math.floor(local*count/framesPerBeat))
-  c.stamp(name,x,y,{frame:f})
-  // brief warm oven pulse keeps the scene alive while the character changes tasks
-  const flick = (c.frame%8)<4
-  c.ellipse(82,166,4,2,flick?"#ffb438":"#ed681f")
-  c.text(12,7,"HARROW BAKERY · OPEN HOUSE","#fff0c6",{scale:2,gap:1})
-  const labels=["01  KNEAD THE DOUGH","02  LOAD THE HEARTH","03  BREATHE IN THE AROMA","04  FLOUR-CLOUD SNEEZE!","05  CARRY FRESH BREAD","06  WALK IT TO THE VILLAGE","07  READY FOR THE NEXT BATCH"]
-  c.rect(10,209,400,23,"#241724"); c.text(20,216,labels[beat],beat===3?"#f5c44e":"#fff0c6",{scale:2,gap:1})
+  
+  const framesPerBeat = 8
+  const beat = Math.min(beats.length - 1, Math.floor(c.frame / framesPerBeat))
+  const [name, count, x, y, label] = beats[beat]
+  const local = c.frame % framesPerBeat
+  const f = Math.min(count - 1, Math.floor(local * count / framesPerBeat))
+  c.stamp(name, x, y, { frame: f })
+  
+  // Living hearth glow pulse
+  const flick = (c.frame % 4) < 2
+  c.ellipse(82, 166, 4, 2, flick ? "#ffb438" : "#ed681f")
+  
+  // Header title
+  c.rect(0, 0, 420, 24, "#241724")
+  c.text(12, 6, "HARROW BAKERY · 12-ANIMATION WORK LOOP", "#fff0c6", { scale: 2, gap: 1 })
+  
+  // Bottom status ticker with step number and action description
+  c.rect(10, 209, 400, 23, "#241724")
+  const isSpecial = (beat === 5 || beat === 4 || beat === 6 || beat === 9)
+  c.text(20, 216, label, isSpecial ? "#f5c44e" : "#fff0c6", { scale: 2, gap: 1 })
 })
